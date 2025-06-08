@@ -45,7 +45,7 @@ const mat = {
         return result;
     },
 
-    translate : function(tx, ty) {
+    translate : function(tx, ty, tz) {
         return [
             1, 0, 0, tx,
             0, 1, 0, ty,
@@ -86,5 +86,32 @@ const mat = {
         //OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
 
         return this.multiply(this.multiply(this.rotateZ(rz), this.rotateY(ry)), this.rotateX(rx));
+    },
+
+    transpose: function(m) {
+        //returns the transpose of the 4x4 matrix m.
+        if(m.length != 16) {
+            console.log("error: can only transpose a 4x4 matrix");
+            return;
+        }
+
+        let result = new Array(16);
+        for(let row = 0; row < 4; row++) {
+            for(let col = 0; col < 4; col++) {
+                result[col * 4 + row] = m[row * 4 + col];
+            }
+        }
+        return result;
+    },
+    
+    projection : function() {
+        //Creates a projection matrix. 
+        //assuming display surface at relative camera coordinates (0, 0, 1);
+        return [
+            1, 0, 0, 0,
+            0, 1, 0, 0, 
+            0, 0, 1, 0,
+            0, 0, 1, 0
+        ];
     }
 };

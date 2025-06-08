@@ -1,4 +1,4 @@
-function createProgram(vShaderName, fShaderName) {
+function createProgram(gl, vShaderName, fShaderName) {
     //Creates WebGL program from the vertex and fragment shaders.
 
     //Use XMLHttpRequest to get shader source from server
@@ -7,14 +7,14 @@ function createProgram(vShaderName, fShaderName) {
     xhttp.onload = function() {
         vShaderSource = this.responseText;
     }
-    xhttp.open("GET", "shaders/vertexShader.vert", false);
+    xhttp.open("GET", vShaderName, false);
     xhttp.send();
 
     let fShaderSource;
     xhttp.onload = function() {
         fShaderSource = this.responseText;
     }
-    xhttp.open("GET", "shaders/fragmentShader.frag", false);
+    xhttp.open("GET", fShaderName, false);
     xhttp.send();
 
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vShaderSource);
