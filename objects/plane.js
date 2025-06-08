@@ -54,6 +54,11 @@ class Plane {
         return mat.transpose(mat.multiply(mat.translate(tx, ty, tz), mat.rotate(rx, ry, rz)));
     }
 
+    update() {
+        this.translate(0, 0, 0);
+        this.rotate(0.1, 0, 0.0);
+    }
+
     render(gl, cam) {
 
         gl.useProgram(this.program);

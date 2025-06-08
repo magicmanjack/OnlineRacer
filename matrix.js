@@ -106,12 +106,13 @@ const mat = {
     
     projection : function() {
         //Creates a projection matrix. 
-        //assuming display surface at relative camera coordinates (0, 0, 1);
+        //assuming display surface at relative camera coordinates (0, 0, -1).
+        //Camera points in the -z direction.
         return [
             1, 0, 0, 0,
             0, 1, 0, 0, 
-            0, 0, 1, 0,
-            0, 0, 1, 0
+            0, 0, -1, 0,
+            0, 0, -1, 0
         ];
     }
 };
