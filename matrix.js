@@ -7,6 +7,14 @@ const mat = {
             0, 0, 0, 1
         ];
     },
+    scale : function(x, y, z) {
+        return [
+            x, 0, 0, 0,
+            0, y, 0, 0,
+            0, 0, z, 0,
+            0, 0, 0, 1
+        ];
+    },
     multiply: function(a, b) {
         //Multiplies matrices a and b. (4x4)
         
@@ -104,15 +112,15 @@ const mat = {
         return result;
     },
     
-    projection : function() {
+    projection : function(width, height, zNear, zFar) {
         //Creates a projection matrix. 
-        //assuming display surface at relative camera coordinates (0, 0, -1).
-        //Camera points in the -z direction.
+        //width and height describe the dimensions of the zNear plane.
+        //zNear and zFar must be supplied as positive values.
         return [
-            1, 0, 0, 0,
-            0, 1, 0, 0, 
-            0, 0, -1, 0,
-            0, 0, -1, 0
+            2*zNear/width, 0,              0,                              0,
+            0,             2*zNear/height, 0,                              0, 
+            0,             0,              -(zFar + zNear)/(zFar - zNear), -2*zFar*zNear/(zFar-zNear),
+            0,             0,              -1,                             0
         ];
     }
 };

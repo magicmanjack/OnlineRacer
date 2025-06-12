@@ -4,8 +4,8 @@ const UPDATES_PER_SECOND = 30;
 const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
 
 let gl;
-let p;
-let camera = new Camera([0, 0, 1.0], [0, 0, 0]);
+let cube;
+let camera = new Camera([0, 0, 30.0], [0, 0, 0]); 
 
 if(glSetup()) {
     init();
@@ -20,16 +20,14 @@ function glSetup() {
     }
     
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.enable(gl.DEPTH_TEST);
     return true;
 }
 
 function init() {
-    p = new Plane(gl);
-    //p.rotate(Math.PI/4, 0, Math.PI/4);
-    p.rotate(Math.PI/4, Math.PI/4, 0);
-
-    p.translate(0, 0, 0.0);
-    
+    cube = new Cube(gl);
+    cube.translate(0, 0, -100);  
+    cube.scale(100, 100, 100);
     requestAnimationFrame(render);
 }
 
@@ -44,7 +42,7 @@ function update(timestamp) {
         while(delta >= 1) {
             //Process game updates
 
-            p.update();
+            cube.update();
 
             delta--;
         }
@@ -57,9 +55,9 @@ function render(timestamp) {
     update(timestamp);
 
     gl.clearColor(0.5, 0.5, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
-    p.render(gl, camera);
+    cube.render(gl, camera);
 
     requestAnimationFrame(render);
 }
