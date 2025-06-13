@@ -117,7 +117,7 @@ class Cube {
         gl.useProgram(this.program);
         gl.uniformMatrix4fv(this.modelLocation, false, this.model());
         gl.uniformMatrix4fv(this.viewLocation, false, cam.createView());
-        gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(10, 10, 5.0, 800)));
+        gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(50, 50, 50.0, 800)));
         gl.enableVertexAttribArray(this.positionAttribute);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 

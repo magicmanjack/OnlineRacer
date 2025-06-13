@@ -5,7 +5,7 @@ const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
 
 let gl;
 let cube;
-let camera = new Camera([0, 0, 30.0], [0, 0, 0]); 
+let camera = new Camera([0, 0, 60.0], [0, 0, 0]); 
 
 if(glSetup()) {
     init();
