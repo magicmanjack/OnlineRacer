@@ -1,4 +1,8 @@
 function loadModel(fileNames) {
+    /*
+        Note: indices defined for each mesh in a single file get wrapped around to zero.
+    */
+   
     // fetch the files to import
     return Promise.all (fileNames.map ((file) => fetch (file))).then ((responses) => {
         return Promise.all (responses.map ((res) => res.arrayBuffer ()));

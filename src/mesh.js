@@ -25,15 +25,18 @@ class Mesh {
     }
 
     #loadVertices(model) {
-        
-        this.#vertices = model.meshes[0].vertices;
-        
-        for(let i = 0; i < model.meshes[0].faces.length; i++) {
-            //converts array of [[1, 2, 3], [4, 5, 6]] to a 1D array.
-            for(let j = 0; j < 3; j++) {
-                this.#indices.push(model.meshes[0].faces[i][j]);
+        for(let i = 0; i < model.meshes.length; i++) {
+            this.#vertices = this.#vertices.concat(model.meshes[i].vertices);
+            
+            for(let j = 0; j < model.meshes[i].faces.length; j++) {
+                //converts array of [[1, 2, 3], [4, 5, 6]] to a 1D array.
+                for(let k = 0; k < 3; k++) {
+                    this.#indices.push(model.meshes[i].faces[j][k]);
+                }
             }
+            
         }
+        
         // Setting up vertex and indices array.
         this.#positionBuffer = gl.createBuffer();
         this.#indexBuffer = gl.createBuffer();
