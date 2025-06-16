@@ -4,7 +4,9 @@ const UPDATES_PER_SECOND = 30;
 const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
 
 let gl;
-let cube;
+
+let suzzane;
+
 let camera = new Camera([0, 0, 60.0], [0, 0, 0]); 
 
 if(glSetup()) {
@@ -25,9 +27,10 @@ function glSetup() {
 }
 
 function init() {
-    cube = new Cube(gl);
-    cube.translate(0, 0, -100);  
-    cube.scale(100, 100, 100);
+    suzzane = new Mesh(gl, ['models/suzzane.obj']);
+    suzzane.translate(0, 0, -100);  
+    suzzane.scale(40, 40, 40);
+
     requestAnimationFrame(render);
 }
 
@@ -41,8 +44,8 @@ function update(timestamp) {
         delta += (timestamp - lastTime) / MS_PER_UPDATE;
         while(delta >= 1) {
             //Process game updates
-
-            cube.update();
+            // Tristan was here 
+            suzzane.update();
 
             delta--;
         }
@@ -57,7 +60,7 @@ function render(timestamp) {
     gl.clearColor(0.5, 0.5, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
-    cube.render(gl, camera);
+    suzzane.render(gl, camera);
 
     requestAnimationFrame(render);
 }
