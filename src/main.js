@@ -27,9 +27,9 @@ function glSetup() {
 }
 
 function init() {
-    suzzane = new Mesh(gl, ['models/sonic.obj']);
+    suzzane = new Mesh(gl, ['models/cube.obj']);
     suzzane.translate(0, 0, -240);  
-    suzzane.scale(1.0, 1.0, 1.0);
+    suzzane.scale(50.0, 50.0, 50.0);
 
     requestAnimationFrame(render);
 }
