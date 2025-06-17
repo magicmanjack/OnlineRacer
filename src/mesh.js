@@ -26,6 +26,11 @@ class Mesh {
         
         //Compile shaders
         this.program = createProgram(gl, "shaders/textured.vert", "shaders/textured.frag");
+        
+        //Create vertex array object that stores this meshes rendering state.
+        this.ext = gl.getExtension("OES_vertex_array_object");
+        this.vao = this.ext.createVertexArrayOES();
+        
 
         //Getting variable locations.
         this.#modelLocation = gl.getUniformLocation(this.program, "u_model");
@@ -66,12 +71,24 @@ class Mesh {
         this.#textureCoordsBuffer = gl.createBuffer();
         this.#indexBuffer = gl.createBuffer();
 
+        this.ext.bindVertexArrayOES(this.vao);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.#positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#vertices), gl.STATIC_DRAW);
 
+        const size = 3;
+        const type = gl.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        const offset = 0;
+
+        gl.enableVertexAttribArray(this.#positionAttribute);
+        gl.vertexAttribPointer(this.#positionAttribute, size, type, normalize, stride, offset);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.#textureCoordsBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#textureCoords), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(this.#textureCoordLocation);
+        gl.vertexAttribPointer(this.#textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.#indices), gl.STATIC_DRAW);
@@ -106,7 +123,7 @@ class Mesh {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             }
-
+            
 
         })
 
@@ -157,24 +174,7 @@ class Mesh {
             gl.uniformMatrix4fv(this.#viewLocation, false, cam.createView());
             gl.uniformMatrix4fv(this.#projectionLocation, false, mat.transpose(mat.projection(50, 50, 50.0, 800)));
 
-            gl.enableVertexAttribArray(this.#positionAttribute);
-            gl.enableVertexAttribArray(this.#textureCoordLocation);
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.#positionBuffer);
-                const size = 3;
-                const type = gl.FLOAT;
-                const normalize = false;
-                const stride = 0;
-                const offset = 0;
-
-            gl.vertexAttribPointer(this.#positionAttribute, size, type, normalize, stride, offset);
-
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.#textureCoordsBuffer);
-            gl.vertexAttribPointer(this.#textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
-
+            this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.#texture);
             gl.drawElements(gl.TRIANGLES, this.#indices.length, gl.UNSIGNED_SHORT, 0);
         }
