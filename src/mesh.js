@@ -22,7 +22,7 @@ class Mesh {
     #canRender = false;
 
 
-    constructor(gl, modelFileNames) {
+    constructor(gl, modelFileNames, textureName="/textures/default.png") {
         
         //Compile shaders
         this.program = createProgram(gl, "shaders/textured.vert", "shaders/textured.frag");
@@ -34,7 +34,7 @@ class Mesh {
         this.#positionAttribute = gl.getAttribLocation(this.program, "a_position");
         this.#textureCoordLocation = gl.getAttribLocation(this.program, "a_texcoord");
 
-        Promise.all([loadModel(modelFileNames).then(this.loadVertices), this.loadTextureAsync('/textures/cubetexture.png')])
+        Promise.all([loadModel(modelFileNames).then(this.loadVertices), this.loadTextureAsync(textureName)])
         .then(() => {
             this.#canRender = true;
         });
@@ -69,9 +69,8 @@ class Mesh {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.#positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#vertices), gl.STATIC_DRAW);
 
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.#textureCoordsBuffer);
-        gl.enableVertexAttribArray(this.#textureCoordLocation);
-        gl.vertexAttribPointer(this.#textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.#textureCoords), gl.STATIC_DRAW);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
@@ -157,18 +156,26 @@ class Mesh {
             gl.uniformMatrix4fv(this.#modelLocation, false, this.model());
             gl.uniformMatrix4fv(this.#viewLocation, false, cam.createView());
             gl.uniformMatrix4fv(this.#projectionLocation, false, mat.transpose(mat.projection(50, 50, 50.0, 800)));
-            gl.enableVertexAttribArray(this.#positionAttribute);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.#positionBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
-            gl.bindTexture(gl.TEXTURE_2D, this.#texture);
 
-            const size = 3;
-            const type = gl.FLOAT;
-            const normalize = false;
-            const stride = 0;
-            const offset = 0;
+            gl.enableVertexAttribArray(this.#positionAttribute);
+            gl.enableVertexAttribArray(this.#textureCoordLocation);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.#positionBuffer);
+                const size = 3;
+                const type = gl.FLOAT;
+                const normalize = false;
+                const stride = 0;
+                const offset = 0;
 
             gl.vertexAttribPointer(this.#positionAttribute, size, type, normalize, stride, offset);
+
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.#textureCoordsBuffer);
+            gl.vertexAttribPointer(this.#textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
+
+            gl.bindTexture(gl.TEXTURE_2D, this.#texture);
             gl.drawElements(gl.TRIANGLES, this.#indices.length, gl.UNSIGNED_SHORT, 0);
         }
 
