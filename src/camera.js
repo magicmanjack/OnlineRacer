@@ -24,7 +24,7 @@ class Camera {
         let ir = [-r[0], -r[1], -r[2]];
         let it = [-t[0], -t[1], -t[2]];
 
-        return mat.transpose(mat.multiply(mat.rotate(ir[0], ir[1], ir[2]), mat.translate(it[0], it[1], it[2])));
-        //return mat.multiply(mat.rotate(ir[0], ir[1], ir[2]), mat.translate(it[0], it[1], it[2]));
+        return mat.multiply(mat.rotate(ir[0], ir[1], ir[2]), mat.translate(it[0], it[1], it[2]));
+        
     }
 }

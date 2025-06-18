@@ -23,22 +23,32 @@ function glSetup() {
     
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
     return true;
 }
 
 function init() {
-    block1 = new Mesh(gl, ['models/suzzane.obj']);
-    block1.translate(-50, 0, -240);  
-    block1.scale(100.0, 100.0, 100.0);
-    block2 = new Mesh(gl, ['models/cube.obj'], "textures/cubetexture.png");
+    block1 = new SceneNode();
+    block1.mesh = new Mesh(gl, ['models/suzzane.obj']);
+    block1.translate(0, 0, -400);  
+    block1.scaleBy(100.0, 100.0, 100.0);
+    sceneGraph.root.addChild(block1);
+    
+    /*
+    block2 = new SceneNode();
+    block2.mesh = new Mesh(gl, ['models/cube.obj'], "textures/cubetexture.png");
     block2.translate(100, 0, -300);
-    block2.scale(40.0, 40.0, 40.0);
-    tire = new Mesh(gl, ['models/wheel.obj'], "textures/wheel.png");
-    tire.translate(0, 0, -50);
-    tire.scale(30.0, 30.0, 30.0);
-    tire.update = function() {
-        this.rotate(0.03, -0.05, 0.0);
-    };
+    block2.scaleBy(40.0, 40.0, 40.0);
+    sceneGraph.root.addChild(block2);
+    */
+
+    tire = new SceneNode();
+    tire.mesh = new Mesh(gl, ['models/wheel.obj'], "textures/wheel.png");
+    tire.translate(0, 0, 2);
+    tire.rotate(Math.PI/2, 0, 0);
+    tire.scaleBy(1.0, 1.0, 1.0);
+    block1.addChild(tire);
+    
     requestAnimationFrame(render);
 }
 
@@ -52,10 +62,9 @@ function update(timestamp) {
         delta += (timestamp - lastTime) / MS_PER_UPDATE;
         while(delta >= 1) {
             //Process game updates
-            // Tristan was here 
-            block1.update();
-            block2.update();
-            tire.update();
+            block1.rotate(0, 0.1, 0);
+            tire.rotate(0, 0, -0.2);
+            sceneGraph.updateScene();
             delta--;
         }
         lastTime = timestamp;
@@ -69,9 +78,7 @@ function render(timestamp) {
     gl.clearColor(0.5, 0.5, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
-    block1.render(gl, camera);
-    block2.render(gl, camera);
-    tire.render(gl, camera);
+    sceneGraph.renderScene();
 
     requestAnimationFrame(render);
 }
