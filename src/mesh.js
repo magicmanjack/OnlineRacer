@@ -20,10 +20,10 @@ class Mesh {
     canRender = false;
 
 
-    constructor(gl, modelFileNames, textureName="/textures/default.png") {
+    constructor(modelFileNames, textureName="/textures/default.png") {
         
         //Compile shaders
-        this.program = createProgram(gl, "shaders/textured.vert", "shaders/textured.frag");
+        this.program = createProgram("shaders/textured.vert", "shaders/textured.frag");
         
         //Create vertex array object that stores this meshes rendering state.
         this.ext = gl.getExtension("OES_vertex_array_object");
@@ -127,13 +127,13 @@ class Mesh {
 
     };
 
-    render(gl, cam) {
+    render(cam) {
         
         if(this.canRender) {
             gl.useProgram(this.program);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));
-            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(50, 50, 50.0, 800)));
+            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(25, 25, 25, 2000)));
 
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);

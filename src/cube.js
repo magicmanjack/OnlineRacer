@@ -4,10 +4,10 @@ class Cube {
     #translation = [0, 0, 0];
     #scale = [0, 0, 0];
 
-    constructor(gl) {
+    constructor() {
         
         //Compile shaders
-        this.program = createProgram(gl, "shaders/vertexShader.vert", "shaders/fragmentShader.frag");
+        this.program = createProgram("shaders/vertexShader.vert", "shaders/fragmentShader.frag");
 
         //Getting variable locations.
         this.modelLocation = gl.getUniformLocation(this.program, "u_model");
@@ -112,7 +112,7 @@ class Cube {
         this.rotate(0.01, 0.005, 0.0);
     }
 
-    render(gl, cam) {
+    render(cam) {
 
         gl.useProgram(this.program);
         gl.uniformMatrix4fv(this.modelLocation, false, this.model());

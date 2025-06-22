@@ -27,6 +27,7 @@ class SceneNode {
     world;
 
     mesh;
+    update;
     
 
     constructor() {
@@ -78,23 +79,28 @@ class SceneNode {
         this.children.push(node);
     }
 
-    update() {
+    updateChildren() {
+
+        if(typeof this.update === "function") {
+            this.update();
+        }
+
         let local = this.calculateLocal();
         let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
         
         this.world = mat.multiply(parentWorld, local);
-        
+
         if(this.mesh) {
             this.mesh.model = this.world;
         }
 
-        this.children.forEach((child) => {child.update()});
+        this.children.forEach((child) => {child.updateChildren()});
         
     }
 
     render() {
         if(this.mesh) {
-            this.mesh.render(gl, camera);
+            this.mesh.render(camera);
         }
         this.children.forEach((child) => {child.render()});
     }
@@ -103,7 +109,7 @@ class SceneNode {
 const sceneGraph = {
     root : new SceneNode(),
     updateScene : function() {
-        this.root.update();
+        this.root.updateChildren();
     },
     renderScene : function() {
         this.root.render();

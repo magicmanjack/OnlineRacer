@@ -1,12 +1,12 @@
 class Plane {
 
-    constructor(gl) {
+    constructor() {
 
         this.rotation = [0, 0, 0];
         this.translation = [0, 0, 0];
         
         //Compile shaders
-        this.program = createProgram(gl, "shaders/vertexShader.vert", "shaders/fragmentShader.frag");
+        this.program = createProgram("shaders/vertexShader.vert", "shaders/fragmentShader.frag");
 
         //Getting variable locations.
         this.modelLocation = gl.getUniformLocation(this.program, "u_model");
@@ -54,12 +54,7 @@ class Plane {
         return mat.transpose(mat.multiply(mat.translate(tx, ty, tz), mat.rotate(rx, ry, rz)));
     }
 
-    update() {
-        this.translate(0, 0, 0);
-        this.rotate(0.1, 0, 0.0);
-    }
-
-    render(gl, cam) {
+    render(cam) {
 
         gl.useProgram(this.program);
         gl.uniformMatrix4fv(this.modelLocation, false, this.model());

@@ -1,4 +1,4 @@
-function createProgram(gl, vShaderName, fShaderName) {
+function createProgram(vShaderName, fShaderName) {
     //Creates WebGL program from the vertex and fragment shaders.
 
     //Use XMLHttpRequest to get shader source from server
@@ -17,8 +17,8 @@ function createProgram(gl, vShaderName, fShaderName) {
     xhttp.open("GET", fShaderName, false);
     xhttp.send();
 
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fShaderSource);
+    const vertexShader = createShader(gl.VERTEX_SHADER, vShaderSource);
+    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fShaderSource);
 
     const program = gl.createProgram();
     gl.attachShader(program, vertexShader);
@@ -32,7 +32,7 @@ function createProgram(gl, vShaderName, fShaderName) {
     gl.deleteProgram(program);
 }
 
-function createShader(gl, type, source) {
+function createShader(type, source) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
