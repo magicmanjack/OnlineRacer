@@ -15,30 +15,10 @@ const mat = {
             0, 0, 0, 1
         ];
     },
-    scaleVec: function (a, v) {
-        if (v.length != 3) {
-            console.log("Improper vector scaling: can only have 3x1");
-            return;
-        }
-        return [a * v[0], a * v[1], a * v[2]];
-    },
-    add: function (a, b) {
-        if (a.length != 3 || b.length != 3) {
-            console.log("Improper vector addition: can only have 3x1");
-            return;
-        }
-        return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-    },
-    subtract: function (a, b) {
-        if (a.length != 3 || b.length != 3) {
-            console.log("Improper vector subtraction: can only have 3x1");
-            return;
-        }
-        return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-    },
     multiply: function (a, b) {
-        //Multiplies matrices a and b. (4x4)
-
+        /*
+        Multiplies matrices a and b. (4x4)
+        */
         if (a.length != 16 || b.length != 16) {
             console.log("Can only multiply (4x4)*(4x4)");
             return;
@@ -58,16 +38,19 @@ const mat = {
 
     },
     multiplyVec: function (m, x) {
-        //multiplies vector x by matrix m. Only for (4x4) * (4*1).
-        if (m.length != 16 || x.length != 4) {
-            console.log("Must multiply only (4x4) * (4x1)");
+        /*
+            Multiplies any size square matrix m with a vector x.
+        */
+        if (Math.sqrt(m.length) != x.length) {
+            console.log("Must multiply only a square matrix with a vector such that the rows of the matrix match the columns of the vector.");
             return;
         }
 
-        let result = new Array(4).fill(0);
+        let result = [];
 
-        for (let row = 0; row < 4; row++) {
-            for (let index = 0; index < 4; index++) {
+        for (let row = 0; row < Math.sqrt(m.length); row++) {
+            result.push(0);
+            for (let index = 0; index < Math.sqrt(m.length); index++) {
                 result[row] += m[row * 4 + index] * x[index];
             }
         }
@@ -144,4 +127,107 @@ const mat = {
             0, 0, -1, 0
         ];
     }
+};
+
+const mat3x3 = {
+    /*
+        Similiar to mat class above but for 3x3 matrix operations.
+    */
+   multiply: function (a, b) {
+        /*
+        Multiplies matrices a and b. (4x4)
+        */
+        if (a.length != 9 || b.length != 9) {
+            console.log("Can only multiply (3x3)*(3x3)");
+            return;
+        }
+
+        let result = new Array(9).fill(0);
+
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
+                for (let index = 0; index < 3; index++) {
+                    result[row * 3 + col] += a[row * 3 + index] * b[index * 3 + col];
+                }
+            }
+        }
+
+        return result;
+
+    },
+    multiplyVec: function (m, x) {
+        /*
+            Multiplies any size square matrix m with a vector x.
+        */
+        if (Math.sqrt(m.length) != x.length) {
+            console.log("Must multiply only a square matrix with a vector such that the rows of the matrix match the columns of the vector.");
+            return;
+        }
+
+        let result = [];
+
+        for (let row = 0; row < Math.sqrt(m.length); row++) {
+            result.push(0);
+            for (let index = 0; index < Math.sqrt(m.length); index++) {
+                result[row] += m[row * 3 + index] * x[index];
+            }
+        }
+        return result;
+    },
+
+    rotateX: function (rx) {
+        return [
+            1, 0, 0,
+            0, Math.cos(rx), -Math.sin(rx),
+            0, Math.sin(rx), Math.cos(rx)
+        ];
+    },
+    rotateY: function (ry) {
+        return [
+            Math.cos(ry), 0, Math.sin(ry),
+            0, 1, 0,
+            -Math.sin(ry), 0, Math.cos(ry),
+        ];
+    },
+    rotateZ: function (rz) {
+        return [
+            Math.cos(rz), -Math.sin(rz), 0,
+            Math.sin(rz), Math.cos(rz), 0,
+            0, 0, 1,
+        ]
+    },
+    rotate: function (rx, ry, rz) {
+        //creates rotation matrix that rotates anticlockwise about x then y, then z.
+        //OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
+
+        return this.multiply(this.multiply(this.rotateZ(rz), this.rotateY(ry)), this.rotateX(rx));
+    },
+
+};
+
+const vec = {
+    /*
+        defines vector operations.
+    */
+    scale: function (a, v) {
+        if (v.length != 3) {
+            console.log("Improper vector scaling: can only have 3x1");
+            return;
+        }
+        return [a * v[0], a * v[1], a * v[2]];
+    },
+    add: function (a, b) {
+        if (a.length != 3 || b.length != 3) {
+            console.log("Improper vector addition: can only have 3x1");
+            return;
+        }
+        return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+    },
+    subtract: function (a, b) {
+        if (a.length != 3 || b.length != 3) {
+            console.log("Improper vector subtraction: can only have 3x1");
+            return;
+        }
+        return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+    },
 };

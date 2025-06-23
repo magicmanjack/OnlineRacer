@@ -11,9 +11,6 @@ let tire;
 const startWidth = 25;
 const startHeight = 25;
 
-let width = startWidth;
-let height = startHeight;
-
 const gravity = -0.1;
 
 function init() {
@@ -57,8 +54,10 @@ function init() {
     }
 
     camera.translate(0, 10, 0);
+    camera.displayWidth = startWidth;
+    camera.displayHeight = startHeight;
     tire = new SceneNode();
-    tire.scaleBy(5, 5, 5);
+    tire.scaleBy(3, 3, 3);
     tire.translate(0, 100, -50);
     tire.rotate(Math.PI / 2, 0, 0);
 
@@ -89,27 +88,23 @@ function init() {
             tire.rotate(0, rotateSpeed, 0);
             tireRotationY += rotateSpeed;
 
-            tireDirection.push(1)
-            tireDirection = mat.multiplyVec(mat.rotate(0, rotateSpeed, 0), tireDirection)
-            tireDirection.pop()
+            tireDirection = mat3x3.multiplyVec(mat3x3.rotate(0, rotateSpeed, 0), tireDirection)
         }
         if (input.right && Math.abs(velocity) > 0.5) {
             tire.rotate(0, -rotateSpeed, 0);
             tireRotationY -= rotateSpeed;
 
-            tireDirection.push(1)
-            tireDirection = mat.multiplyVec(mat.rotate(0, -rotateSpeed, 0), tireDirection)
-            tireDirection.pop()
+            tireDirection = mat3x3.multiplyVec(mat3x3.rotate(0, -rotateSpeed, 0), tireDirection)
         }
 
         let rotationDiff = tireRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         camera.rotate(0, cameraRotationStep, 0);
-        cameraDisp = mat.subtract(camera.translation, tire.translation)
-        cameraDisp.push(1)
-        newPos = mat.multiplyVec(mat.rotate(0, cameraRotationStep, 0), cameraDisp);
-        newPos.pop();
-        camera.translation = mat.add(newPos, tire.translation)
+        cameraDisp = vec.subtract(camera.translation, tire.translation)
+
+        newPos = mat3x3.multiplyVec(mat3x3.rotate(0, cameraRotationStep, 0), cameraDisp);
+
+        camera.translation = vec.add(newPos, tire.translation)
 
         cameraRotationY += cameraRotationStep;
 
@@ -134,7 +129,7 @@ function init() {
             rotateSpeed = maxRotateSpeed * rotateSpeedFunction(velocity);
         }
 
-        let newTireDirection = mat.scaleVec(velocity, tireDirection);
+        let newTireDirection = vec.scale(velocity, tireDirection);
         tireYVelocity = tireYVelocity + gravity;
 
         let newY = tire.translation[1] + tireYVelocity;
@@ -156,10 +151,10 @@ function init() {
             velocity = 0;
         }
 
-        width = startWidth + velocity * 0.5;
-        height = startHeight + velocity * 0.5;
+        camera.displayWidth = startWidth + velocity * 0.5;
+        camera.displayHeight = startHeight + velocity * 0.5;
     };
-    tire.mesh = new Mesh(["models/wheel.obj"], "textures/wheel.png");
+    tire.mesh = new Mesh(["models/car.obj"], "textures/car.png");
 
     ground = new SceneNode();
     ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");

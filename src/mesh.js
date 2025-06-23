@@ -133,7 +133,7 @@ class Mesh {
             gl.useProgram(this.program);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));
-            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(width, height, 25, 2000)));
+            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
 
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
