@@ -20,15 +20,15 @@ class Mesh {
     canRender = false;
 
 
-    constructor(modelFileNames, textureName="/textures/default.png") {
-        
+    constructor(modelFileNames, textureName = "/textures/default.png") {
+
         //Compile shaders
         this.program = createProgram("shaders/textured.vert", "shaders/textured.frag");
-        
+
         //Create vertex array object that stores this meshes rendering state.
         this.ext = gl.getExtension("OES_vertex_array_object");
         this.vao = this.ext.createVertexArrayOES();
-        
+
 
         //Getting variable locations.
         this.modelLocation = gl.getUniformLocation(this.program, "u_model");
@@ -38,11 +38,11 @@ class Mesh {
         this.textureCoordLocation = gl.getAttribLocation(this.program, "a_texcoord");
 
         Promise.all([loadModel(modelFileNames).then(this.loadVertices), this.loadTextureAsync(textureName)])
-        .then(() => {
-            this.canRender = true;
-        });
-        
-        
+            .then(() => {
+                this.canRender = true;
+            });
+
+
     }
 
     loadVertices = (model) => {
@@ -51,19 +51,19 @@ class Mesh {
         */
 
         //console.log(JSON.stringify(model));
-        for(let i = 0; i < model.meshes.length; i++) {
+        for (let i = 0; i < model.meshes.length; i++) {
             this.vertices = this.vertices.concat(model.meshes[i].vertices);
             this.textureCoords = model.meshes[i].texturecoords[0];
 
-            for(let j = 0; j < model.meshes[i].faces.length; j++) {
+            for (let j = 0; j < model.meshes[i].faces.length; j++) {
                 //converts array of [[1, 2, 3], [4, 5, 6]] to a 1D array.
-                for(let k = 0; k < 3; k++) {
+                for (let k = 0; k < 3; k++) {
                     this.indices.push(model.meshes[i].faces[j][k]);
                 }
             }
 
         }
-        
+
         // Setting up vertex, textcoords, and indices array.
         this.positionBuffer = gl.createBuffer();
         this.textureCoordsBuffer = gl.createBuffer();
@@ -94,8 +94,8 @@ class Mesh {
     };
 
     loadTextureAsync = (textureName) => {
-        
-        return new Promise( (resolve, reject) => {
+
+        return new Promise((resolve, reject) => {
             let img = new Image();
             img.src = textureName;
             img.onload = () => resolve(img);
@@ -106,14 +106,14 @@ class Mesh {
             //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
 
             //Need to the y-axis in the src data because textures are stored internally flipped vertically.
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); 
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-            
+
             const isPowOf2 = (value) => (value & (value - 1)) === 0;
 
-            if(isPowOf2(img.width) && isPowOf2(img.height)) {
+            if (isPowOf2(img.width) && isPowOf2(img.height)) {
                 //Can use mipmapping.
-                 gl.generateMipmap(gl.TEXTURE_2D);
+                gl.generateMipmap(gl.TEXTURE_2D);
             } else {
                 //Cannot use mipmapping and can only use clamp to edge and nearest or linear filtering.
 
@@ -121,19 +121,19 @@ class Mesh {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             }
-            
+
 
         });
 
     };
 
     render(cam) {
-        
-        if(this.canRender) {
+
+        if (this.canRender) {
             gl.useProgram(this.program);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));
-            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(25, 25, 25, 2000)));
+            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(width, height, 25, 2000)));
 
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
