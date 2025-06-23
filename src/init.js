@@ -6,7 +6,7 @@ origin bottom left.
 */
 let camera = new Camera([0, 10, 15], [0, 0, 0]);
 
-let tire;
+let car;
 
 const startWidth = 25;
 const startHeight = 25;
@@ -56,22 +56,22 @@ function init() {
     camera.translate(0, 10, 0);
     camera.displayWidth = startWidth;
     camera.displayHeight = startHeight;
-    tire = new SceneNode();
-    tire.scaleBy(3, 3, 3);
-    tire.translate(0, 100, -50);
-    tire.rotate(Math.PI / 2, 0, 0);
+    car = new SceneNode();
+    car.scaleBy(3, 3, 3);
+    car.translate(0, 100, -50);
+    car.rotate(Math.PI / 2, 0, 0);
 
-    let tireDirection = [0, 0, -1];
+    let carDirection = [0, 0, -1];
     let velocity = 0;
-    let tireYVelocity = 0;
+    let carYVelocity = 0;
     let rotateSpeed = 0;
     let maxRotateSpeed = 0.05;
 
-    let tireRotationY = 0;
+    let carRotationY = 0;
     let cameraRotationY = 0;
     let cameraLagFactor = 0.1;
 
-    tire.update = () => {
+    car.update = () => {
         if (input.up) {
             velocity += 0.4;
             if (velocity > 17) {
@@ -85,26 +85,26 @@ function init() {
             }
         }
         if (input.left && Math.abs(velocity) > 0.5) {
-            tire.rotate(0, rotateSpeed, 0);
-            tireRotationY += rotateSpeed;
+            car.rotate(0, rotateSpeed, 0);
+            carRotationY += rotateSpeed;
 
-            tireDirection = mat3x3.multiplyVec(mat3x3.rotate(0, rotateSpeed, 0), tireDirection)
+            carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, rotateSpeed, 0), carDirection)
         }
         if (input.right && Math.abs(velocity) > 0.5) {
-            tire.rotate(0, -rotateSpeed, 0);
-            tireRotationY -= rotateSpeed;
+            car.rotate(0, -rotateSpeed, 0);
+            carRotationY -= rotateSpeed;
 
-            tireDirection = mat3x3.multiplyVec(mat3x3.rotate(0, -rotateSpeed, 0), tireDirection)
+            carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, -rotateSpeed, 0), carDirection)
         }
 
-        let rotationDiff = tireRotationY - cameraRotationY;
+        let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         camera.rotate(0, cameraRotationStep, 0);
-        cameraDisp = vec.subtract(camera.translation, tire.translation)
+        cameraDisp = vec.subtract(camera.translation, car.translation)
 
         newPos = mat3x3.multiplyVec(mat3x3.rotate(0, cameraRotationStep, 0), cameraDisp);
 
-        camera.translation = vec.add(newPos, tire.translation)
+        camera.translation = vec.add(newPos, car.translation)
 
         cameraRotationY += cameraRotationStep;
 
@@ -129,23 +129,23 @@ function init() {
             rotateSpeed = maxRotateSpeed * rotateSpeedFunction(velocity);
         }
 
-        let newTireDirection = vec.scale(velocity, tireDirection);
-        tireYVelocity = tireYVelocity + gravity;
+        let newcarDirection = vec.scale(velocity, carDirection);
+        carYVelocity = carYVelocity + gravity;
 
-        let newY = tire.translation[1] + tireYVelocity;
+        let newY = car.translation[1] + carYVelocity;
         if (newY < 0) {
             newY = 0;
-            tireYVelocity = 0;
+            carYVelocity = 0;
         }
 
-        let proposedPosition = [tire.translation[0] + newTireDirection[0], newY, tire.translation[2] + newTireDirection[2]];
+        let proposedPosition = [car.translation[0] + newcarDirection[0], newY, car.translation[2] + newcarDirection[2]];
 
-        let tireScale = [5, 5, 5];
+        let carScale = [6, 3, 10];
         let cubeScale = [10, 10, 10];
 
-        if (!checkAABBCollision(proposedPosition, tireScale, cube.translation, cubeScale)) {
-            tire.translate(newTireDirection[0], tireYVelocity, newTireDirection[2]);
-            camera.translate(newTireDirection[0], newTireDirection[1], newTireDirection[2]);
+        if (!checkAABBCollision(proposedPosition, carScale, cube.translation, cubeScale)) {
+            car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
+            camera.translate(newcarDirection[0], newcarDirection[1], newcarDirection[2]);
         }
         else {
             velocity = 0;
@@ -154,7 +154,7 @@ function init() {
         camera.displayWidth = startWidth + velocity * 0.5;
         camera.displayHeight = startHeight + velocity * 0.5;
     };
-    tire.mesh = new Mesh(["models/car.obj"], "textures/car.png");
+    car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
 
     ground = new SceneNode();
     ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");
@@ -166,7 +166,7 @@ function init() {
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
 
-    sceneGraph.root.addChild(tire);
+    sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
 }
