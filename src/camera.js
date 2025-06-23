@@ -1,7 +1,12 @@
 class Camera {
+
     constructor(translation, rotation) {
         this.translation = translation;
         this.rotation = rotation;
+        this.displayWidth = 25;
+        this.displayHeight = 25;
+        this.zNear = 25;
+        this.zFar = 2000;
     }
 
     translate(tx, ty, tz) {
