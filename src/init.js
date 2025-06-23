@@ -17,6 +17,45 @@ let height = startHeight;
 const gravity = -0.1;
 
 function init() {
+
+    function checkAABBCollision(aPos, aScale, bPos, bScale) {
+        let aMin = [
+            aPos[0] - aScale[0],
+            aPos[1] - aScale[1],
+            aPos[2] - aScale[2]
+        ];
+        let aMax = [
+            aPos[0] + aScale[0],
+            aPos[1] + aScale[1],
+            aPos[2] + aScale[2]
+        ];
+
+        let bMin = [
+            bPos[0] - bScale[0],
+            bPos[1] - bScale[1],
+            bPos[2] - bScale[2]
+        ];
+        let bMax = [
+            bPos[0] + bScale[0],
+            bPos[1] + bScale[1],
+            bPos[2] + bScale[2]
+        ];
+
+        return (
+            aMin[0] <= bMax[0] &&
+            aMax[0] >= bMin[0] &&
+            aMin[1] <= bMax[1] &&
+            aMax[1] >= bMin[1] &&
+            aMin[2] <= bMax[2] &&
+            aMax[2] >= bMin[2]
+        );
+    }
+
+    function rotateSpeedFunction(x) {
+        return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
+            -1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9) / 0.12222;
+    }
+
     camera.translate(0, 10, 0);
     tire = new SceneNode();
     tire.scaleBy(5, 5, 5);
@@ -32,11 +71,6 @@ function init() {
     let tireRotationY = 0;
     let cameraRotationY = 0;
     let cameraLagFactor = 0.1;
-
-    function rotateSpeedFunction(x) {
-        return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
-            -1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9) / 0.12222;
-    }
 
     tire.update = () => {
         if (input.up) {
@@ -102,11 +136,24 @@ function init() {
 
         let newTireDirection = mat.scaleVec(velocity, tireDirection);
         tireYVelocity = tireYVelocity + gravity;
-        tire.translate(newTireDirection[0], tireYVelocity, newTireDirection[2]);
-        camera.translate(newTireDirection[0], newTireDirection[1], newTireDirection[2]);
 
-        if (tire.translation[1] < 0) {
-            tire.translation = [tire.translation[0], 0, tire.translation[2]]
+        let newY = tire.translation[1] + tireYVelocity;
+        if (newY < 0) {
+            newY = 0;
+            tireYVelocity = 0;
+        }
+
+        let proposedPosition = [tire.translation[0] + newTireDirection[0], newY, tire.translation[2] + newTireDirection[2]];
+
+        let tireScale = [5, 5, 5];
+        let cubeScale = [10, 10, 10];
+
+        if (!checkAABBCollision(proposedPosition, tireScale, cube.translation, cubeScale)) {
+            tire.translate(newTireDirection[0], tireYVelocity, newTireDirection[2]);
+            camera.translate(newTireDirection[0], newTireDirection[1], newTireDirection[2]);
+        }
+        else {
+            velocity = 0;
         }
 
         width = startWidth + velocity * 0.5;
@@ -116,9 +163,15 @@ function init() {
 
     ground = new SceneNode();
     ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");
-    ground.translate(0, -15, -50);
+    ground.translate(0, -5, -50);
     ground.scaleBy(500, 500, 500);
+
+    cube = new SceneNode();
+    cube.mesh = new Mesh(["models/cube.obj"], "textures/cubetexture.png");
+    cube.translate(0, 5, -100);
+    cube.scaleBy(10, 10, 10);
 
     sceneGraph.root.addChild(tire);
     sceneGraph.root.addChild(ground);
+    sceneGraph.root.addChild(cube);
 }
