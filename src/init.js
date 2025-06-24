@@ -59,7 +59,7 @@ function init() {
     car = new SceneNode();
     car.scaleBy(3, 3, 3);
     car.translate(0, 100, -50);
-    car.rotate(Math.PI / 2, 0, 0);
+    car.rotate(0, Math.PI, 0);
 
     let carDirection = [0, 0, -1];
     let velocity = 0;
@@ -71,12 +71,12 @@ function init() {
     let cameraRotationY = 0;
     let cameraLagFactor = 0.1;
 
+    let terminalVelocity = 17;
+    let boostTimer = 0;
+
     car.update = () => {
         if (input.up) {
             velocity += 0.4;
-            if (velocity > 17) {
-                velocity = 17;
-            }
         }
         if (input.down) {
             velocity -= 0.6;
@@ -114,6 +114,9 @@ function init() {
             if (velocity < 0) {
                 velocity = 0;
             }
+            if (velocity > terminalVelocity) {
+                velocity -= 0.5;
+            }
         }
         if (velocity < 0) {
             cameraLagFactor = 0.3;
@@ -142,6 +145,7 @@ function init() {
 
         let carScale = [6, 3, 10];
         let cubeScale = [10, 10, 10];
+        let rampScale = [10, 2, 10];
 
         if (!checkAABBCollision(proposedPosition, carScale, cube.translation, cubeScale)) {
             car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
@@ -149,6 +153,37 @@ function init() {
         }
         else {
             velocity = 0;
+        }
+
+        if (!checkAABBCollision(proposedPosition, carScale, ramp.translation, rampScale)) {
+            car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
+            camera.translate(newcarDirection[0], newcarDirection[1], newcarDirection[2]);
+        }
+        else {
+            carYVelocity += velocity / 4;
+            if (carYVelocity > 2) {
+                carYVelocity = 2;
+            }
+
+            // logic for boost pads:
+            // velocity += 0.5;
+            // terminalVelocity = 25;
+            // boostTimer = 1;
+
+            car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
+            camera.translate(newcarDirection[0], newcarDirection[1], newcarDirection[2]);
+        }
+
+        // logic for boost pads:
+        if (boostTimer > 0) {
+            if (velocity < 25) {
+                velocity += 0.5;
+            }
+            boostTimer += 1;
+            if (boostTimer >= 60) {
+                boostTimer = 0;
+                terminalVelocity = 17;
+            }
         }
 
         camera.displayWidth = startWidth + velocity * 0.5;
@@ -166,7 +201,13 @@ function init() {
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
 
+    ramp = new SceneNode();
+    ramp.mesh = new Mesh(["models/ramp.obj"]);
+    ramp.translate(50, -5, -100);
+    ramp.scaleBy(10, 2, 10);
+
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
+    sceneGraph.root.addChild(ramp);
 }
