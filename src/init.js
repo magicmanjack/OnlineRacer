@@ -7,11 +7,64 @@ origin bottom left.
 let camera = new Camera([0, 10, 15], [0, 0, 0]);
 
 let car;
+let playerID;
+let networkCars = new Map();
 
 const startWidth = 25;
 const startHeight = 25;
 
 const gravity = -0.1;
+
+Client.onOpen = (e) => {
+    const msg = {
+        type: "get_unique_id",
+    };
+    Client.webSocket.send(JSON.stringify(msg));
+};
+
+Client.onMessage = (e) => {
+    const msg = JSON.parse(e.data);
+    switch(msg.type) {
+        case "set_id":
+            playerID = msg.id;
+            Client.webSocket.send(JSON.stringify({
+                type:"add_player",
+                player:{
+                    id:playerID,
+                    translation: car.translation,
+                    rotation: car.rotation,
+                    scale: car.scale
+                }
+            }));
+            break;
+        case "add_player" :{
+            //attach player node to scene root.
+            let p = new SceneNode();
+            p.translation = msg.player.translation;
+            p.rotation = msg.player.rotation;
+            p.scale = msg.player.scale;
+            p.mesh = new Mesh(['models/car.obj'], 'textures/car.png');
+            sceneGraph.root.addChild(p);
+            
+            networkCars.set(msg.player.id, p);
+
+            break;
+        }
+        case "player_update":{
+            const c = networkCars.get(msg.player.id);
+            c.translation = msg.player.translation;
+            c.rotation = msg.player.rotation;
+            c.scale = msg.player.scale;
+
+            break;
+        }
+        case "remove_player": {
+            networkCars.get(msg.id).remove();
+            networkCars.set(msg.id, null);
+            break;
+        }
+    }
+};
 
 function init() {
 
@@ -188,6 +241,20 @@ function init() {
 
         camera.displayWidth = startWidth + velocity * 0.5;
         camera.displayHeight = startHeight + velocity * 0.5;
+
+        if(Client.connected) {
+            const msg = {
+                type:"player_update",
+                player:{
+                    translation: car.translation,
+                    rotation: car.rotation,
+                    scale:car.scale,
+                    id: playerID
+                }
+            };
+
+            Client.webSocket.send(JSON.stringify(msg));
+        }
     };
     car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
 
@@ -210,4 +277,6 @@ function init() {
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
     sceneGraph.root.addChild(ramp);
+
+    Client.connect();
 }

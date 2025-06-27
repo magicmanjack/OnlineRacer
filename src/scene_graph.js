@@ -98,6 +98,18 @@ class SceneNode {
         
     }
 
+    remove() {
+        this.parent.removeChild(this);
+    }
+
+    removeChild(child) {
+        for(let i = 0; i < this.children.length; i++) {
+            if(this.children[i] === child) {
+                this.children.splice(i, 1);
+            }
+        }
+    }
+
     render() {
         if(this.mesh) {
             this.mesh.render(camera);
