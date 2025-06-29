@@ -3,9 +3,19 @@ let availableId = 0;
 
 Deno.serve({
     port: 80,
-    handler: function(request) {
+    async handler(request) {
         if(request.headers.get("upgrade") !== "websocket") {
-            return Response.error();
+            //Normal http request
+            const url = new URL(request.url);
+            const filePath = decodeURIComponent(url.pathname);
+            if(filePath === "/") {
+                //return index.html
+                const file = await Deno.open("./index.html", {read:true});
+                return new Response(file.readable);
+            } else {
+                const file = await Deno.open(`.${filePath}`, {read:true});
+                return new Response(file.readable);
+            }
         }
         const {socket, response} = Deno.upgradeWebSocket(request);
 
