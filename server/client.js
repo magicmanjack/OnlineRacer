@@ -3,7 +3,7 @@
     so get static IP address with server host.
 */
 class Client {
-    static wsUri = "ws://127.0.0.1/";
+    static wsUri = "ws://222.155.115.120/";
     static webSocket;
     static connected = false;
     static onMessage;
