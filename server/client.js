@@ -1,9 +1,11 @@
 /*
-    TODO: at the moment the socket address is the localhost
+    TODO: at the moment the socket address is the set to Jacks homenetwork.
     so get static IP address with server host.
 */
 class Client {
-    static wsUri = "ws://222.155.115.120/";
+    //Use if hosting on Jacks network
+    //static wsUri = "ws://222.155.115.120/";
+    static wsUri = "ws://127.0.0.1/";
     static webSocket;
     static connected = false;
     static onMessage;
