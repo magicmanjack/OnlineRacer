@@ -19,11 +19,18 @@ class Mesh {
 
     canRender = false;
 
+    static defaultShader;
 
-    constructor(modelFileNames, textureName = "/textures/default.png") {
 
-        //Compile shaders
-        this.program = createProgram("shaders/textured.vert", "shaders/textured.frag");
+    constructor(modelFileNames, textureName = "/textures/default.png", shader=Mesh.defaultShader) {
+
+        if(!shader && !Mesh.defaultShader) {
+            Mesh.defaultShader = createProgram("shaders/textured.vert", "shaders/textured.frag");
+            this.shader = Mesh.defaultShader;
+        } else {
+            this.shader = shader;
+        }
+        
 
         //Create vertex array object that stores this meshes rendering state.
         this.ext = gl.getExtension("OES_vertex_array_object");
@@ -31,11 +38,11 @@ class Mesh {
 
 
         //Getting variable locations.
-        this.modelLocation = gl.getUniformLocation(this.program, "u_model");
-        this.viewLocation = gl.getUniformLocation(this.program, "u_view");
-        this.projectionLocation = gl.getUniformLocation(this.program, "u_projection");
-        this.positionAttribute = gl.getAttribLocation(this.program, "a_position");
-        this.textureCoordLocation = gl.getAttribLocation(this.program, "a_texcoord");
+        this.modelLocation = gl.getUniformLocation(this.shader, "u_model");
+        this.viewLocation = gl.getUniformLocation(this.shader, "u_view");
+        this.projectionLocation = gl.getUniformLocation(this.shader, "u_projection");
+        this.positionAttribute = gl.getAttribLocation(this.shader, "a_position");
+        this.textureCoordLocation = gl.getAttribLocation(this.shader, "a_texcoord");
 
         Promise.all([loadModel(modelFileNames).then(this.loadVertices), this.loadTextureAsync(textureName)])
             .then(() => {
@@ -130,7 +137,7 @@ class Mesh {
     render(cam) {
 
         if (this.canRender) {
-            gl.useProgram(this.program);
+            gl.useProgram(this.shader);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));
             gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));

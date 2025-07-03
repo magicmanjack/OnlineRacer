@@ -27,6 +27,7 @@ class SceneNode {
     world;
 
     mesh;
+    collisionBox;
     update;
     
 
@@ -59,17 +60,17 @@ class SceneNode {
         this.rotation[2] += rz;
     }
 
-    calculateLocal() {
-        //Calculates the model matrix of this mesh according to its translation and rotation.
-        let rx = this.rotation[0];
-        let ry = this.rotation[1];
-        let rz = this.rotation[2];
-        let tx = this.translation[0];
-        let ty = this.translation[1];
-        let tz = this.translation[2];
-        let sx = this.scale[0];
-        let sy = this.scale[1];
-        let sz = this.scale[2];
+    calculateLocal(o) {
+        //Calculates the model matrix of this transformable object according to its translation and rotation.
+        let rx = o.rotation[0];
+        let ry = o.rotation[1];
+        let rz = o.rotation[2];
+        let tx = o.translation[0];
+        let ty = o.translation[1];
+        let tz = o.translation[2];
+        let sx = o.scale[0];
+        let sy = o.scale[1];
+        let sz = o.scale[2];
 
         return mat.multiply(mat.translate(tx, ty, tz), mat.multiply(mat.rotate(rx, ry, rz), mat.scale(sx, sy, sz)));
     }
@@ -85,13 +86,17 @@ class SceneNode {
             this.update();
         }
 
-        let local = this.calculateLocal();
+        let local = this.calculateLocal(this);
         let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
         
         this.world = mat.multiply(parentWorld, local);
 
         if(this.mesh) {
             this.mesh.model = this.world;
+        }
+
+        if(this.collisionBox) {
+            this.collisionBox.model = mat.multiply(this.world, this.calculateLocal(this.collisionBox));
         }
 
         this.children.forEach((child) => {child.updateChildren()});
@@ -113,6 +118,9 @@ class SceneNode {
     render() {
         if(this.mesh) {
             this.mesh.render(camera);
+        }
+        if(debug && this.collisionBox) {
+            this.collisionBox.render(camera);
         }
         this.children.forEach((child) => {child.render()});
     }

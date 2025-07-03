@@ -13,8 +13,6 @@ let networkCars = new Map();
 const startWidth = 25;
 const startHeight = 25;
 
-const gravity = -0.1;
-
 Client.onOpen = (e) => {
     const msg = {
         type: "get_unique_id",
@@ -67,6 +65,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
+    debug = true;
 
     function checkAABBCollision(aPos, aScale, bPos, bScale) {
         let aMin = [
@@ -113,6 +112,8 @@ function init() {
     car.scaleBy(3, 3, 3);
     car.translate(0, 100, -50);
     car.rotate(0, Math.PI, 0);
+
+    const gravity = -0.1;
 
     let carDirection = [0, 0, -1];
     let velocity = 0;
@@ -257,6 +258,9 @@ function init() {
         }
     };
     car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
+    car.collisionBox = new CollisionBox("models/cube.obj");
+    car.collisionBox.scale = [2, 1.5, 3];
+    car.collisionBox.translation = [0, 0, 0];
 
     ground = new SceneNode();
     ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");

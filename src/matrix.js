@@ -201,7 +201,7 @@ const mat3x3 = {
         //OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
 
         return this.multiply(this.multiply(this.rotateZ(rz), this.rotateY(ry)), this.rotateX(rx));
-    },
+    }
 
 };
 

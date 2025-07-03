@@ -2,6 +2,7 @@
 
 const UPDATES_PER_SECOND = 30;
 const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
+let debug = false;
 
 let gl;
 
