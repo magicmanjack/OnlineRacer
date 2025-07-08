@@ -27,7 +27,7 @@ class SceneNode {
     world;
 
     mesh;
-    collisionBox;
+    collisionPlane;
     update;
     
 
@@ -95,8 +95,8 @@ class SceneNode {
             this.mesh.model = this.world;
         }
 
-        if(this.collisionBox) {
-            this.collisionBox.model = mat.multiply(this.world, this.calculateLocal(this.collisionBox));
+        if(this.collisionPlane) {
+            this.collisionPlane.model = mat.multiply(this.world, this.calculateLocal(this.collisionPlane));
         }
 
         this.children.forEach((child) => {child.updateChildren()});
@@ -116,11 +116,12 @@ class SceneNode {
     }
 
     render() {
+        
+        if(debug && this.collisionPlane) {
+            this.collisionPlane.render(camera);
+        }
         if(this.mesh) {
             this.mesh.render(camera);
-        }
-        if(debug && this.collisionBox) {
-            this.collisionBox.render(camera);
         }
         this.children.forEach((child) => {child.render()});
     }

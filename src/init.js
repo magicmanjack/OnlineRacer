@@ -258,9 +258,9 @@ function init() {
         }
     };
     car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
-    car.collisionBox = new CollisionBox("models/cube.obj");
-    car.collisionBox.scale = [2, 1.5, 3];
-    car.collisionBox.translation = [0, 0, 0];
+    car.collisionPlane = new CollisionPlane("models/square_collider.obj");
+    car.collisionPlane.scale = [2, 1, 3];
+    car.collisionPlane.translation = [0, 0, 0];
 
     ground = new SceneNode();
     ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");
@@ -271,6 +271,8 @@ function init() {
     cube.mesh = new Mesh(["models/cube.obj"], "textures/cubetexture.png");
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
+    cube.collisionPlane = new CollisionPlane("models/square_collider.obj");
+    cube.collisionPlane.scale = [1, 1, 1];
 
     ramp = new SceneNode();
     ramp.mesh = new Mesh(["models/ramp.obj"]);
