@@ -29,6 +29,8 @@ class SceneNode {
     mesh;
     collisionPlane;
     update;
+
+    static collidables = [];
     
 
     constructor() {
@@ -78,6 +80,23 @@ class SceneNode {
     addChild(node) {
         node.parent = this;
         this.children.push(node);
+    }
+
+    collisionStep() {
+        /*  
+            Runs the collision detection methods.
+            This is meant to be called after all movements are done,
+            and then after the call, collision can be checked.
+        */
+
+        if(this.collisionPlane) {
+            let local = this.calculateLocal(this);
+            let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
+            let world = this.world = mat.multiply(parentWorld, local);
+            this.collisionPlane.model = mat.multiply(world, this.calculateLocal(this.collisionPlane));
+            this.collisionPlane.checkCollisions(SceneNode.collidables);
+        }
+
     }
 
     updateChildren() {

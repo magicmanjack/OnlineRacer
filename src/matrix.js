@@ -126,6 +126,28 @@ const mat = {
             0, 0, -(zFar + zNear) / (zFar - zNear), -2 * zFar * zNear / (zFar - zNear),
             0, 0, -1, 0
         ];
+    },
+
+    to3x3: function(m) {
+        /*
+            Converts 4x4 matrix to 3x3
+        */
+
+        if(m.length != 16) {
+            console.log("Must pass a 4x4 matrix to to3x3()");
+            return;
+        }
+
+        const out = [];
+
+        for(let i = 0; i < m.length; i++) {
+            if((i + 1) % 4 == 0 || i >= 12) {
+                continue;
+            }
+            out.push(m[i]);
+        }
+        
+        return out;
     }
 };
 
@@ -217,17 +239,60 @@ const vec = {
         return [a * v[0], a * v[1], a * v[2]];
     },
     add: function (a, b) {
-        if (a.length != 3 || b.length != 3) {
-            console.log("Improper vector addition: can only have 3x1");
+        if(a.length != b.length) {
+            console.log("Cannot add two vectors of different lengths.");
             return;
         }
-        return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+        const out = [];
+        for(let i = 0; i < a.length; i++) {
+            out.push(a[i] + b[i]);
+        }
+        return out;
     },
     subtract: function (a, b) {
-        if (a.length != 3 || b.length != 3) {
-            console.log("Improper vector subtraction: can only have 3x1");
+        if(a.length != b.length) {
+            console.log("Cannot subtract two vectors of different lengths.");
             return;
         }
-        return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+        const out = [];
+        for(let i = 0; i < a.length; i++) {
+            out.push(a[i] - b[i]);
+        }
+        return out;
     },
+    perp: function(v) {
+        if(v.length != 2) {
+            console.log("Cannot do perpindular of a non 2D vector");
+        }
+        return [-v[1], v[0]];
+    },
+    magnitude: function(v) {
+        //Returns the magnitude of v (|v|)
+        let squaredSum = 0;
+        for(let i = 0; i < v.length; i++) {
+            squaredSum += v[i] * v[i];
+        }
+        return Math.sqrt(squaredSum);
+    },
+    normalize: function(v) {
+        //normalizes vector v (e.g v/|v|)
+        let mag = this.magnitude(v);
+        let out = [];
+        for(let i = 0; i < v.length; i++) {
+            out[i] = v[i] / mag; 
+        }
+        return out;
+    },
+    dot: function(a, b) {
+        //the dot product of vectors a and b.
+        if(a.length != b.length) {
+            console.log("Cannot do a dot product of two vectors with different size.");
+            return;
+        }
+        let out = 0;
+        for(let i = 0; i < a.length; i++) {
+            out += a[i] * b[i];
+        }
+        return out;
+    }
 };

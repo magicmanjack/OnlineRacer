@@ -240,6 +240,8 @@ function init() {
             }
         }
 
+        car.collisionStep();
+
         camera.displayWidth = startWidth + velocity * 0.5;
         camera.displayHeight = startHeight + velocity * 0.5;
 
@@ -258,7 +260,7 @@ function init() {
         }
     };
     car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
-    car.collisionPlane = new CollisionPlane("models/square_collider.obj");
+    car.collisionPlane = new CollisionPlane();
     car.collisionPlane.scale = [2, 1, 3];
     car.collisionPlane.translation = [0, 0, 0];
 
@@ -271,8 +273,9 @@ function init() {
     cube.mesh = new Mesh(["models/cube.obj"], "textures/cubetexture.png");
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
-    cube.collisionPlane = new CollisionPlane("models/square_collider.obj");
+    cube.collisionPlane = new CollisionPlane();
     cube.collisionPlane.scale = [1, 1, 1];
+    SceneNode.collidables.push(cube.collisionPlane);
 
     ramp = new SceneNode();
     ramp.mesh = new Mesh(["models/ramp.obj"]);
