@@ -15,6 +15,7 @@ class CollisionPlane {
     scale;
 
     collisions;
+    collided;
 
     canRender = false;
 
@@ -158,12 +159,12 @@ class CollisionPlane {
             one moving object only, if checking collisions for multiple moving objects, the behaviour is
             undefined.
         */
-
+            this.collided = false;
             collidables.forEach(other => {
                 if(this.loaded && other.loaded) {
                     
                     if(this.collides(other)) {
-                        console.log("COLLISION!");
+                        this.collided = true;
                     }    
                 }
             });

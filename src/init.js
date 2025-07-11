@@ -241,7 +241,10 @@ function init() {
         }
 
         car.collisionStep();
-
+        if(car.collisionPlane.collided) {
+            console.log("Collision!");
+        }
+        
         camera.displayWidth = startWidth + velocity * 0.5;
         camera.displayHeight = startHeight + velocity * 0.5;
 
