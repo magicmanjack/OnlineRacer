@@ -43,9 +43,11 @@ class CollisionPlane {
 
         this.translation = [0, 0, 0];
         this.rotation = [0, 0, 0];
-        this.scale = [0, 0, 0];
+        this.scale = [1, 1, 1];
         
         this.collisions = [];
+
+        SceneNode.collidables.push(this);
     }  
 
     loadVertices = (model) => {
@@ -161,6 +163,9 @@ class CollisionPlane {
         */
             this.collided = false;
             collidables.forEach(other => {
+                if(other === this) {
+                    return;
+                }
                 if(this.loaded && other.loaded) {
                     
                     if(this.collides(other)) {

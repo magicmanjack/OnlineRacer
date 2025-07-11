@@ -189,45 +189,38 @@ function init() {
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
 
+        /*
         let newY = car.translation[1] + carYVelocity;
         if (newY < 0) {
             newY = 0;
             carYVelocity = 0;
         }
+        */
 
-        let proposedPosition = [car.translation[0] + newcarDirection[0], newY, car.translation[2] + newcarDirection[2]];
+       //let proposedPosition = [car.translation[0] + newcarDirection[0], newY, car.translation[2] + newcarDirection[2]];
+        const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
+        car.translate(carDelta[0], carDelta[1], carDelta[2]);
+        const camDelta = [newcarDirection[0], newcarDirection[1], newcarDirection[2]];
+        camera.translate(camDelta[0], camDelta[1], camDelta[2]);
 
-        let carScale = [6, 3, 10];
-        let cubeScale = [10, 10, 10];
-        let rampScale = [10, 2, 10];
-
-        if (!checkAABBCollision(proposedPosition, carScale, cube.translation, cubeScale)) {
-            car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
-            camera.translate(newcarDirection[0], newcarDirection[1], newcarDirection[2]);
+        if(car.translation[1] < 0) {
+            //If car phases through ground
+            car.translation[1] = 0;
+            carYVelocity = 0;
         }
-        else {
+
+        car.collisionStep(); //Check for collisions
+
+        if(car.collisionPlane.collided) {
+            //A collision resulted. Add negative of delta pos to undo.
+            let carInv = vec.scale(-1, carDelta);
+            let camInv = vec.scale(-1, camDelta);
             velocity = 0;
+            car.translate(carInv[0], carInv[1], carInv[2]);
+            camera.translate(camInv[0], camInv[1], camInv[2]);
         }
 
-        if (!checkAABBCollision(proposedPosition, carScale, ramp.translation, rampScale)) {
-            car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
-            camera.translate(newcarDirection[0], newcarDirection[1], newcarDirection[2]);
-        }
-        else {
-            carYVelocity += velocity / 4;
-            if (carYVelocity > 2) {
-                carYVelocity = 2;
-            }
-
-            // logic for boost pads:
-            // velocity += 0.5;
-            // terminalVelocity = 25;
-            // boostTimer = 1;
-
-            car.translate(newcarDirection[0], carYVelocity, newcarDirection[2]);
-            camera.translate(newcarDirection[0], newcarDirection[1], newcarDirection[2]);
-        }
-
+        /*
         // logic for boost pads:
         if (boostTimer > 0) {
             if (velocity < 25) {
@@ -239,12 +232,8 @@ function init() {
                 terminalVelocity = 17;
             }
         }
+        */
 
-        car.collisionStep();
-        if(car.collisionPlane.collided) {
-            console.log("Collision!");
-        }
-        
         camera.displayWidth = startWidth + velocity * 0.5;
         camera.displayHeight = startHeight + velocity * 0.5;
 
@@ -265,7 +254,6 @@ function init() {
     car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
     car.collisionPlane = new CollisionPlane();
     car.collisionPlane.scale = [2, 1, 3];
-    car.collisionPlane.translation = [0, 0, 0];
 
     ground = new SceneNode();
     ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");
@@ -277,8 +265,6 @@ function init() {
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
     cube.collisionPlane = new CollisionPlane();
-    cube.collisionPlane.scale = [1, 1, 1];
-    SceneNode.collidables.push(cube.collisionPlane);
 
     ramp = new SceneNode();
     ramp.mesh = new Mesh(["models/ramp.obj"]);
