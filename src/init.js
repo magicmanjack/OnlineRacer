@@ -65,45 +65,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    debug = true;
-
-    function checkAABBCollision(aPos, aScale, bPos, bScale) {
-        let aMin = [
-            aPos[0] - aScale[0],
-            aPos[1] - aScale[1],
-            aPos[2] - aScale[2]
-        ];
-        let aMax = [
-            aPos[0] + aScale[0],
-            aPos[1] + aScale[1],
-            aPos[2] + aScale[2]
-        ];
-
-        let bMin = [
-            bPos[0] - bScale[0],
-            bPos[1] - bScale[1],
-            bPos[2] - bScale[2]
-        ];
-        let bMax = [
-            bPos[0] + bScale[0],
-            bPos[1] + bScale[1],
-            bPos[2] + bScale[2]
-        ];
-
-        return (
-            aMin[0] <= bMax[0] &&
-            aMax[0] >= bMin[0] &&
-            aMin[1] <= bMax[1] &&
-            aMax[1] >= bMin[1] &&
-            aMin[2] <= bMax[2] &&
-            aMax[2] >= bMin[2]
-        );
-    }
-
-    function rotateSpeedFunction(x) {
-        return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
-            -1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9) / 0.12222;
-    }
+    //debug = true;
 
     camera.translate(0, 10, 0);
     camera.displayWidth = startWidth;
@@ -112,6 +74,7 @@ function init() {
     car.scaleBy(3, 3, 3);
     car.translate(0, 100, -50);
     car.rotate(0, Math.PI, 0);
+
 
     const gravity = -0.1;
 
@@ -128,7 +91,14 @@ function init() {
     let terminalVelocity = 17;
     let boostTimer = 0;
 
+    function rotateSpeedFunction(x) {
+        return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
+            -1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9) / 0.12222;
+    }
+
     car.update = () => {
+
+        // Input handling
         if (input.up) {
             velocity += 0.4;
         }
@@ -151,6 +121,8 @@ function init() {
             carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, -rotateSpeed, 0), carDirection)
         }
 
+        //
+
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         camera.rotate(0, cameraRotationStep, 0);
@@ -161,6 +133,8 @@ function init() {
         camera.translation = vec.add(newPos, car.translation)
 
         cameraRotationY += cameraRotationStep;
+
+        //Accelerations
 
         if (velocity > 0) {
             cameraLagFactor = 0.1;
@@ -189,15 +163,8 @@ function init() {
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
 
-        /*
-        let newY = car.translation[1] + carYVelocity;
-        if (newY < 0) {
-            newY = 0;
-            carYVelocity = 0;
-        }
-        */
-
-       //let proposedPosition = [car.translation[0] + newcarDirection[0], newY, car.translation[2] + newcarDirection[2]];
+        
+        // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
         car.translate(carDelta[0], carDelta[1], carDelta[2]);
         const camDelta = [newcarDirection[0], newcarDirection[1], newcarDirection[2]];
@@ -212,12 +179,25 @@ function init() {
         car.collisionStep(); //Check for collisions
 
         if(car.collisionPlane.collided) {
-            //A collision resulted. Add negative of delta pos to undo.
-            let carInv = vec.scale(-1, carDelta);
-            let camInv = vec.scale(-1, camDelta);
-            velocity = 0;
-            car.translate(carInv[0], carInv[1], carInv[2]);
-            camera.translate(camInv[0], camInv[1], camInv[2]);
+            const collisions = car.collisionPlane.collisions;
+            
+            for(let i = 0; i < collisions.length; i++) {
+
+                const t = collisions[i].parent.tag;
+
+                if(t == "wall") {
+                    //A collision resulted. Add negative of delta pos to undo.
+                    let carInv = vec.scale(-1, carDelta);
+                    let camInv = vec.scale(-1, camDelta);
+                    velocity = 0;
+                    car.translate(carInv[0], carInv[1], carInv[2]);
+                    camera.translate(camInv[0], camInv[1], camInv[2]);
+
+                } else if (t == "ramp") {
+                    //collision with ramp
+                    carYVelocity += 1/20 * velocity;
+                }
+            }
         }
 
         /*
@@ -252,7 +232,7 @@ function init() {
         }
     };
     car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
-    car.collisionPlane = new CollisionPlane();
+    car.addCollisionPlane(new CollisionPlane());
     car.collisionPlane.scale = [2, 1, 3];
 
     ground = new SceneNode();
@@ -262,14 +242,17 @@ function init() {
 
     cube = new SceneNode();
     cube.mesh = new Mesh(["models/cube.obj"], "textures/cubetexture.png");
+    cube.tag = "wall";
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
-    cube.collisionPlane = new CollisionPlane();
+    cube.addCollisionPlane(new CollisionPlane());
 
     ramp = new SceneNode();
     ramp.mesh = new Mesh(["models/ramp.obj"]);
     ramp.translate(50, -5, -100);
     ramp.scaleBy(10, 2, 10);
+    ramp.tag = "ramp";
+    ramp.addCollisionPlane(new CollisionPlane());
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);

@@ -21,6 +21,8 @@ class SceneNode {
     parent;
     children;
 
+    tag = "default";
+
     translation;
     rotation;
     scale;
@@ -80,6 +82,11 @@ class SceneNode {
     addChild(node) {
         node.parent = this;
         this.children.push(node);
+    }
+
+    addCollisionPlane(collisionPlane) {
+        collisionPlane.parent = this;
+        this.collisionPlane = collisionPlane;
     }
 
     collisionStep() {

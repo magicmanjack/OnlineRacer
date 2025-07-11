@@ -17,7 +17,7 @@ class CollisionPlane {
     collisions;
     collided;
 
-    canRender = false;
+    parent;
 
     loaded = false;
 
@@ -162,6 +162,7 @@ class CollisionPlane {
             undefined.
         */
             this.collided = false;
+            this.collisions = [];
             collidables.forEach(other => {
                 if(other === this) {
                     return;
@@ -169,6 +170,7 @@ class CollisionPlane {
                 if(this.loaded && other.loaded) {
                     
                     if(this.collides(other)) {
+                        this.collisions.push(other);
                         this.collided = true;
                     }    
                 }
