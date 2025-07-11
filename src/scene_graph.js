@@ -92,7 +92,7 @@ class SceneNode {
         if(this.collisionPlane) {
             let local = this.calculateLocal(this);
             let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
-            let world = this.world = mat.multiply(parentWorld, local);
+            let world = mat.multiply(parentWorld, local);
             this.collisionPlane.model = mat.multiply(world, this.calculateLocal(this.collisionPlane));
             this.collisionPlane.checkCollisions(SceneNode.collidables);
         }

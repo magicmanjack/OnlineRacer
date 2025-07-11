@@ -146,7 +146,7 @@ const mat = {
             }
             out.push(m[i]);
         }
-        
+
         return out;
     }
 };

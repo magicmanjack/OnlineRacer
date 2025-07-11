@@ -99,12 +99,12 @@ class CollisionPlane {
             axes.push(norm);
         }
 
-        for(let i = 0; i < otherVerts; i++) {
+        for(let i = 0; i < otherVerts.length; i++) {
             const p1 = otherVerts[i];
             const p2 = i+1 < otherVerts.length ? otherVerts[i+1] : otherVerts[0]; 
 
             const edge = vec.subtract(p1, p2);
-            const norm = vec.normalized(vec.perp(edge));
+            const norm = vec.normalize(vec.perp(edge));
 
             axes.push(norm); 
         }
@@ -134,8 +134,6 @@ class CollisionPlane {
 
         const overlaps = (proj1, proj2) => {
             return (proj1.max >= proj2.min &&
-                proj1.max <= proj2.max) ||
-                (proj1.min >= proj2.min &&
                 proj1.min <= proj2.max);
         }
 
