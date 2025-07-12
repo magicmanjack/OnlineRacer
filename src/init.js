@@ -236,7 +236,7 @@ function init() {
     car.collisionPlane.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.mesh = new Mesh(["models/ground.obj"], "textures/track.png");
+    ground.mesh = new Mesh(["models/track01.obj"], "textures/track01.png");
     ground.translate(0, -5, -50);
     ground.scaleBy(500, 500, 500);
 
