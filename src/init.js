@@ -67,8 +67,12 @@ Client.onMessage = (e) => {
 function init() {
     //debug = true;
 
-    camera.displayWidth = startWidth;
+    // Initialize camera with proper aspect ratio
+    const canvas = document.getElementById('c');
+    const aspectRatio = canvas.width / canvas.height;
     camera.displayHeight = startHeight;
+    camera.displayWidth = startHeight * aspectRatio;
+
     car = new SceneNode();
     car.scaleBy(3, 3, 3);
     car.translate(-200, 0, 30);
@@ -275,8 +279,12 @@ function init() {
             }
         }
 
-        camera.displayWidth = startWidth + velocity * 0.5;
-        camera.displayHeight = startHeight + velocity * 0.5;
+        // Update camera zoom with velocity while maintaining aspect ratio
+        const canvas = document.getElementById('c');
+        const aspectRatio = canvas.width / canvas.height;
+        const zoomHeight = startHeight + velocity * 0.5;
+        camera.displayHeight = zoomHeight;
+        camera.displayWidth = zoomHeight * aspectRatio;
 
         if (Client.connected) {
             const msg = {
