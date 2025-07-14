@@ -323,7 +323,7 @@ function init() {
     boost.addCollisionPlane(new CollisionPlane());
 
     startLine = new SceneNode();
-    startLine.mesh = new Mesh(["models/cube.obj"]);
+    startLine.mesh = new Mesh(["models/startLine.obj"], "textures/checkered.png");
     startLine.tag = "start";
     startLine.translate(-200, -5, 0);
     startLine.scaleBy(93, 0.5, 10);
