@@ -65,20 +65,21 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    debug = true;
+    //debug = true;
 
-    camera.translate(0, 10, 0);
     camera.displayWidth = startWidth;
     camera.displayHeight = startHeight;
     car = new SceneNode();
     car.scaleBy(3, 3, 3);
-    car.translate(0, 100, -50);
-    car.rotate(0, Math.PI, 0);
-
+    car.translate(-200, 0, 30);
+    car.rotate(0, Math.PI + 0.25, 0);
+    cameraDist = [50 * Math.sin(0.25), 0, 50 * Math.cos(0.25)];
+    camera.translate(car.translation[0] + cameraDist[0] + 4, 10, car.translation[2] + cameraDist[2]);
+    camera.rotate(0, 0.25, 0);
 
     const gravity = -0.1;
 
-    let carDirection = [0, 0, -1];
+    let carDirection = vec.rotate([0, 0, -1], 0, 0.25, 0);
     let velocity = 0;
     let carYVelocity = 0;
     let rotateSpeed = 0;
@@ -90,6 +91,41 @@ function init() {
 
     let terminalVelocity = 17;
     let boostTimer = 0;
+
+    let startTimer = false;
+    let startTime = 0;
+    let finalTime = 0;
+    let lastStartLineCollision = false;
+
+    // Timer display functions
+    function formatTime(milliseconds) {
+        const totalSeconds = milliseconds / 1000;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = Math.floor(totalSeconds % 60);
+        const centiseconds = Math.floor((totalSeconds % 1) * 100);
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+        const timerDisplay = document.getElementById('timer-display');
+        const timerStatus = document.getElementById('timer-status');
+
+        if (startTimer) {
+            const elapsed = Date.now() - startTime;
+            timerDisplay.textContent = formatTime(elapsed);
+            timerStatus.textContent = "Racing...";
+        } else {
+            if (finalTime > 0) {
+                // Timer has been stopped, show final time
+                timerDisplay.textContent = formatTime(finalTime);
+                timerStatus.textContent = "Race finished!";
+            } else {
+                // Timer hasn't started yet
+                timerDisplay.textContent = "00:00.00";
+                timerStatus.textContent = "Ready to race!";
+            }
+        }
+    }
 
     function rotateSpeedFunction(x) {
         return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
@@ -178,6 +214,8 @@ function init() {
 
         car.collisionStep(); //Check for collisions
 
+        let currentStartLineCollision = false;
+
         if (car.collisionPlane.collided) {
             const collisions = car.collisionPlane.collisions;
 
@@ -198,9 +236,31 @@ function init() {
                     carYVelocity += 1 / 20 * velocity;
                 } else if (t == "boost") {
                     boostTimer = 1;
+                } else if (t == "start") {
+                    currentStartLineCollision = true;
                 }
             }
         }
+
+        // Handle start line collision only on transition from not colliding to colliding
+        if (currentStartLineCollision && !lastStartLineCollision) {
+            if (!startTimer) {
+                startTime = Date.now();
+                finalTime = 0; // Reset final time when starting new race
+                console.log("Timer started");
+                startTimer = true;
+            } else {
+                finalTime = Date.now() - startTime;
+                const elapsed = finalTime / 1000;
+                console.log(`Timer stopped: ${elapsed.toFixed(2)} seconds`);
+                startTimer = false;
+            }
+        }
+
+        lastStartLineCollision = currentStartLineCollision;
+
+        // Update timer display every frame
+        updateTimerDisplay();
 
 
         // logic for boost pads:
@@ -258,15 +318,24 @@ function init() {
     boost = new SceneNode();
     boost.mesh = new Mesh(["models/ramp.obj"], "textures/track01.png");
     boost.tag = "boost";
-    boost.translate(-175, -5, 0);
+    boost.translate(-350, -5, -500);
     boost.scaleBy(10, 0.5, 10);
     boost.addCollisionPlane(new CollisionPlane());
+
+    startLine = new SceneNode();
+    startLine.mesh = new Mesh(["models/cube.obj"]);
+    startLine.tag = "start";
+    startLine.translate(-200, -5, 0);
+    startLine.scaleBy(93, 0.5, 10);
+    startLine.rotate(0, 0.25, 0);
+    startLine.addCollisionPlane(new CollisionPlane());
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
     sceneGraph.root.addChild(ramp);
     sceneGraph.root.addChild(boost);
+    sceneGraph.root.addChild(startLine);
 
     Client.connect();
 }
