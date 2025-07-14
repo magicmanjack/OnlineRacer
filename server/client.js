@@ -4,8 +4,8 @@
 */
 class Client {
     //Use if hosting on Jacks network
-    //static wsUri = "ws://222.155.115.120/";
-    static wsUri = "ws://127.0.0.1/";
+    static wsUri = "ws://10.112.148.252/";
+    //static wsUri = "ws://127.0.0.1/";
     static webSocket;
     static connected = false;
     static onMessage;
@@ -15,33 +15,33 @@ class Client {
     static connect() {
         Client.webSocket = new WebSocket(Client.wsUri);
         let ws = Client.webSocket;
-        
+
         ws.onopen = (e) => {
             Client.connected = true;
-            if(typeof(Client.onOpen) === "function") {
+            if (typeof (Client.onOpen) === "function") {
                 Client.onOpen(e);
             }
         };
 
         ws.onmessage = (e) => {
-            if(typeof(Client.onMessage) === "function") {
+            if (typeof (Client.onMessage) === "function") {
                 Client.onMessage(e);
             }
         }
 
         ws.onclose = (e) => {
             Client.connected = false;
-            if(typeof(Client.onClose) === "function") {
+            if (typeof (Client.onClose) === "function") {
                 Client.onClose(e);
             }
-            
+
         }
 
         ws.onerror = (e) => {
             Client.connected = false;
             console.log(`Client error: ${e.data}`);
         };
-        
+
     }
 
 

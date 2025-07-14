@@ -22,20 +22,20 @@ Client.onOpen = (e) => {
 
 Client.onMessage = (e) => {
     const msg = JSON.parse(e.data);
-    switch(msg.type) {
+    switch (msg.type) {
         case "set_id":
             playerID = msg.id;
             Client.webSocket.send(JSON.stringify({
-                type:"add_player",
-                player:{
-                    id:playerID,
+                type: "add_player",
+                player: {
+                    id: playerID,
                     translation: car.translation,
                     rotation: car.rotation,
                     scale: car.scale
                 }
             }));
             break;
-        case "add_player" :{
+        case "add_player": {
             //attach player node to scene root.
             let p = new SceneNode();
             p.translation = msg.player.translation;
@@ -43,12 +43,12 @@ Client.onMessage = (e) => {
             p.scale = msg.player.scale;
             p.mesh = new Mesh(['models/car.obj'], 'textures/car.png');
             sceneGraph.root.addChild(p);
-            
+
             networkCars.set(msg.player.id, p);
 
             break;
         }
-        case "player_update":{
+        case "player_update": {
             const c = networkCars.get(msg.player.id);
             c.translation = msg.player.translation;
             c.rotation = msg.player.rotation;
@@ -65,7 +65,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    //debug = true;
+    debug = true;
 
     camera.translate(0, 10, 0);
     camera.displayWidth = startWidth;
@@ -163,14 +163,14 @@ function init() {
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
 
-        
+
         // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
         car.translate(carDelta[0], carDelta[1], carDelta[2]);
         const camDelta = [newcarDirection[0], newcarDirection[1], newcarDirection[2]];
         camera.translate(camDelta[0], camDelta[1], camDelta[2]);
 
-        if(car.translation[1] < 0) {
+        if (car.translation[1] < 0) {
             //If car phases through ground
             car.translation[1] = 0;
             carYVelocity = 0;
@@ -178,14 +178,14 @@ function init() {
 
         car.collisionStep(); //Check for collisions
 
-        if(car.collisionPlane.collided) {
+        if (car.collisionPlane.collided) {
             const collisions = car.collisionPlane.collisions;
-            
-            for(let i = 0; i < collisions.length; i++) {
+
+            for (let i = 0; i < collisions.length; i++) {
 
                 const t = collisions[i].parent.tag;
 
-                if(t == "wall") {
+                if (t == "wall") {
                     //A collision resulted. Add negative of delta pos to undo.
                     let carInv = vec.scale(-1, carDelta);
                     let camInv = vec.scale(-1, camDelta);
@@ -195,12 +195,14 @@ function init() {
 
                 } else if (t == "ramp") {
                     //collision with ramp
-                    carYVelocity += 1/20 * velocity;
+                    carYVelocity += 1 / 20 * velocity;
+                } else if (t == "boost") {
+                    boostTimer = 1;
                 }
             }
         }
 
-        /*
+
         // logic for boost pads:
         if (boostTimer > 0) {
             if (velocity < 25) {
@@ -212,18 +214,17 @@ function init() {
                 terminalVelocity = 17;
             }
         }
-        */
 
         camera.displayWidth = startWidth + velocity * 0.5;
         camera.displayHeight = startHeight + velocity * 0.5;
 
-        if(Client.connected) {
+        if (Client.connected) {
             const msg = {
-                type:"player_update",
-                player:{
+                type: "player_update",
+                player: {
                     translation: car.translation,
                     rotation: car.rotation,
-                    scale:car.scale,
+                    scale: car.scale,
                     id: playerID
                 }
             };
@@ -254,10 +255,18 @@ function init() {
     ramp.tag = "ramp";
     ramp.addCollisionPlane(new CollisionPlane());
 
+    boost = new SceneNode();
+    boost.mesh = new Mesh(["models/ramp.obj"], "textures/track01.png");
+    boost.tag = "boost";
+    boost.translate(-175, -5, 0);
+    boost.scaleBy(10, 0.5, 10);
+    boost.addCollisionPlane(new CollisionPlane());
+
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
     sceneGraph.root.addChild(ramp);
+    sceneGraph.root.addChild(boost);
 
     Client.connect();
 }
