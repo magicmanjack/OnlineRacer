@@ -103,6 +103,8 @@ function init() {
     let finalTime = 0;
     let lastStartLineCollision = false;
 
+    let controlsDisabled = false;
+
     // Timer display functions
     function formatTime(milliseconds) {
         const totalSeconds = milliseconds / 1000;
@@ -141,27 +143,30 @@ function init() {
     car.update = () => {
 
         // Input handling
-        if (input.up) {
-            velocity += 0.4;
-        }
-        if (input.down) {
-            velocity -= 0.6;
-            if (velocity < -4) {
-                velocity = -4;
+        if (!controlsDisabled) {
+            if (input.up) {
+                velocity += 0.4;
+            }
+            if (input.down) {
+                velocity -= 0.6;
+                if (velocity < -4) {
+                    velocity = -4;
+                }
+            }
+            if (input.left && Math.abs(velocity) > 0.5) {
+                car.rotate(0, rotateSpeed, 0);
+                carRotationY += rotateSpeed;
+
+                carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
+            }
+            if (input.right && Math.abs(velocity) > 0.5) {
+                car.rotate(0, -rotateSpeed, 0);
+                carRotationY -= rotateSpeed;
+
+                carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
             }
         }
-        if (input.left && Math.abs(velocity) > 0.5) {
-            car.rotate(0, rotateSpeed, 0);
-            carRotationY += rotateSpeed;
 
-            carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
-        }
-        if (input.right && Math.abs(velocity) > 0.5) {
-            car.rotate(0, -rotateSpeed, 0);
-            carRotationY -= rotateSpeed;
-
-            carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
-        }
 
         //
 
@@ -249,9 +254,12 @@ function init() {
                     if (t == "obstacle") {
                         p.remove();
 
-                        for (let i = 0; i < 6; i++) {
+                        for (let i = 0; i < 4; i++) {
                             let obstacleShard = new SceneNode();
-                            obstacleShard.mesh = new Mesh(["models/cube.obj"]);
+
+                            // JACK: allow for obstacleShard.mesh = obstacle.mesh to work and create multiple shards
+
+                            obstacleShard.mesh = new Mesh(['models/cube.obj']);
                             obstacleShard.scaleBy(2, 2, 2);
                             obstacleShard.translation = [...p.translation];
                             obstacleShard.rotation = [...p.rotation];
@@ -282,6 +290,7 @@ function init() {
                     if (velocity == 0) {
                         break;
                     }
+                    controlsDisabled = true;
                     let speed = Math.abs(velocity);
                     // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
                     let rotationFrames = Math.round(30 * 15 / speed);
@@ -300,7 +309,7 @@ function init() {
                             if (car.spinFramesLeft > 0) {
                                 car.rotate(0, rotationStep, 0);
                                 // Slow down the car drastically while spinning
-                                velocity *= 0.85;
+                                velocity *= 0.95;
                                 car.spinFramesLeft--;
                                 if (car.spinFramesLeft == 0) {
                                     velocity = 0;
@@ -309,6 +318,7 @@ function init() {
                                 car.spinning = false;
                                 // Restore the original update function after spinning
                                 car.update = car.originalUpdate;
+                                controlsDisabled = false;
                             }
                             car.originalUpdate && car.originalUpdate.call(this);
                         };
