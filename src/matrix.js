@@ -148,7 +148,62 @@ const mat = {
         }
 
         return out;
+    },
+    getRotationVector: function(m) {
+        /*
+            Takes a homogenenous coordinates transformation matrix and extracts
+            the rotation vector from the rotation part of the matrix.
+            Details on the math can be found at https://www.geometrictools.com/Documentation/EulerAngles.pdf
+        */
+        const inverseScale = 1 / this.getScaleVector(m)[0];
+
+        function r(row, col) {
+            return m[row * 4 + col] * inverseScale;
+        }
+
+        let thetaZ, thetaY, thetaX;
+
+        if(r(2,0) < 1) {
+            if(r(2,0) > -1) {
+                thetaY = Math.asin(-r(2,0));
+                thetaZ = Math.atan2(r(1,0), r(0,0));
+                thetaX = Math.atan2(r(2,1), r(2,2));
+            } else {
+                // r(2,0) == -1 so no unique solution.
+                thetaY = Math.PI/2;
+                thetaZ = -Math.atan2(-r(1,2), r(1,1));
+                thetaX = 0;
+            }
+        } else {
+            //r(1,0) == 1 so no unique solution
+            thetaY = -Math.PI/2;
+            thetaZ = Math.atan2(-r(1,2), r(1,1));
+            thetaX = 0;
+        }
+
+        return [thetaX, thetaY, thetaZ];
+    },
+    getTranslationVector : function(m) {
+        /*
+            Gets translation vector out of 4x4 transformation matrix by looking at colomn 3.
+        */
+        if(m.length != 16) {
+            console.log("cannot get translation vector from a non 4x4 matrix");
+            return;
+        }
+        return [m[3], m[7], m[11]];
+    },
+    getScaleVector: function(m) {
+        /*
+            Gets scale vector by looking at the first column vector.
+            At the moment this only supports uniform scaling and cannot extract
+            seperate scalings for each axis.
+        */
+       const col = [m[0], m[4], m[8]];
+       const mag = Math.sqrt(col[0] * col[0] + col[1] * col[1] * col[2] * col[2]);
+       return [mag, mag, mag];
     }
+
 };
 
 const mat3x3 = {

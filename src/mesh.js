@@ -17,12 +17,12 @@ class Mesh {
     indices = [];
     textureCoords = [];
 
-    canRender = false;
+    loaded = false;
 
     static defaultShader;
 
 
-    constructor(modelFileNames, textureName = "/textures/default.png", shader=Mesh.defaultShader) {
+    constructor(mesh, material, shader=Mesh.defaultShader) {
 
         if(!shader && !Mesh.defaultShader) {
             Mesh.defaultShader = createProgram("shaders/textured.vert", "shaders/textured.frag");
@@ -44,32 +44,31 @@ class Mesh {
         this.positionAttribute = gl.getAttribLocation(this.shader, "a_position");
         this.textureCoordLocation = gl.getAttribLocation(this.shader, "a_texcoord");
 
-        Promise.all([loadModel(modelFileNames).then(this.loadVertices), this.loadTextureAsync(textureName)])
-            .then(() => {
-                this.canRender = true;
-            });
-
-
+        this.loadMeshData(mesh);
+        this.loadMaterialData(material);
+        
     }
 
-    loadVertices = (model) => {
+    loadMeshData = (mesh) => {
         /*
             TODO: need to fix loading files with multiple mesh declarations.
         */
 
-        //console.log(JSON.stringify(model));
-        for (let i = 0; i < model.meshes.length; i++) {
-            this.vertices = this.vertices.concat(model.meshes[i].vertices);
-            this.textureCoords = model.meshes[i].texturecoords[0];
+        //console.log(JSON.stringify(mesh, null, 2));
+        //console.log(model.rootnode.children[0].transformation);
+        //console.log(mat.getRotationVector(model.rootnode.children[0].transformation));
 
-            for (let j = 0; j < model.meshes[i].faces.length; j++) {
-                //converts array of [[1, 2, 3], [4, 5, 6]] to a 1D array.
-                for (let k = 0; k < 3; k++) {
-                    this.indices.push(model.meshes[i].faces[j][k]);
-                }
+        
+        this.vertices = this.vertices.concat(mesh.vertices);
+        this.textureCoords = mesh.texturecoords[0];
+
+        for (let j = 0; j < mesh.faces.length; j++) {
+            //converts array of [[1, 2, 3], [4, 5, 6]] to a 1D array.
+            for (let k = 0; k < 3; k++) {
+                this.indices.push(mesh.faces[j][k]);
             }
-
         }
+
 
         // Setting up vertex, textcoords, and indices array.
         this.positionBuffer = gl.createBuffer();
@@ -99,6 +98,26 @@ class Mesh {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
 
     };
+
+    loadMaterialData = (material) => {
+        let foundTextureName = false;
+        for(let i = 0; i < material.properties.length; i++) {
+            const p = material.properties[i];
+            if(p.key == "$tex.file") {
+                foundTextureName = true;
+                this.loadTextureAsync(`textures/${p.value}`).then(() => {
+                    this.loaded = true;
+                });
+                break;
+            }
+        }
+        
+        if(!foundTextureName) {
+            this.loadTextureAsync("textures/default.png").then(() => {
+                    this.loaded = true;
+            });
+        }
+    }
 
     loadTextureAsync = (textureName) => {
 
@@ -143,7 +162,7 @@ class Mesh {
 
     render(cam) {
 
-        if (this.canRender) {
+        if (this.loaded) {
             gl.useProgram(this.shader);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));

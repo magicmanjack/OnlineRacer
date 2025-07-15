@@ -37,7 +37,7 @@ class CollisionPlane {
         this.projectionLocation = gl.getUniformLocation(CollisionPlane.lineShader, "u_projection");
         this.positionAttribute = gl.getAttribLocation(CollisionPlane.lineShader, "a_position");
     
-        loadModel(["models/square_collider.obj"]).then(this.loadVertices).then(() => {
+        loadModelFile(["models/square_collider.obj"]).then(this.loadVertices).then(() => {
             this.loaded = true;
         });
 

@@ -41,7 +41,7 @@ Client.onMessage = (e) => {
             p.translation = msg.player.translation;
             p.rotation = msg.player.rotation;
             p.scale = msg.player.scale;
-            p.mesh = new Mesh(['models/car.obj'], 'textures/car.png');
+            p.addMesh(["models/car.obj"]);
             sceneGraph.root.addChild(p);
             
             networkCars.set(msg.player.id, p);
@@ -231,24 +231,24 @@ function init() {
             Client.webSocket.send(JSON.stringify(msg));
         }
     };
-    car.mesh = new Mesh(["models/car.obj"], "textures/car.png");
+    car.addMesh(["models/car.obj"]);
     car.addCollisionPlane(new CollisionPlane());
     car.collisionPlane.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.mesh = new Mesh(["models/track01.obj"], "textures/track01.png");
+    ground.addMesh(["models/track01.obj", "models/track01.mtl"])
     ground.translate(0, -5, -50);
     ground.scaleBy(500, 500, 500);
 
     cube = new SceneNode();
-    cube.mesh = new Mesh(["models/cube.obj"], "textures/cubetexture.png");
+    cube.addMesh(["models/doublecube.fbx"]);
     cube.tag = "wall";
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
     cube.addCollisionPlane(new CollisionPlane());
 
     ramp = new SceneNode();
-    ramp.mesh = new Mesh(["models/ramp.obj"]);
+    ramp.addMesh(["models/ramp.obj"]);
     ramp.translate(50, -5, -100);
     ramp.scaleBy(10, 2, 10);
     ramp.tag = "ramp";

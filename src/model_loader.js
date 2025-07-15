@@ -1,4 +1,4 @@
-function loadModel(fileNames) {
+function loadModelFile(fileNames) {
     /*
         Note: indices defined for each mesh in a single file get wrapped around to zero.
     */

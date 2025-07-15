@@ -84,6 +84,73 @@ class SceneNode {
         this.children.push(node);
     }
 
+    addMesh(fileNames) {
+        /*
+            Uses Assimpjs to load in meshes and properly set up scene heirarchy.
+        */
+        
+        loadModelFile(fileNames).then((model) => {
+            /*
+                Recursively search the node tree.
+            */
+            
+            const nodeQueue = [{node : model.rootnode, sceneNode: this}];
+
+            while(nodeQueue.length > 0) {
+                const parent = nodeQueue.shift();
+
+                if(parent.node.children === undefined) {
+                    continue;
+                }
+
+                for(let c = 0; c < parent.node.children.length; c++) {
+                    const childSceneNode = new SceneNode();
+                    const child = {node: parent.node.children[c], sceneNode: childSceneNode};
+                    
+                    if(child.node.meshes === undefined) {
+                        /*
+                            Child is not a mesh. May be a camera or lightsource
+                            or other.
+                        */
+                        continue;
+                    }
+                    nodeQueue.push(child);
+
+                    childSceneNode.translation = mat.getTranslationVector(child.node.transformation);
+                    childSceneNode.scale = mat.getScaleVector(child.node.transformation);
+                    childSceneNode.rotation = mat.getRotationVector(child.node.transformation);
+                    /*
+                        Mesh data is structured as such
+                        Mesh:
+                            materialIndex
+                            vertices
+                            normals
+                            texcoords
+                            faces
+                        
+                        Materials are structured as such
+                        material:
+                            properties:
+                                [
+                                    ...
+                                    ...
+                                    {
+                                        key: "$tex.file"
+                                        value: "wheel.png"
+                                    }
+                                ]
+                    */
+                    const mesh = model.meshes[child.node.meshes[0]]; 
+                    const material = model.materials[mesh.materialindex];
+                    childSceneNode.mesh = new Mesh(mesh, material);
+                   
+                    parent.sceneNode.addChild(childSceneNode);
+                }
+            }
+        });
+        
+    }
+
     addCollisionPlane(collisionPlane) {
         collisionPlane.parent = this;
         this.collisionPlane = collisionPlane;
