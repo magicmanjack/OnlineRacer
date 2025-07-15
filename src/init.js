@@ -234,12 +234,12 @@ function init() {
                     let carInv = vec.scale(-1, carDelta);
                     let camInv = vec.scale(-1, camDelta);
                     velocity = 0;
-                    car.translate(carInv[0], carInv[1], carInv[2]);
+                    car.translate(carInv[0], carYVelocity, carInv[2]);
                     camera.translate(camInv[0], camInv[1], camInv[2]);
 
                 } else if (t == "ramp") {
                     //collision with ramp
-                    carYVelocity += 1 / 20 * velocity;
+                    carYVelocity += 1 / 15 * Math.abs(velocity);
                 } else if (t == "boost") {
                     boostTimer = 1;
                 } else if (t == "start") {
@@ -249,7 +249,8 @@ function init() {
                         break;
                     }
                     let speed = Math.abs(velocity);
-                    let rotationFrames = Math.round(30 * 15 / speed);
+                    // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
+                    let rotationFrames = Math.round(30 * speed / 5);
                     let direction = Math.random();
                     let rotationStep = (4 * Math.PI) / rotationFrames;
                     if (direction < 0.5) {
@@ -348,16 +349,17 @@ function init() {
     cube = new SceneNode();
     cube.mesh = new Mesh(["models/cube.obj"], "textures/cubetexture.png");
     cube.tag = "wall";
-    cube.translate(0, 5, -100);
+    cube.translate(-415, 5, -750);
     cube.scaleBy(10, 10, 10);
     cube.addCollisionPlane(new CollisionPlane());
 
     ramp = new SceneNode();
     ramp.mesh = new Mesh(["models/ramp.obj"]);
-    ramp.translate(50, -5, -100);
+    ramp.translate(-365, -5, -550);
     ramp.scaleBy(10, 2, 10);
     ramp.tag = "ramp";
     ramp.addCollisionPlane(new CollisionPlane());
+    ramp.rotate(0, 3 * Math.PI / 2 + 0.25, 0);
 
     boost = new SceneNode();
     boost.mesh = new Mesh(["models/ramp.obj"], "textures/track01.png");
@@ -365,6 +367,7 @@ function init() {
     boost.translate(-350, -5, -500);
     boost.scaleBy(10, 0.5, 10);
     boost.addCollisionPlane(new CollisionPlane());
+    boost.rotate(0, 0.25, 0);
 
     startLine = new SceneNode();
     startLine.mesh = new Mesh(["models/startLine.obj"], "textures/checkered.png");
