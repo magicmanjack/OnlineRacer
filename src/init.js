@@ -43,7 +43,7 @@ Client.onMessage = (e) => {
             p.scale = msg.player.scale;
             p.mesh = new Mesh(['models/car.obj'], 'textures/car.png');
             sceneGraph.root.addChild(p);
-            p.tag = "obstacle";
+            p.tag = "car";
             p.addCollisionPlane(new CollisionPlane());
 
             networkCars.set(msg.player.id, p);
@@ -228,6 +228,7 @@ function init() {
             for (let i = 0; i < collisions.length; i++) {
 
                 const t = collisions[i].parent.tag;
+                const p = collisions[i].parent;
 
                 if (t == "wall") {
                     //A collision resulted. Add negative of delta pos to undo.
@@ -244,7 +245,40 @@ function init() {
                     boostTimer = 1;
                 } else if (t == "start") {
                     currentStartLineCollision = true;
-                } else if (t == "obstacle") {
+                } else if (t == "obstacle" || t == "car") {
+                    if (t == "obstacle") {
+                        p.remove();
+
+                        for (let i = 0; i < 6; i++) {
+                            let obstacleShard = new SceneNode();
+                            obstacleShard.mesh = new Mesh(["models/cube.obj"]);
+                            obstacleShard.scaleBy(2, 2, 2);
+                            obstacleShard.translation = [...p.translation];
+                            obstacleShard.rotation = [...p.rotation];
+                            sceneGraph.root.addChild(obstacleShard);
+
+                            let carDirNorm = vec.normalize([carDirection[0], 0, carDirection[2]]);
+                            let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
+                            let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
+                            let speed = 5 + Math.random() * 2;
+                            let velocityVec = [
+                                Math.cos(angle) * speed + Math.random() * 2,
+                                2 + Math.random() * 2 + Math.random() * 2,
+                                Math.sin(angle) * speed + Math.random() * 2
+                            ];
+
+                            let frames = 40;
+                            obstacleShard.update = function () {
+                                this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
+                                velocityVec[1] -= 0.3;
+                                frames--;
+                                if (frames <= 0) {
+                                    this.remove();
+                                }
+                            };
+
+                        }
+                    }
                     if (velocity == 0) {
                         break;
                     }
