@@ -154,13 +154,13 @@ function init() {
             car.rotate(0, rotateSpeed, 0);
             carRotationY += rotateSpeed;
 
-            carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, rotateSpeed, 0), carDirection)
+            carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
         }
         if (input.right && Math.abs(velocity) > 0.5) {
             car.rotate(0, -rotateSpeed, 0);
             carRotationY -= rotateSpeed;
 
-            carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, -rotateSpeed, 0), carDirection)
+            carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
         }
 
         //
@@ -170,7 +170,7 @@ function init() {
         camera.rotate(0, cameraRotationStep, 0);
         cameraDisp = vec.subtract(camera.translation, car.translation)
 
-        newPos = mat3x3.multiplyVec(mat3x3.rotate(0, cameraRotationStep, 0), cameraDisp);
+        newPos = vec.rotate(cameraDisp, 0, cameraRotationStep, 0);
 
         camera.translation = vec.add(newPos, car.translation)
 
@@ -250,7 +250,7 @@ function init() {
                     }
                     let speed = Math.abs(velocity);
                     // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
-                    let rotationFrames = Math.round(30 * speed / 5);
+                    let rotationFrames = Math.round(30 * 15 / speed);
                     let direction = Math.random();
                     let rotationStep = (4 * Math.PI) / rotationFrames;
                     if (direction < 0.5) {
@@ -362,7 +362,7 @@ function init() {
     ramp.rotate(0, 3 * Math.PI / 2 + 0.25, 0);
 
     boost = new SceneNode();
-    boost.mesh = new Mesh(["models/ramp.obj"], "textures/track01.png");
+    boost.mesh = new Mesh(["models/ramp.obj"], "textures/track.png");
     boost.tag = "boost";
     boost.translate(-350, -5, -500);
     boost.scaleBy(10, 0.5, 10);
