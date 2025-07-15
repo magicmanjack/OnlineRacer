@@ -43,6 +43,8 @@ Client.onMessage = (e) => {
             p.scale = msg.player.scale;
             p.mesh = new Mesh(['models/car.obj'], 'textures/car.png');
             sceneGraph.root.addChild(p);
+            p.tag = "obstacle";
+            p.addCollisionPlane(new CollisionPlane());
 
             networkCars.set(msg.player.id, p);
 
@@ -242,6 +244,40 @@ function init() {
                     boostTimer = 1;
                 } else if (t == "start") {
                     currentStartLineCollision = true;
+                } else if (t == "obstacle") {
+                    if (velocity == 0) {
+                        break;
+                    }
+                    let speed = Math.abs(velocity);
+                    let rotationFrames = Math.round(30 * 15 / speed);
+                    let direction = Math.random();
+                    let rotationStep = (4 * Math.PI) / rotationFrames;
+                    if (direction < 0.5) {
+                        rotationStep = -1 * rotationStep;
+                    }
+
+
+                    if (!car.spinning) {
+                        car.spinning = true;
+                        car.spinFramesLeft = rotationFrames;
+                        car.originalUpdate = car.update;
+                        car.update = function () {
+                            if (car.spinFramesLeft > 0) {
+                                car.rotate(0, rotationStep, 0);
+                                // Slow down the car drastically while spinning
+                                velocity *= 0.85;
+                                car.spinFramesLeft--;
+                                if (car.spinFramesLeft == 0) {
+                                    velocity = 0;
+                                }
+                            } else {
+                                car.spinning = false;
+                                // Restore the original update function after spinning
+                                car.update = car.originalUpdate;
+                            }
+                            car.originalUpdate && car.originalUpdate.call(this);
+                        };
+                    }
                 }
             }
         }
@@ -338,12 +374,20 @@ function init() {
     startLine.rotate(0, 0.25, 0);
     startLine.addCollisionPlane(new CollisionPlane());
 
+    obstacle = new SceneNode();
+    obstacle.mesh = new Mesh(["models/cube.obj"]);
+    obstacle.tag = "obstacle";
+    obstacle.addCollisionPlane(new CollisionPlane());
+    obstacle.scaleBy(5, 5, 5);
+    obstacle.translate(-300, 0, -250);
+
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
     sceneGraph.root.addChild(ramp);
     sceneGraph.root.addChild(boost);
     sceneGraph.root.addChild(startLine);
+    sceneGraph.root.addChild(obstacle);
 
     Client.connect();
 }
