@@ -287,7 +287,16 @@ function init() {
 
                         }
                     }
-                    if (velocity == 0) {
+                    if (velocity <= 8.5) {
+                        // potential logic for rebounding off of collided cars
+                        // if (t == "car") {
+                        //     let carInv = vec.scale(-1, carDelta);
+                        //     let camInv = vec.scale(-1, camDelta);
+                        //     let scale = 5;
+                        //     velocity = - 1 / 10 * velocity;
+                        //     car.translate(scale * carInv[0], carYVelocity, scale * carInv[2]);
+                        //     camera.translate(scale * camInv[0], camInv[1], scale * camInv[2]);
+                        // }
                         break;
                     }
                     controlsDisabled = true;
@@ -332,12 +341,10 @@ function init() {
             if (!startTimer) {
                 startTime = Date.now();
                 finalTime = 0; // Reset final time when starting new race
-                console.log("Timer started");
                 startTimer = true;
             } else {
                 finalTime = Date.now() - startTime;
                 const elapsed = finalTime / 1000;
-                console.log(`Timer stopped: ${elapsed.toFixed(2)} seconds`);
                 startTimer = false;
             }
         }
