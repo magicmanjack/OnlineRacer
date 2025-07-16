@@ -1,5 +1,7 @@
 class Mesh {
 
+    parent;
+
     modelLocation
     viewLocation
     projectionLocation
@@ -17,6 +19,7 @@ class Mesh {
     indices = [];
     textureCoords = [];
 
+    name;
     loaded = false;
 
     static defaultShader;
@@ -44,6 +47,7 @@ class Mesh {
         this.positionAttribute = gl.getAttribLocation(this.shader, "a_position");
         this.textureCoordLocation = gl.getAttribLocation(this.shader, "a_texcoord");
 
+        this.name = mesh.name;
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
         

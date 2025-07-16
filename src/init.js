@@ -41,7 +41,7 @@ Client.onMessage = (e) => {
             p.translation = msg.player.translation;
             p.rotation = msg.player.rotation;
             p.scale = msg.player.scale;
-            p.addMesh(["models/car.obj"]);
+            p.addMesh(["models/car.obj", "models/car.mtl"]);
             sceneGraph.root.addChild(p);
             p.tag = "car";
             p.addCollisionPlane(new CollisionPlane());
@@ -259,7 +259,7 @@ function init() {
 
                             // JACK: allow for obstacleShard.mesh = obstacle.mesh to work and create multiple shards
 
-                            obstacleShard.mesh = new Mesh(['models/cube.obj']);
+                            obstacleShard.addMesh(['models/cube.obj']);
                             obstacleShard.scaleBy(2, 2, 2);
                             obstacleShard.translation = [...p.translation];
                             obstacleShard.rotation = [...p.rotation];
@@ -381,12 +381,12 @@ function init() {
             Client.webSocket.send(JSON.stringify(msg));
         }
     };
-    car.addMesh(["models/car.obj"]);
+    car.addMesh(["models/car.obj", "models/car.mtl"]);
     car.addCollisionPlane(new CollisionPlane());
     car.collisionPlane.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.addMesh(["models/track01.obj", "models/track01.mtl"])
+    ground.addMesh(["models/track01.fbx"]);
     ground.translate(0, -5, -50);
     ground.scaleBy(500, 500, 500);
 
@@ -406,7 +406,7 @@ function init() {
     ramp.rotate(0, 3 * Math.PI / 2 + 0.25, 0);
 
     boost = new SceneNode();
-    boost.mesh = new Mesh(["models/ramp.obj"], "textures/track.png");
+    boost.addMesh(["models/ramp.obj"]);
     boost.tag = "boost";
     boost.translate(-350, -5, -500);
     boost.scaleBy(10, 0.5, 10);
@@ -414,7 +414,7 @@ function init() {
     boost.rotate(0, 0.25, 0);
 
     startLine = new SceneNode();
-    startLine.mesh = new Mesh(["models/startLine.obj"], "textures/checkered.png");
+    startLine.addMesh(["models/startLine.obj", "models/startLine.mtl"]);
     startLine.tag = "start";
     startLine.translate(-200, -5, 0);
     startLine.scaleBy(93, 0.5, 10);
@@ -422,7 +422,7 @@ function init() {
     startLine.addCollisionPlane(new CollisionPlane());
 
     obstacle = new SceneNode();
-    obstacle.mesh = new Mesh(["models/cube.obj"]);
+    obstacle.addMesh(["models/cube.obj"]);
     obstacle.tag = "obstacle";
     obstacle.addCollisionPlane(new CollisionPlane());
     obstacle.scaleBy(5, 5, 5);

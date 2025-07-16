@@ -143,6 +143,7 @@ class SceneNode {
                     const mesh = model.meshes[child.node.meshes[0]]; 
                     const material = model.materials[mesh.materialindex];
                     childSceneNode.mesh = new Mesh(mesh, material);
+                    childSceneNode.mesh.parent = parent.sceneNode;
                    
                     parent.sceneNode.addChild(childSceneNode);
                 }
@@ -211,6 +212,26 @@ class SceneNode {
                 this.children.splice(i, 1);
             }
         }
+    }
+
+    getChildNodeByMesh(meshName) {
+        /*
+            Recursively searches the child node tree for the node
+            with the mesh named meshName and returns it if found.
+            Returns null if not.
+        */
+        for(let i = 0; i < this.children.length; i++) {
+            const c = this.children[i];
+            if(c.mesh !== undefined && c.mesh.name == meshName) {
+                return c;
+            }
+
+            const rec = c.getChildNodeByMesh(meshName);
+            if(rec) {
+                return rec;
+            }
+        }
+        return null;
     }
 
     render() {

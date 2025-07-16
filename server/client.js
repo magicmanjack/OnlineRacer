@@ -4,14 +4,10 @@
 */
 class Client {
     //Use if hosting on Jacks network
-<<<<<<< HEAD
     //static wsUri = "ws://222.155.115.120/";
     //Use if hosting locally on LAN
     static wsUri = "ws://10.112.148.252";
     //Use if hosting on link local
-=======
-    static wsUri = "ws://10.112.148.252/";
->>>>>>> 25f36517ddcdb64572ec20f3d881012bb7a14569
     //static wsUri = "ws://127.0.0.1/";
     static webSocket;
     static connected = false;
