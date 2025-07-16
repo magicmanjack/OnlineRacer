@@ -241,7 +241,7 @@ function init() {
     ground.scaleBy(500, 500, 500);
 
     cube = new SceneNode();
-    cube.addMesh(["models/doublecube.fbx"]);
+    cube.addMesh(["models/cube.obj"]);
     cube.tag = "wall";
     cube.translate(0, 5, -100);
     cube.scaleBy(10, 10, 10);
