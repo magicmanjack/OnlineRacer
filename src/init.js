@@ -287,7 +287,7 @@ function init() {
 
                         }
                     }
-                    if (velocity <= 8.5) {
+                    if (velocity <= 8.5 && t == "car") {
                         // potential logic for rebounding off of collided cars
                         // if (t == "car") {
                         //     let carInv = vec.scale(-1, carDelta);
@@ -302,7 +302,7 @@ function init() {
                     controlsDisabled = true;
                     let speed = Math.abs(velocity);
                     // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
-                    let rotationFrames = Math.round(30 * 15 / speed);
+                    let rotationFrames = Math.min(60, Math.round(30 * 15 / speed));
                     let direction = Math.random();
                     let rotationStep = (4 * Math.PI) / rotationFrames;
                     if (direction < 0.5) {
