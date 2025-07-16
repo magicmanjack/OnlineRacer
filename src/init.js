@@ -22,20 +22,20 @@ Client.onOpen = (e) => {
 
 Client.onMessage = (e) => {
     const msg = JSON.parse(e.data);
-    switch(msg.type) {
+    switch (msg.type) {
         case "set_id":
             playerID = msg.id;
             Client.webSocket.send(JSON.stringify({
-                type:"add_player",
-                player:{
-                    id:playerID,
+                type: "add_player",
+                player: {
+                    id: playerID,
                     translation: car.translation,
                     rotation: car.rotation,
                     scale: car.scale
                 }
             }));
             break;
-        case "add_player" :{
+        case "add_player": {
             //attach player node to scene root.
             let p = new SceneNode();
             p.translation = msg.player.translation;
@@ -43,12 +43,14 @@ Client.onMessage = (e) => {
             p.scale = msg.player.scale;
             p.addMesh(["models/car.obj"]);
             sceneGraph.root.addChild(p);
-            
+            p.tag = "car";
+            p.addCollisionPlane(new CollisionPlane());
+
             networkCars.set(msg.player.id, p);
 
             break;
         }
-        case "player_update":{
+        case "player_update": {
             const c = networkCars.get(msg.player.id);
             c.translation = msg.player.translation;
             c.rotation = msg.player.rotation;
@@ -67,18 +69,23 @@ Client.onMessage = (e) => {
 function init() {
     //debug = true;
 
-    camera.translate(0, 10, 0);
-    camera.displayWidth = startWidth;
+    // Initialize camera with proper aspect ratio
+    const canvas = document.getElementById('c');
+    const aspectRatio = canvas.width / canvas.height;
     camera.displayHeight = startHeight;
+    camera.displayWidth = startHeight * aspectRatio;
+
     car = new SceneNode();
     car.scaleBy(3, 3, 3);
-    car.translate(0, 100, -50);
-    car.rotate(0, Math.PI, 0);
-
+    car.translate(-200, 0, 30);
+    car.rotate(0, Math.PI + 0.25, 0);
+    cameraDist = [50 * Math.sin(0.25), 0, 50 * Math.cos(0.25)];
+    camera.translate(car.translation[0] + cameraDist[0] + 4, 10, car.translation[2] + cameraDist[2]);
+    camera.rotate(0, 0.25, 0);
 
     const gravity = -0.1;
 
-    let carDirection = [0, 0, -1];
+    let carDirection = vec.rotate([0, 0, -1], 0, 0.25, 0);
     let velocity = 0;
     let carYVelocity = 0;
     let rotateSpeed = 0;
@@ -91,6 +98,43 @@ function init() {
     let terminalVelocity = 17;
     let boostTimer = 0;
 
+    let startTimer = false;
+    let startTime = 0;
+    let finalTime = 0;
+    let lastStartLineCollision = false;
+
+    let controlsDisabled = false;
+
+    // Timer display functions
+    function formatTime(milliseconds) {
+        const totalSeconds = milliseconds / 1000;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = Math.floor(totalSeconds % 60);
+        const centiseconds = Math.floor((totalSeconds % 1) * 100);
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+        const timerDisplay = document.getElementById('timer-display');
+        const timerStatus = document.getElementById('timer-status');
+
+        if (startTimer) {
+            const elapsed = Date.now() - startTime;
+            timerDisplay.textContent = formatTime(elapsed);
+            timerStatus.textContent = "Racing...";
+        } else {
+            if (finalTime > 0) {
+                // Timer has been stopped, show final time
+                timerDisplay.textContent = formatTime(finalTime);
+                timerStatus.textContent = "Race finished!";
+            } else {
+                // Timer hasn't started yet
+                timerDisplay.textContent = "00:00.00";
+                timerStatus.textContent = "Ready to race!";
+            }
+        }
+    }
+
     function rotateSpeedFunction(x) {
         return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
             -1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9) / 0.12222;
@@ -99,27 +143,30 @@ function init() {
     car.update = () => {
 
         // Input handling
-        if (input.up) {
-            velocity += 0.4;
-        }
-        if (input.down) {
-            velocity -= 0.6;
-            if (velocity < -4) {
-                velocity = -4;
+        if (!controlsDisabled) {
+            if (input.up) {
+                velocity += 0.4;
+            }
+            if (input.down) {
+                velocity -= 0.6;
+                if (velocity < -4) {
+                    velocity = -4;
+                }
+            }
+            if (input.left && Math.abs(velocity) > 0.5) {
+                car.rotate(0, rotateSpeed, 0);
+                carRotationY += rotateSpeed;
+
+                carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
+            }
+            if (input.right && Math.abs(velocity) > 0.5) {
+                car.rotate(0, -rotateSpeed, 0);
+                carRotationY -= rotateSpeed;
+
+                carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
             }
         }
-        if (input.left && Math.abs(velocity) > 0.5) {
-            car.rotate(0, rotateSpeed, 0);
-            carRotationY += rotateSpeed;
 
-            carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, rotateSpeed, 0), carDirection)
-        }
-        if (input.right && Math.abs(velocity) > 0.5) {
-            car.rotate(0, -rotateSpeed, 0);
-            carRotationY -= rotateSpeed;
-
-            carDirection = mat3x3.multiplyVec(mat3x3.rotate(0, -rotateSpeed, 0), carDirection)
-        }
 
         //
 
@@ -128,7 +175,7 @@ function init() {
         camera.rotate(0, cameraRotationStep, 0);
         cameraDisp = vec.subtract(camera.translation, car.translation)
 
-        newPos = mat3x3.multiplyVec(mat3x3.rotate(0, cameraRotationStep, 0), cameraDisp);
+        newPos = vec.rotate(cameraDisp, 0, cameraRotationStep, 0);
 
         camera.translation = vec.add(newPos, car.translation)
 
@@ -163,14 +210,14 @@ function init() {
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
 
-        
+
         // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
         car.translate(carDelta[0], carDelta[1], carDelta[2]);
         const camDelta = [newcarDirection[0], newcarDirection[1], newcarDirection[2]];
         camera.translate(camDelta[0], camDelta[1], camDelta[2]);
 
-        if(car.translation[1] < 0) {
+        if (car.translation[1] < 0) {
             //If car phases through ground
             car.translation[1] = 0;
             carYVelocity = 0;
@@ -178,29 +225,129 @@ function init() {
 
         car.collisionStep(); //Check for collisions
 
-        if(car.collisionPlane.collided) {
+        let currentStartLineCollision = false;
+
+        if (car.collisionPlane.collided) {
             const collisions = car.collisionPlane.collisions;
-            
-            for(let i = 0; i < collisions.length; i++) {
+
+            for (let i = 0; i < collisions.length; i++) {
 
                 const t = collisions[i].parent.tag;
+                const p = collisions[i].parent;
 
-                if(t == "wall") {
+                if (t == "wall") {
                     //A collision resulted. Add negative of delta pos to undo.
                     let carInv = vec.scale(-1, carDelta);
                     let camInv = vec.scale(-1, camDelta);
                     velocity = 0;
-                    car.translate(carInv[0], carInv[1], carInv[2]);
+                    car.translate(carInv[0], carYVelocity, carInv[2]);
                     camera.translate(camInv[0], camInv[1], camInv[2]);
 
                 } else if (t == "ramp") {
                     //collision with ramp
-                    carYVelocity += 1/20 * velocity;
+                    carYVelocity += 1 / 15 * Math.abs(velocity);
+                } else if (t == "boost") {
+                    boostTimer = 1;
+                } else if (t == "start") {
+                    currentStartLineCollision = true;
+                } else if (t == "obstacle" || t == "car") {
+                    if (t == "obstacle") {
+                        p.remove();
+
+                        for (let i = 0; i < 4; i++) {
+                            let obstacleShard = new SceneNode();
+
+                            // JACK: allow for obstacleShard.mesh = obstacle.mesh to work and create multiple shards
+
+                            obstacleShard.mesh = new Mesh(['models/cube.obj']);
+                            obstacleShard.scaleBy(2, 2, 2);
+                            obstacleShard.translation = [...p.translation];
+                            obstacleShard.rotation = [...p.rotation];
+                            sceneGraph.root.addChild(obstacleShard);
+
+                            let carDirNorm = vec.normalize([carDirection[0], 0, carDirection[2]]);
+                            let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
+                            let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
+                            let speed = 5 + Math.random() * 2;
+                            let velocityVec = [
+                                Math.cos(angle) * speed + Math.random() * 2,
+                                2 + Math.random() * 2 + Math.random() * 2,
+                                Math.sin(angle) * speed + Math.random() * 2
+                            ];
+
+                            let frames = 40;
+                            obstacleShard.update = function () {
+                                this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
+                                velocityVec[1] -= 0.3;
+                                frames--;
+                                if (frames <= 0) {
+                                    this.remove();
+                                }
+                            };
+
+                        }
+                    }
+                    if (velocity == 0) {
+                        break;
+                    }
+                    controlsDisabled = true;
+                    let speed = Math.abs(velocity);
+                    // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
+                    let rotationFrames = Math.round(30 * 15 / speed);
+                    let direction = Math.random();
+                    let rotationStep = (4 * Math.PI) / rotationFrames;
+                    if (direction < 0.5) {
+                        rotationStep = -1 * rotationStep;
+                    }
+
+
+                    if (!car.spinning) {
+                        car.spinning = true;
+                        car.spinFramesLeft = rotationFrames;
+                        car.originalUpdate = car.update;
+                        car.update = function () {
+                            if (car.spinFramesLeft > 0) {
+                                car.rotate(0, rotationStep, 0);
+                                // Slow down the car drastically while spinning
+                                velocity *= 0.95;
+                                car.spinFramesLeft--;
+                                if (car.spinFramesLeft == 0) {
+                                    velocity = 0;
+                                }
+                            } else {
+                                car.spinning = false;
+                                // Restore the original update function after spinning
+                                car.update = car.originalUpdate;
+                                controlsDisabled = false;
+                            }
+                            car.originalUpdate && car.originalUpdate.call(this);
+                        };
+                    }
                 }
             }
         }
 
-        /*
+        // Handle start line collision only on transition from not colliding to colliding
+        if (currentStartLineCollision && !lastStartLineCollision) {
+            if (!startTimer) {
+                startTime = Date.now();
+                finalTime = 0; // Reset final time when starting new race
+                console.log("Timer started");
+                startTimer = true;
+            } else {
+                finalTime = Date.now() - startTime;
+                const elapsed = finalTime / 1000;
+                console.log(`Timer stopped: ${elapsed.toFixed(2)} seconds`);
+                startTimer = false;
+            }
+        }
+
+        lastStartLineCollision = currentStartLineCollision;
+
+        // Update timer display every frame
+        updateTimerDisplay();
+
+
         // logic for boost pads:
         if (boostTimer > 0) {
             if (velocity < 25) {
@@ -212,18 +359,21 @@ function init() {
                 terminalVelocity = 17;
             }
         }
-        */
 
-        camera.displayWidth = startWidth + velocity * 0.5;
-        camera.displayHeight = startHeight + velocity * 0.5;
+        // Update camera zoom with velocity while maintaining aspect ratio
+        const canvas = document.getElementById('c');
+        const aspectRatio = canvas.width / canvas.height;
+        const zoomHeight = startHeight + velocity * 0.5;
+        camera.displayHeight = zoomHeight;
+        camera.displayWidth = zoomHeight * aspectRatio;
 
-        if(Client.connected) {
+        if (Client.connected) {
             const msg = {
-                type:"player_update",
-                player:{
+                type: "player_update",
+                player: {
                     translation: car.translation,
                     rotation: car.rotation,
-                    scale:car.scale,
+                    scale: car.scale,
                     id: playerID
                 }
             };
@@ -243,7 +393,7 @@ function init() {
     cube = new SceneNode();
     cube.addMesh(["models/cube.obj"]);
     cube.tag = "wall";
-    cube.translate(0, 5, -100);
+    cube.translate(-415, 5, -750);
     cube.scaleBy(10, 10, 10);
     cube.addCollisionPlane(new CollisionPlane());
 
@@ -253,11 +403,38 @@ function init() {
     ramp.scaleBy(10, 2, 10);
     ramp.tag = "ramp";
     ramp.addCollisionPlane(new CollisionPlane());
+    ramp.rotate(0, 3 * Math.PI / 2 + 0.25, 0);
+
+    boost = new SceneNode();
+    boost.mesh = new Mesh(["models/ramp.obj"], "textures/track.png");
+    boost.tag = "boost";
+    boost.translate(-350, -5, -500);
+    boost.scaleBy(10, 0.5, 10);
+    boost.addCollisionPlane(new CollisionPlane());
+    boost.rotate(0, 0.25, 0);
+
+    startLine = new SceneNode();
+    startLine.mesh = new Mesh(["models/startLine.obj"], "textures/checkered.png");
+    startLine.tag = "start";
+    startLine.translate(-200, -5, 0);
+    startLine.scaleBy(93, 0.5, 10);
+    startLine.rotate(0, 0.25, 0);
+    startLine.addCollisionPlane(new CollisionPlane());
+
+    obstacle = new SceneNode();
+    obstacle.mesh = new Mesh(["models/cube.obj"]);
+    obstacle.tag = "obstacle";
+    obstacle.addCollisionPlane(new CollisionPlane());
+    obstacle.scaleBy(5, 5, 5);
+    obstacle.translate(-300, 0, -250);
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
     sceneGraph.root.addChild(cube);
     sceneGraph.root.addChild(ramp);
+    sceneGraph.root.addChild(boost);
+    sceneGraph.root.addChild(startLine);
+    sceneGraph.root.addChild(obstacle);
 
     Client.connect();
 }

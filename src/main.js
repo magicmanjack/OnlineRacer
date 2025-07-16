@@ -20,10 +20,22 @@ function glSetup() {
         return false;
     }
 
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    updateViewport();
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     return true;
+}
+
+function updateViewport() {
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    // Update camera dimensions to match canvas aspect ratio
+    if (typeof camera !== 'undefined') {
+        const aspectRatio = gl.canvas.width / gl.canvas.height;
+        const baseHeight = 25;
+        camera.displayHeight = baseHeight;
+        camera.displayWidth = baseHeight * aspectRatio;
+    }
 }
 
 let lastTime;

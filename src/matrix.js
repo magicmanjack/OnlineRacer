@@ -128,20 +128,20 @@ const mat = {
         ];
     },
 
-    to3x3: function(m) {
+    to3x3: function (m) {
         /*
             Converts 4x4 matrix to 3x3
         */
 
-        if(m.length != 16) {
+        if (m.length != 16) {
             console.log("Must pass a 4x4 matrix to to3x3()");
             return;
         }
 
         const out = [];
 
-        for(let i = 0; i < m.length; i++) {
-            if((i + 1) % 4 == 0 || i >= 12) {
+        for (let i = 0; i < m.length; i++) {
+            if ((i + 1) % 4 == 0 || i >= 12) {
                 continue;
             }
             out.push(m[i]);
@@ -210,7 +210,7 @@ const mat3x3 = {
     /*
         Similiar to mat class above but for 3x3 matrix operations.
     */
-   multiply: function (a, b) {
+    multiply: function (a, b) {
         /*
         Multiplies matrices a and b. (4x4)
         */
@@ -294,60 +294,71 @@ const vec = {
         return [a * v[0], a * v[1], a * v[2]];
     },
     add: function (a, b) {
-        if(a.length != b.length) {
+        if (a.length != b.length) {
             console.log("Cannot add two vectors of different lengths.");
             return;
         }
         const out = [];
-        for(let i = 0; i < a.length; i++) {
+        for (let i = 0; i < a.length; i++) {
             out.push(a[i] + b[i]);
         }
         return out;
     },
     subtract: function (a, b) {
-        if(a.length != b.length) {
+        if (a.length != b.length) {
             console.log("Cannot subtract two vectors of different lengths.");
             return;
         }
         const out = [];
-        for(let i = 0; i < a.length; i++) {
+        for (let i = 0; i < a.length; i++) {
             out.push(a[i] - b[i]);
         }
         return out;
     },
-    perp: function(v) {
-        if(v.length != 2) {
+    perp: function (v) {
+        if (v.length != 2) {
             console.log("Cannot do perpindular of a non 2D vector");
         }
         return [-v[1], v[0]];
     },
-    magnitude: function(v) {
+    magnitude: function (v) {
         //Returns the magnitude of v (|v|)
         let squaredSum = 0;
-        for(let i = 0; i < v.length; i++) {
+        for (let i = 0; i < v.length; i++) {
             squaredSum += v[i] * v[i];
         }
         return Math.sqrt(squaredSum);
     },
-    normalize: function(v) {
+    normalize: function (v) {
         //normalizes vector v (e.g v/|v|)
         let mag = this.magnitude(v);
         let out = [];
-        for(let i = 0; i < v.length; i++) {
-            out[i] = v[i] / mag; 
+        for (let i = 0; i < v.length; i++) {
+            out[i] = v[i] / mag;
         }
         return out;
     },
-    dot: function(a, b) {
+    dot: function (a, b) {
         //the dot product of vectors a and b.
-        if(a.length != b.length) {
+        if (a.length != b.length) {
             console.log("Cannot do a dot product of two vectors with different size.");
             return;
         }
         let out = 0;
-        for(let i = 0; i < a.length; i++) {
+        for (let i = 0; i < a.length; i++) {
             out += a[i] * b[i];
         }
         return out;
+    },
+    rotate: function (v, rx, ry, rz) {
+        // Rotates a 3D vector v by rx, ry, rz radians
+        if (v.length !== 3) {
+            console.log("Can only rotate 3D vectors.");
+            return;
+        }
+        // Create rotation matrix
+        const rot = mat3x3.rotate(rx, ry, rz);
+        // Multiply rotation matrix by vector
+        return mat3x3.multiplyVec(rot, v);
     }
 };

@@ -17,7 +17,7 @@ Need to process object movement before calculating model matrix.
 
 class SceneNode {
 
-    
+
     parent;
     children;
 
@@ -33,12 +33,12 @@ class SceneNode {
     update;
 
     static collidables = [];
-    
+
 
     constructor() {
         this.parent = null; // Assumed to be root node until added as child node.
         this.children = [];
-        
+
         this.translation = [0, 0, 0];
         this.rotation = [0, 0, 0];
         this.scale = [1, 1, 1];
@@ -163,7 +163,7 @@ class SceneNode {
             and then after the call, collision can be checked.
         */
 
-        if(this.collisionPlane) {
+        if (this.collisionPlane) {
             let local = this.calculateLocal(this);
             let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
             let world = mat.multiply(parentWorld, local);
@@ -175,57 +175,62 @@ class SceneNode {
 
     updateChildren() {
 
-        if(typeof this.update === "function") {
+        if (typeof this.update === "function") {
             this.update();
         }
 
         let local = this.calculateLocal(this);
         let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
-        
+
         this.world = mat.multiply(parentWorld, local);
 
-        if(this.mesh) {
+        if (this.mesh) {
             this.mesh.model = this.world;
         }
 
-        if(this.collisionPlane) {
+        if (this.collisionPlane) {
             this.collisionPlane.model = mat.multiply(this.world, this.calculateLocal(this.collisionPlane));
         }
 
-        this.children.forEach((child) => {child.updateChildren()});
-        
+        this.children.forEach((child) => { child.updateChildren() });
+
     }
 
     remove() {
         this.parent.removeChild(this);
+        for (let i = 0; i <= SceneNode.collidables.length; i++) {
+            if (SceneNode.collidables[i] === this.collisionPlane) {
+                SceneNode.collidables.splice(i, 1);
+            }
+        }
     }
 
     removeChild(child) {
-        for(let i = 0; i < this.children.length; i++) {
-            if(this.children[i] === child) {
+        for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i] === child) {
                 this.children.splice(i, 1);
             }
         }
     }
 
     render() {
-        
-        if(debug && this.collisionPlane) {
+
+        if (debug && this.collisionPlane) {
             this.collisionPlane.render(camera);
         }
-        if(this.mesh) {
+        if (this.mesh) {
             this.mesh.render(camera);
         }
-        this.children.forEach((child) => {child.render()});
+        this.children.forEach((child) => { child.render() });
     }
 }
 
 const sceneGraph = {
-    root : new SceneNode(),
-    updateScene : function() {
+    root: new SceneNode(),
+    updateScene: function () {
         this.root.updateChildren();
     },
-    renderScene : function() {
+    renderScene: function () {
         this.root.render();
     }
 };
