@@ -46,7 +46,6 @@ class Mesh {
         this.projectionLocation = gl.getUniformLocation(this.shader, "u_projection");
         this.positionAttribute = gl.getAttribLocation(this.shader, "a_position");
         this.textureCoordLocation = gl.getAttribLocation(this.shader, "a_texcoord");
-
         this.name = mesh.name;
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
