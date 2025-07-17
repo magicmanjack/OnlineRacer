@@ -148,7 +148,7 @@ function init() {
                 velocity += 0.4;
             }
             if (input.down) {
-                velocity -= 0.6;
+                velocity -= 0.9;
                 if (velocity < -4) {
                     velocity = -4;
                 }
