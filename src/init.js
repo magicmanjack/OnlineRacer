@@ -67,7 +67,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    debug = true;
+    debug = false;
 
     // Initialize camera with proper aspect ratio
     const canvas = document.getElementById('c');
@@ -398,7 +398,11 @@ function init() {
     ground.addMesh(["models/track01.fbx"]).then(() => {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
-        ground.getChild("railing.001").tag = "wall";
+        
+        for(let i = 1; i <= 111; i++ ) {
+            ground.getChild(`railing.${String(i).padStart(3, '0')}`).tag = "wall";
+        }
+        
         
     });
 
