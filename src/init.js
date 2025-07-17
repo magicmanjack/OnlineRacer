@@ -396,11 +396,12 @@ function init() {
 
     ground = new SceneNode();
     ground.addMesh(["models/track01.fbx"]).then(() => {
-        startLine = ground.getChildByMesh("startline.001");
+        startLine = ground.getChild("startline");
         startLine.tag = "start";
-        ground.getChildByMesh("Cube.004").tag = "wall";
+        ground.getChild("railing.001").tag = "wall";
         
     });
+
     ground.translate(0, -5, -50);
     //ground.scaleBy(500, 500, 500);
 

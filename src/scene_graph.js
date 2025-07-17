@@ -21,6 +21,7 @@ class SceneNode {
     parent;
     children;
 
+    name;
     tag = "default";
 
     translation;
@@ -127,6 +128,7 @@ class SceneNode {
                     }
                     nodeQueue.push(child);
 
+                    childSceneNode.name = child.node.name;
                     childSceneNode.translation = mat.getTranslationVector(child.node.transformation);
                     childSceneNode.scale = mat.getScaleVector(child.node.transformation);
                     childSceneNode.rotation = mat.getRotationVector(child.node.transformation);
@@ -238,6 +240,24 @@ class SceneNode {
             }
 
             const rec = c.getChildByMesh(meshName);
+            if(rec) {
+                return rec;
+            }
+        }
+        return null;
+    }
+
+    getChild(name) {
+        /*
+            Gets a child node by its name
+        */
+        for(let i = 0; i < this.children.length; i++) {
+            const c = this.children[i];
+            if(c.name !== undefined && c.name === name) {
+                return c;
+            }
+
+            const rec = c.getChild(name);
             if(rec) {
                 return rec;
             }
