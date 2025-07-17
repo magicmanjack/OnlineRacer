@@ -67,7 +67,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    debug = true;
+    //debug = true;
 
     // Initialize camera with proper aspect ratio
     const canvas = document.getElementById('c');
@@ -76,12 +76,6 @@ function init() {
     camera.displayWidth = startHeight * aspectRatio;
 
     car = new SceneNode();
-    car.scaleBy(3, 3, 3);
-    car.translate(-200, 0, 30);
-    car.rotate(0, Math.PI + 0.25, 0);
-    cameraDist = [50 * Math.sin(0.25), 0, 50 * Math.cos(0.25)];
-    camera.translate(car.translation[0] + cameraDist[0] + 4, 10, car.translation[2] + cameraDist[2]);
-    camera.rotate(0, 0.25, 0);
 
     const gravity = -0.1;
 
@@ -356,6 +350,8 @@ function init() {
         // Update timer display every frame
         updateTimerDisplay();
 
+        // Update speedometer every frame
+        updateSpeedometer(velocity);
 
         // logic for boost pads:
         if (boostTimer > 0) {
@@ -399,11 +395,16 @@ function init() {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
         ground.getChild("railing.001").tag = "wall";
-        
+        car.scaleBy(3, 3, 3);
+        car.rotate(0, Math.PI + startLine.rotation[1], 0);
+        cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
+        camera.rotate(0, startLine.rotation[1], 0);
+        car.translation = vec.add(vec.add(startLine.translation, vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2])), [15, 0, 0]);
+        camera.translate(car.translation[0] + cameraDist[0] + 4.3, 10, car.translation[2] + cameraDist[2]);
     });
 
+
     ground.translate(0, -5, -50);
-    //ground.scaleBy(500, 500, 500);
 
     cube = new SceneNode();
     cube.addMesh(["models/cube.obj"]);
