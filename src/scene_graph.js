@@ -119,12 +119,11 @@ class SceneNode {
                         /*
                             child is a collider and must be handled accordingly.
                         */
-                       parent.sceneNode.addCollisionPlane(new CollisionPlane(model.meshes[child.node.meshes[0]]));
-                       parent.sceneNode.collisionPlane.translation = mat.getTranslationVector(child.node.transformation);
-                       parent.sceneNode.collisionPlane.scale = mat.getScaleVector(child.node.transformation);
-                       parent.sceneNode.collisionPlane.rotation = mat.getRotationVector(child.node.transformation);
-
-                       continue;
+                        parent.sceneNode.addCollisionPlane(new CollisionPlane(model.meshes[child.node.meshes[0]]));
+                        parent.sceneNode.collisionPlane.translation = mat.getTranslationVector(child.node.transformation);
+                        parent.sceneNode.collisionPlane.scale = mat.getScaleVector(child.node.transformation);
+                        parent.sceneNode.collisionPlane.rotation = mat.getRotationVector(child.node.transformation);
+                        continue;
                     }
                     nodeQueue.push(child);
 

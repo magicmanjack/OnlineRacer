@@ -200,7 +200,7 @@ const mat = {
             seperate scalings for each axis.
         */
        const col = [m[0], m[4], m[8]];
-       const mag = Math.sqrt(col[0] * col[0] + col[1] * col[1] * col[2] * col[2]);
+       const mag = Math.sqrt(col[0] * col[0] + col[1] * col[1] + col[2] * col[2]);
        return [mag, mag, mag];
     }
 
