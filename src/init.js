@@ -76,12 +76,6 @@ function init() {
     camera.displayWidth = startHeight * aspectRatio;
 
     car = new SceneNode();
-    car.scaleBy(3, 3, 3);
-    car.translate(-200, 0, 30);
-    car.rotate(0, Math.PI + 0.25, 0);
-    cameraDist = [50 * Math.sin(0.25), 0, 50 * Math.cos(0.25)];
-    camera.translate(car.translation[0] + cameraDist[0] + 4, 10, car.translation[2] + cameraDist[2]);
-    camera.rotate(0, 0.25, 0);
 
     const gravity = -0.1;
 
@@ -96,6 +90,8 @@ function init() {
     let cameraLagFactor = 0.1;
 
     let terminalVelocity = 17;
+    let acceleration = 0.4;
+    let friction = 0.2;
     let boostTimer = 0;
 
     let startTimer = false;
@@ -145,7 +141,7 @@ function init() {
         // Input handling
         if (!controlsDisabled) {
             if (input.up) {
-                velocity += 0.4;
+                velocity += acceleration;
             }
             if (input.down) {
                 velocity -= 0.9;
@@ -185,7 +181,7 @@ function init() {
 
         if (velocity > 0) {
             cameraLagFactor = 0.1;
-            velocity -= 0.2;
+            velocity -= friction;
             if (velocity < 0) {
                 velocity = 0;
             }
@@ -332,8 +328,14 @@ function init() {
                             car.originalUpdate && car.originalUpdate.call(this);
                         };
                     }
+                } else if (t == "magnet" && car.translation[1] < 1) {
+                    terminalVelocity = 5;
+                    acceleration = 0.2;
                 }
             }
+        } else {
+            terminalVelocity = 17;
+            acceleration = 0.4;
         }
 
         // Handle start line collision only on transition from not colliding to colliding
@@ -356,6 +358,8 @@ function init() {
         // Update timer display every frame
         updateTimerDisplay();
 
+        // Update speedometer every frame
+        updateSpeedometer(velocity);
 
         // logic for boost pads:
         if (boostTimer > 0) {
@@ -365,7 +369,6 @@ function init() {
             boostTimer += 1;
             if (boostTimer >= 60) {
                 boostTimer = 0;
-                terminalVelocity = 17;
             }
         }
 
@@ -404,10 +407,17 @@ function init() {
         }
         
         
+        ground.getChild("railing.001").tag = "wall";
+        car.scaleBy(3, 3, 3);
+        car.rotate(0, Math.PI + startLine.rotation[1], 0);
+        cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
+        camera.rotate(0, startLine.rotation[1], 0);
+        car.translation = vec.add(vec.add(startLine.translation, vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2])), [15, 0, 0]);
+        camera.translate(car.translation[0] + cameraDist[0] + 4.3, 10, car.translation[2] + cameraDist[2]);
     });
 
+
     ground.translate(0, -5, -50);
-    //ground.scaleBy(500, 500, 500);
 
     cube = new SceneNode();
     cube.addMesh(["models/cube.obj"]);
@@ -418,11 +428,11 @@ function init() {
 
     ramp = new SceneNode();
     ramp.addMesh(["models/ramp.obj"]);
-    ramp.translate(50, -5, -100);
+    ramp.translate(-375, -5, -750);
     ramp.scaleBy(10, 2, 10);
     ramp.tag = "ramp";
     ramp.addCollisionPlane(new CollisionPlane());
-    ramp.rotate(0, 3 * Math.PI / 2 + 0.25, 0);
+    ramp.rotate(0, 3 * Math.PI / 2, 0);
 
     boost = new SceneNode();
     boost.addMesh(["models/ramp.obj"]);
@@ -432,12 +442,20 @@ function init() {
     boost.addCollisionPlane(new CollisionPlane());
     boost.rotate(0, 0.25, 0);
 
+    magnet = new SceneNode();
+    magnet.addMesh(["models/ramp.obj"]);
+    magnet.tag = "magnet";
+    magnet.translate(-350, -5, -1050);
+    magnet.scaleBy(100, 0.5, 150);
+    magnet.addCollisionPlane(new CollisionPlane());
+    magnet.rotate(0, 0.25, 0);
+
     obstacle = new SceneNode();
     obstacle.addMesh(["models/cube.obj"]);
     obstacle.tag = "obstacle";
     obstacle.addCollisionPlane(new CollisionPlane());
     obstacle.scaleBy(5, 5, 5);
-    obstacle.translate(-300, 0, -250);
+    obstacle.translate(-350, 0, -750);
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
@@ -445,6 +463,7 @@ function init() {
     sceneGraph.root.addChild(ramp);
     sceneGraph.root.addChild(boost);
     sceneGraph.root.addChild(obstacle);
+    sceneGraph.root.addChild(magnet);
 
     Client.connect();
 }

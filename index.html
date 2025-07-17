@@ -23,16 +23,11 @@
             height: 100%;
         }
 
-        #ui-overlay {
+        #timer-display {
             position: absolute;
             top: 20px;
             left: 20px;
             color: white;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        #timer-display {
             font-size: 24px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -40,9 +35,31 @@
         }
 
         #timer-status {
+            position: absolute;
+            top: 60px;
+            left: 20px;
             font-size: 16px;
             color: #ffff00;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        #speedometer {
+            position: absolute;
+            right: 25%;
+            bottom: 20px;
+            width: 50%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid white;
+            border-radius: 10px;
+        }
+
+        #speed-bar {
+            height: 100%;
+            width: 0%;
+            background: #00ff00;
+            border-radius: 8px;
+            transition: width 0.1s ease;
         }
     </style>
 </head>
@@ -54,6 +71,9 @@
             <div id="timer-display">00:00.00</div>
             <div id="timer-status">Ready to race!</div>
         </div>
+        <div id="speedometer">
+            <div id="speed-bar"></div>
+        </div>
     </div>
     <script>
         // Set canvas size to fill entire screen
@@ -62,8 +82,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
-            // Update WebGL viewport and camera if they exist
-            if (typeof updateViewport !== 'undefined') {
+            if (typeof updateViewport === 'function') {
                 updateViewport();
             }
         }
@@ -73,6 +92,20 @@
 
         // Resize canvas when window size changes
         window.addEventListener('resize', resizeCanvas);
+
+        // Update speedometer display
+        function updateSpeedometer(velocity) {
+            const speedBar = document.getElementById('speed-bar');
+            const speed = Math.abs(velocity);
+            const maxSpeed = 17;
+            const percentage = Math.min((speed / maxSpeed) * 100, 100);
+            speedBar.style.width = percentage + '%';
+            if (percentage >= 100) {
+                speedBar.style.background = '#00ffff';
+            } else {
+                speedBar.style.background = '#00ff00';
+            }
+        }
     </script>
     <script type="text/javascript" src="assimp/assimpjs.js"></script>
     <script type="text/javascript" src="src/model_loader.js"></script>
