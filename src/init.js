@@ -67,7 +67,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    //debug = true;
+    debug = true;
 
     // Initialize camera with proper aspect ratio
     const canvas = document.getElementById('c');
@@ -332,12 +332,12 @@ function init() {
             if (!startTimer) {
                 startTime = Date.now();
                 finalTime = 0; // Reset final time when starting new race
-                console.log("Timer started");
+                //console.log("Timer started");
                 startTimer = true;
             } else {
                 finalTime = Date.now() - startTime;
                 const elapsed = finalTime / 1000;
-                console.log(`Timer stopped: ${elapsed.toFixed(2)} seconds`);
+                //console.log(`Timer stopped: ${elapsed.toFixed(2)} seconds`);
                 startTimer = false;
             }
         }
@@ -386,7 +386,11 @@ function init() {
     car.collisionPlane.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.addMesh(["models/track01.fbx"]);
+    ground.addMesh(["models/track01.fbx"]).then(() => {
+        startLine = ground.getChildByMesh("startline");
+        startLine.tag = "start";
+        ground.getChildByMesh("Cube.003").tag = "wall";
+    });
     ground.translate(0, -5, -50);
     ground.scaleBy(500, 500, 500);
 
@@ -413,14 +417,6 @@ function init() {
     boost.addCollisionPlane(new CollisionPlane());
     boost.rotate(0, 0.25, 0);
 
-    startLine = new SceneNode();
-    startLine.addMesh(["models/startLine.obj", "models/startLine.mtl"]);
-    startLine.tag = "start";
-    startLine.translate(-200, -5, 0);
-    startLine.scaleBy(93, 0.5, 10);
-    startLine.rotate(0, 0.25, 0);
-    startLine.addCollisionPlane(new CollisionPlane());
-
     obstacle = new SceneNode();
     obstacle.addMesh(["models/cube.obj"]);
     obstacle.tag = "obstacle";
@@ -433,7 +429,6 @@ function init() {
     sceneGraph.root.addChild(cube);
     sceneGraph.root.addChild(ramp);
     sceneGraph.root.addChild(boost);
-    sceneGraph.root.addChild(startLine);
     sceneGraph.root.addChild(obstacle);
 
     Client.connect();

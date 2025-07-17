@@ -87,13 +87,13 @@ class SceneNode {
     addMesh(fileNames) {
         /*
             Uses Assimpjs to load in meshes and properly set up scene heirarchy.
+            Returns promise that resolves when meshes are loaded.
         */
         
-        loadModelFile(fileNames).then((model) => {
+        return loadModelFile(fileNames).then((model) => {
             /*
                 Recursively search the node tree.
             */
-            
             const nodeQueue = [{node : model.rootnode, sceneNode: this}];
 
             while(nodeQueue.length > 0) {
@@ -113,6 +113,18 @@ class SceneNode {
                             or other.
                         */
                         continue;
+                    }
+
+                    if(child.node.name.startsWith("collider")) {
+                        /*
+                            child is a collider and must be handled accordingly.
+                        */
+                       parent.sceneNode.addCollisionPlane(new CollisionPlane(model.meshes[child.node.meshes[0]]));
+                       parent.sceneNode.collisionPlane.translation = mat.getTranslationVector(child.node.transformation);
+                       parent.sceneNode.collisionPlane.scale = mat.getScaleVector(child.node.transformation);
+                       parent.sceneNode.collisionPlane.rotation = mat.getRotationVector(child.node.transformation);
+
+                       continue;
                     }
                     nodeQueue.push(child);
 
@@ -214,7 +226,7 @@ class SceneNode {
         }
     }
 
-    getChildNodeByMesh(meshName) {
+    getChildByMesh(meshName) {
         /*
             Recursively searches the child node tree for the node
             with the mesh named meshName and returns it if found.
@@ -226,7 +238,7 @@ class SceneNode {
                 return c;
             }
 
-            const rec = c.getChildNodeByMesh(meshName);
+            const rec = c.getChildByMesh(meshName);
             if(rec) {
                 return rec;
             }

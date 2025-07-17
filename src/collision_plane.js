@@ -23,7 +23,7 @@ class CollisionPlane {
 
     static lineShader;
 
-    constructor() {
+    constructor(collider) {
         if(!CollisionPlane.lineShader) {
             CollisionPlane.lineShader = createProgram("shaders/passthrough.vert", "shaders/line.frag");
         }
@@ -37,9 +37,16 @@ class CollisionPlane {
         this.projectionLocation = gl.getUniformLocation(CollisionPlane.lineShader, "u_projection");
         this.positionAttribute = gl.getAttribLocation(CollisionPlane.lineShader, "a_position");
     
-        loadModelFile(["models/square_collider.obj"]).then(this.loadVertices).then(() => {
+        if(collider === undefined) {
+            //Load defaults.
+            loadModelFile(["models/square_collider.obj"]).then((model) => {this.loadVertices(model.meshes[0])}).then(() => {
+                this.loaded = true;
+            });
+        } else {
+            //Load collider
+            this.loadVertices(collider);
             this.loaded = true;
-        });
+        }
 
         this.translation = [0, 0, 0];
         this.rotation = [0, 0, 0];
@@ -50,11 +57,10 @@ class CollisionPlane {
         SceneNode.collidables.push(this);
     }  
 
-    loadVertices = (model) => {
+    loadVertices = (mesh) => {
         
-        for(let i = 0; i < model.meshes.length; i++) {
-            this.vertices = this.vertices.concat(model.meshes[i].vertices);
-        }
+        
+        this.vertices = mesh.vertices;
 
         this.positionBuffer = gl.createBuffer();
         
