@@ -82,7 +82,9 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
-            updateViewport();
+            if (typeof updateViewport === 'function') {
+                updateViewport();
+            }
         }
 
         // Initial resize
