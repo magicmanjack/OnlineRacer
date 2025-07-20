@@ -6,7 +6,7 @@ class Camera {
         this.displayWidth = 25;
         this.displayHeight = 25;
         this.zNear = 25;
-        this.zFar = 1500;
+        this.zFar = 2000;
     }
 
     translate(tx, ty, tz) {

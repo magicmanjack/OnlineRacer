@@ -265,6 +265,23 @@ class SceneNode {
         return null;
     }
 
+    getChildren(prefix, matching=[]) {
+        /* 
+            Gets and returns a list of children that start with the given prefix.
+        */
+        for(let i = 0; i < this.children.length; i++) {
+            const c = this.children[i];
+            if(c.name !== undefined && c.name.startsWith(prefix)) {
+                matching.push(c);
+            }
+
+            c.getChildren(prefix, matching);
+        }
+        
+        return matching;
+
+    }
+
     render() {
 
         if (debug && this.collisionPlane) {

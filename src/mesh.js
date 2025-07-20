@@ -46,6 +46,7 @@ class Mesh {
         this.projectionLocation = gl.getUniformLocation(this.shader, "u_projection");
         this.positionAttribute = gl.getAttribLocation(this.shader, "a_position");
         this.textureCoordLocation = gl.getAttribLocation(this.shader, "a_texcoord");
+
         this.name = mesh.name;
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
@@ -162,6 +163,16 @@ class Mesh {
         });
 
     };
+
+    reuse = () => {
+        /*
+            Shallow copies every thing except the model matrix.
+            This allows for reusing mesh data but drawing it in different positions.
+        */
+        const cloned = Object.create(this);
+        cloned.model = Array.from(this.model);
+        return cloned;
+    }
 
     render(cam) {
 

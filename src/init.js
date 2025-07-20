@@ -241,21 +241,18 @@ function init() {
 
                 } else if (t == "ramp") {
                     //collision with ramp
-                    carYVelocity += 1 / 15 * Math.abs(velocity);
+                    carYVelocity += 1 / 25 * Math.abs(velocity);
                 } else if (t == "boost") {
                     boostTimer = 1;
                 } else if (t == "start") {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
                     if (t == "obstacle") {
-                        p.remove();
-
+ 
                         for (let i = 0; i < 4; i++) {
                             let obstacleShard = new SceneNode();
-
-                            // JACK: allow for obstacleShard.mesh = obstacle.mesh to work and create multiple shards
-
-                            obstacleShard.addMesh(['models/cube.obj']);
+                            
+                            obstacleShard.mesh = p.mesh.reuse();
                             obstacleShard.scaleBy(2, 2, 2);
                             obstacleShard.translation = [...p.translation];
                             obstacleShard.rotation = [...p.rotation];
@@ -282,6 +279,7 @@ function init() {
                             };
 
                         }
+                        p.remove();
                     }
                     if (velocity <= 8.5 && t == "car") {
                         // potential logic for rebounding off of collided cars
@@ -399,15 +397,43 @@ function init() {
 
     ground = new SceneNode();
     ground.addMesh(["models/track01.fbx"]).then(() => {
+
         startLine = ground.getChild("startline");
         startLine.tag = "start";
         
+        /*
         for(let i = 1; i <= 111; i++ ) {
             ground.getChild(`railing.${String(i).padStart(3, '0')}`).tag = "wall";
         }
+        */
+          
+
+        ground.getChildren("railing").forEach(element => {
+            element.tag = "wall";
+        });
+
+        /*
+        for(let i = 1; i <= 24; i++) {
+            ground.getChild(`cube.${String(i).padStart(3, '0')}`).tag = "wall";
+        }
+        */
+
+        ground.getChildren("cube").forEach((e) => {e.tag = "wall"});
+
+        ground.getChildren("magnetpad").forEach((e) => {e.tag = "magnet"});
+
+        ground.getChildren("ramp").forEach((e) => {e.tag = "ramp"});
+
+        ground.getChildren("obstacle").forEach(e => {
+            e.tag="obstacle";
+            e.update = () => {
+              e.rotate(0, 0.1, 0.07);  
+        }});
+
+        ground.getChildren("boost").forEach(e => {
+            e.tag = "boost";
+        });
         
-        
-        ground.getChild("railing.001").tag = "wall";
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
         cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
@@ -419,51 +445,8 @@ function init() {
 
     ground.translate(0, -5, -50);
 
-    cube = new SceneNode();
-    cube.addMesh(["models/cube.obj"]);
-    cube.tag = "wall";
-    cube.translate(-415, 5, -750);
-    cube.scaleBy(10, 10, 10);
-    cube.addCollisionPlane(new CollisionPlane());
-
-    ramp = new SceneNode();
-    ramp.addMesh(["models/ramp.obj"]);
-    ramp.translate(-375, -5, -750);
-    ramp.scaleBy(10, 2, 10);
-    ramp.tag = "ramp";
-    ramp.addCollisionPlane(new CollisionPlane());
-    ramp.rotate(0, 3 * Math.PI / 2, 0);
-
-    boost = new SceneNode();
-    boost.addMesh(["models/ramp.obj"]);
-    boost.tag = "boost";
-    boost.translate(-350, -5, -500);
-    boost.scaleBy(10, 0.5, 10);
-    boost.addCollisionPlane(new CollisionPlane());
-    boost.rotate(0, 0.25, 0);
-
-    magnet = new SceneNode();
-    magnet.addMesh(["models/ramp.obj"]);
-    magnet.tag = "magnet";
-    magnet.translate(-350, -5, -1050);
-    magnet.scaleBy(100, 0.5, 150);
-    magnet.addCollisionPlane(new CollisionPlane());
-    magnet.rotate(0, 0.25, 0);
-
-    obstacle = new SceneNode();
-    obstacle.addMesh(["models/cube.obj"]);
-    obstacle.tag = "obstacle";
-    obstacle.addCollisionPlane(new CollisionPlane());
-    obstacle.scaleBy(5, 5, 5);
-    obstacle.translate(-350, 0, -750);
-
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
-    sceneGraph.root.addChild(cube);
-    sceneGraph.root.addChild(ramp);
-    sceneGraph.root.addChild(boost);
-    sceneGraph.root.addChild(obstacle);
-    sceneGraph.root.addChild(magnet);
 
     Client.connect();
 }
