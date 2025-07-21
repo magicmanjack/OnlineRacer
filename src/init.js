@@ -52,19 +52,19 @@ Client.onMessage = (e) => {
                     const collisions = p.collisionPlane.collisions;
                     collisions.forEach((collider) => {
                         const t = collider.parent.tag;
-                        const p = collider.parent;
+                        const c = collider.parent;
 
                         if (t == "obstacle") {
                             for (let i = 0; i < 4; i++) {
                                 const obstacleShard = new SceneNode();
-                                const obstacleMesh = p.getChildren("mesh")[0].mesh;
+                                const obstacleMesh = c.getChildren("mesh")[0].mesh;
 
                                 obstacleShard.mesh = obstacleMesh.reuse();
                                 obstacleShard.scaleBy(2, 2, 2);
                                 obstacleShard.translation = [...p.translation];
-                                obstacleShard.rotation = [...p.rotation];
+                                obstacleShard.rotation = [...c.rotation];
                                 sceneGraph.root.addChild(obstacleShard);
-                                let netCarDir = vec.rotate([0, 0, -1], p.rotation[0], p.rotation[1], p.rotation[2]);
+                                let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
                                 let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
                                 let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
                                 let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
@@ -86,7 +86,7 @@ Client.onMessage = (e) => {
                                 };
 
                             }
-                            p.remove();
+                            c.remove();
                         }
                     });
                 }
