@@ -113,7 +113,7 @@ Client.onMessage = (e) => {
 };
 
 function init() {
-    debug = false;
+    debug = true;
 
     // Initialize camera with proper aspect ratio
     const canvas = document.getElementById('c');
