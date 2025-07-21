@@ -404,7 +404,11 @@ function init() {
                     }
                 } else if (t == "magnet" && car.translation[1] < 1) {
                     terminalVelocity = 5;
-                    acceleration = 0.2;
+                    if (Math.abs(velocity) > 2) {
+                        acceleration = 0.2;
+                    } else {
+                        acceleration = 0.4;
+                    }
                 } else if (t == "checkpoint") {
                     const checkpointName = p.name;
                     let checkpointNumber = getCheckpointNumber(checkpointName);
