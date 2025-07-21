@@ -150,6 +150,9 @@ function init() {
     let checkpointStack = [];
     let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
 
+    let numLaps = 1;
+    let gameFinished = false;
+
     // Timer display functions
     function formatTime(milliseconds) {
         const totalSeconds = milliseconds / 1000;
@@ -161,23 +164,24 @@ function init() {
 
     function updateTimerDisplay() {
         const timerDisplay = document.getElementById('timer-display');
-        const timerStatus = document.getElementById('timer-status');
 
         if (startTimer) {
             const elapsed = Date.now() - startTime;
             timerDisplay.textContent = formatTime(elapsed);
-            timerStatus.textContent = "Racing...";
         } else {
             if (finalTime > 0) {
                 // Timer has been stopped, show final time
                 timerDisplay.textContent = formatTime(finalTime);
-                timerStatus.textContent = "Race finished!";
             } else {
                 // Timer hasn't started yet
                 timerDisplay.textContent = "00:00.00";
-                timerStatus.textContent = "Ready to race!";
             }
         }
+    }
+
+    function updateLapCounter() {
+        const lapCounter = document.getElementById('lap-counter');
+        lapCounter.textContent = `${numLaps}/3`;
     }
 
     function getCheckpointNumber(checkpointName) {
@@ -397,7 +401,9 @@ function init() {
                                 car.spinning = false;
                                 // Restore the original update function after spinning
                                 car.update = car.originalUpdate;
-                                controlsDisabled = false;
+                                if (!gameFinished) {
+                                    controlsDisabled = false;
+                                }
                             }
                             car.originalUpdate && car.originalUpdate.call(this);
                         };
@@ -434,13 +440,18 @@ function init() {
                 startTime = Date.now();
                 finalTime = 0;
                 startTimer = true;
-            } else {
+            } else if (numLaps == 3) {
                 if (allCheckpointsPassed()) {
                     finalTime = Date.now() - startTime;
                     startTimer = false;
+                    controlsDisabled = true;
+                    gameFinished = true;
                 }
-                resetCheckpoints();
+            } else if (allCheckpointsPassed()) {
+                numLaps++;
+                updateLapCounter();
             }
+            resetCheckpoints();
         }
 
         lastStartLineCollision = currentStartLineCollision;
