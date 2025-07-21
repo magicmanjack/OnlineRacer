@@ -45,6 +45,52 @@ Client.onMessage = (e) => {
             sceneGraph.root.addChild(p);
             p.tag = "car";
             p.addCollisionPlane(new CollisionPlane());
+            p.collisionPlane.scale = [2, 1, 3];
+            p.update = () => {
+                p.collisionStep();
+                if(p.collisionPlane.collided) {
+                    const collisions = p.collisionPlane.collisions;
+                    collisions.forEach((collider) => {
+                        const t = collider.parent.tag;
+                        const p = collider.parent;
+                        
+                        if(t == "obstacle") {
+                            for(let i = 0; i < 4; i++) {
+                                const obstacleShard = new SceneNode();
+                                const obstacleMesh = p.getChildren("mesh")[0].mesh;
+
+                                obstacleShard.mesh = obstacleMesh.reuse();
+                                obstacleShard.scaleBy(2, 2, 2);
+                                obstacleShard.translation = [...p.translation];
+                                obstacleShard.rotation = [...p.rotation];
+                                sceneGraph.root.addChild(obstacleShard);
+                                let netCarDir = vec.rotate([0, 0, -1], p.rotation[0], p.rotation[1], p.rotation[2]);
+                                let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
+                                let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
+                                let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
+                                let speed = 5 + Math.random() * 2;
+                                let velocityVec = [
+                                    Math.cos(angle) * speed + Math.random() * 2,
+                                    2 + Math.random() * 2 + Math.random() * 2,
+                                    Math.sin(angle) * speed + Math.random() * 2
+                                ];
+
+                                let frames = 40;
+                                obstacleShard.update = function () {
+                                    this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
+                                    velocityVec[1] -= 0.3;
+                                    frames--;
+                                    if (frames <= 0) {
+                                        this.remove();
+                                    }
+                                };
+
+                            }
+                            p.remove();
+                        }
+                    });
+                }
+            };
 
             networkCars.set(msg.player.id, p);
 
@@ -248,11 +294,13 @@ function init() {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
                     if (t == "obstacle") {
- 
+                        
                         for (let i = 0; i < 4; i++) {
-                            let obstacleShard = new SceneNode();
+                            const obstacleShard = new SceneNode();
                             
-                            obstacleShard.mesh = p.mesh.reuse();
+                            const obstacleMesh = p.getChildren("mesh")[0].mesh;
+
+                            obstacleShard.mesh = obstacleMesh.reuse();
                             obstacleShard.scaleBy(2, 2, 2);
                             obstacleShard.translation = [...p.translation];
                             obstacleShard.rotation = [...p.rotation];
@@ -426,9 +474,11 @@ function init() {
 
         ground.getChildren("obstacle").forEach(e => {
             e.tag="obstacle";
-            e.update = () => {
-              e.rotate(0, 0.1, 0.07);  
-        }});
+            const meshChild = e.getChildren("mesh")[0]; 
+            meshChild.update = () => {
+                meshChild.rotate(0, 0.1, 0.07);  
+            };
+        });
 
         ground.getChildren("boost").forEach(e => {
             e.tag = "boost";

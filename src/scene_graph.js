@@ -107,14 +107,7 @@ class SceneNode {
                 for(let c = 0; c < parent.node.children.length; c++) {
                     const childSceneNode = new SceneNode();
                     const child = {node: parent.node.children[c], sceneNode: childSceneNode};
-                    
-                    if(child.node.meshes === undefined) {
-                        /*
-                            Child is not a mesh. May be a camera or lightsource
-                            or other.
-                        */
-                        continue;
-                    }
+                
 
                     if(child.node.name.startsWith("collider")) {
                         /*
@@ -153,11 +146,18 @@ class SceneNode {
                                     }
                                 ]
                     */
-                    const mesh = model.meshes[child.node.meshes[0]]; 
-                    const material = model.materials[mesh.materialindex];
-                    childSceneNode.mesh = new Mesh(mesh, material);
-                    childSceneNode.mesh.parent = parent.sceneNode;
-                   
+                    if(child.node.meshes !== undefined) {
+                        /*
+                            Child is not a mesh. May be a camera or lightsource
+                            or empty or other.
+                        */
+                        const mesh = model.meshes[child.node.meshes[0]]; 
+                        const material = model.materials[mesh.materialindex];
+                        childSceneNode.mesh = new Mesh(mesh, material);
+                        childSceneNode.mesh.parent = parent.sceneNode;
+                        
+                    }
+                    
                     parent.sceneNode.addChild(childSceneNode);
                 }
             }
