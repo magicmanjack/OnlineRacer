@@ -1,125 +1,119 @@
-/*
-Camera points towards the -z axis into the screen.
-X axis to the right.
-Y axis upwards.
-origin bottom left.
-*/
-let camera = new Camera([0, 10, 15], [0, 0, 0]);
 
-let car;
-let playerID;
-let networkCars = new Map();
-
-const startWidth = 25;
-const startHeight = 25;
-
-Client.onOpen = (e) => {
-    const msg = {
-        type: "get_unique_id",
-    };
-    Client.webSocket.send(JSON.stringify(msg));
-};
-
-Client.onMessage = (e) => {
-    const msg = JSON.parse(e.data);
-    switch (msg.type) {
-        case "set_id":
-            playerID = msg.id;
-            Client.webSocket.send(JSON.stringify({
-                type: "add_player",
-                player: {
-                    id: playerID,
-                    translation: car.translation,
-                    rotation: car.rotation,
-                    scale: car.scale
-                }
-            }));
-            break;
-        case "add_player": {
-            //attach player node to scene root.
-            let p = new SceneNode();
-            p.translation = msg.player.translation;
-            p.rotation = msg.player.rotation;
-            p.scale = msg.player.scale;
-            p.addMesh(["models/car.obj", "models/car.mtl"]);
-            sceneGraph.root.addChild(p);
-            p.tag = "car";
-            p.addCollisionPlane(new CollisionPlane());
-            p.collisionPlane.scale = [2, 1, 3];
-            p.update = () => {
-                p.collisionStep();
-                if (p.collisionPlane.collided) {
-                    const collisions = p.collisionPlane.collisions;
-                    collisions.forEach((collider) => {
-                        const t = collider.parent.tag;
-                        const c = collider.parent;
-
-                        if (t == "obstacle") {
-                            for (let i = 0; i < 4; i++) {
-                                const obstacleShard = new SceneNode();
-                                const obstacleMesh = c.getChildren("mesh")[0].mesh;
-
-                                obstacleShard.mesh = obstacleMesh.reuse();
-                                obstacleShard.scaleBy(2, 2, 2);
-                                obstacleShard.translation = [...p.translation];
-                                obstacleShard.rotation = [...c.rotation];
-                                sceneGraph.root.addChild(obstacleShard);
-                                let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
-                                let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
-                                let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
-                                let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
-                                let speed = 5 + Math.random() * 2;
-                                let velocityVec = [
-                                    Math.cos(angle) * speed + Math.random() * 2,
-                                    2 + Math.random() * 2 + Math.random() * 2,
-                                    Math.sin(angle) * speed + Math.random() * 2
-                                ];
-
-                                let frames = 40;
-                                obstacleShard.update = function () {
-                                    this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
-                                    velocityVec[1] -= 0.3;
-                                    frames--;
-                                    if (frames <= 0) {
-                                        this.remove();
-                                    }
-                                };
-
-                            }
-                            c.remove();
-                        }
-                    });
-                }
-            };
-
-            networkCars.set(msg.player.id, p);
-
-            break;
-        }
-        case "player_update": {
-            const c = networkCars.get(msg.player.id);
-            c.translation = msg.player.translation;
-            c.rotation = msg.player.rotation;
-            c.scale = msg.player.scale;
-
-            break;
-        }
-        case "remove_player": {
-            networkCars.get(msg.id).remove();
-            networkCars.set(msg.id, null);
-            break;
-        }
-    }
-};
 
 function init() {
     debug = true;
 
+    let car;
+    let playerID;
+    let networkCars = new Map();
+
+    const startWidth = 25;
+    const startHeight = 25;
+
+    Client.onOpen = (e) => {
+        const msg = {
+            type: "get_unique_id",
+        };
+        Client.webSocket.send(JSON.stringify(msg));
+    };
+
+    Client.onMessage = (e) => {
+        const msg = JSON.parse(e.data);
+        switch (msg.type) {
+            case "set_id":
+                playerID = msg.id;
+                Client.webSocket.send(JSON.stringify({
+                    type: "add_player",
+                    player: {
+                        id: playerID,
+                        translation: car.translation,
+                        rotation: car.rotation,
+                        scale: car.scale
+                    }
+                }));
+                break;
+            case "add_player": {
+                //attach player node to scene root.
+                let p = new SceneNode();
+                p.translation = msg.player.translation;
+                p.rotation = msg.player.rotation;
+                p.scale = msg.player.scale;
+                p.addMesh(["models/car.obj", "models/car.mtl"]);
+                sceneGraph.root.addChild(p);
+                p.tag = "car";
+                p.addCollisionPlane(new CollisionPlane());
+                p.collisionPlane.scale = [2, 1, 3];
+                p.update = () => {
+                    p.collisionStep();
+                    if (p.collisionPlane.collided) {
+                        const collisions = p.collisionPlane.collisions;
+                        collisions.forEach((collider) => {
+                            const t = collider.parent.tag;
+                            const c = collider.parent;
+
+                            if (t == "obstacle") {
+                                for (let i = 0; i < 4; i++) {
+                                    const obstacleShard = new SceneNode();
+                                    const obstacleMesh = c.getChildren("mesh")[0].mesh;
+
+                                    obstacleShard.mesh = obstacleMesh.reuse();
+                                    obstacleShard.scaleBy(2, 2, 2);
+                                    obstacleShard.translation = [...p.translation];
+                                    obstacleShard.rotation = [...c.rotation];
+                                    sceneGraph.root.addChild(obstacleShard);
+                                    let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
+                                    let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
+                                    let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
+                                    let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
+                                    let speed = 5 + Math.random() * 2;
+                                    let velocityVec = [
+                                        Math.cos(angle) * speed + Math.random() * 2,
+                                        2 + Math.random() * 2 + Math.random() * 2,
+                                        Math.sin(angle) * speed + Math.random() * 2
+                                    ];
+
+                                    let frames = 40;
+                                    obstacleShard.update = function () {
+                                        this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
+                                        velocityVec[1] -= 0.3;
+                                        frames--;
+                                        if (frames <= 0) {
+                                            this.remove();
+                                        }
+                                    };
+
+                                }
+                                c.remove();
+                            }
+                        });
+                    }
+                };
+
+                networkCars.set(msg.player.id, p);
+
+                break;
+            }
+            case "player_update": {
+                const c = networkCars.get(msg.player.id);
+                c.translation = msg.player.translation;
+                c.rotation = msg.player.rotation;
+                c.scale = msg.player.scale;
+
+                break;
+            }
+            case "remove_player": {
+                networkCars.get(msg.id).remove();
+                networkCars.set(msg.id, null);
+                break;
+            }
+        }
+    };
+
     // Initialize camera with proper aspect ratio
     const canvas = document.getElementById('c');
     const aspectRatio = canvas.width / canvas.height;
-    camera.displayHeight = startHeight;
-    camera.displayWidth = startHeight * aspectRatio;
+    Camera.main.displayHeight = startHeight;
+    Camera.main.displayWidth = startHeight * aspectRatio;
 
     car = new SceneNode();
 
@@ -241,12 +235,12 @@ function init() {
 
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
-        camera.rotate(0, cameraRotationStep, 0);
-        cameraDisp = vec.subtract(camera.translation, car.translation)
+        Camera.main.rotate(0, cameraRotationStep, 0);
+        cameraDisp = vec.subtract(Camera.main.translation, car.translation)
 
         newPos = vec.rotate(cameraDisp, 0, cameraRotationStep, 0);
 
-        camera.translation = vec.add(newPos, car.translation)
+        Camera.main.translation = vec.add(newPos, car.translation)
 
         cameraRotationY += cameraRotationStep;
 
@@ -284,7 +278,7 @@ function init() {
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
         car.translate(carDelta[0], carDelta[1], carDelta[2]);
         const camDelta = [newcarDirection[0], newcarDirection[1], newcarDirection[2]];
-        camera.translate(camDelta[0], camDelta[1], camDelta[2]);
+        Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
         if (car.translation[1] < 0) {
             //If car phases through ground
@@ -310,7 +304,7 @@ function init() {
                     let camInv = vec.scale(-1, camDelta);
                     velocity = 0;
                     car.translate(carInv[0], carYVelocity, carInv[2]);
-                    camera.translate(camInv[0], camInv[1], camInv[2]);
+                    Camera.main.translate(camInv[0], camInv[1], camInv[2]);
 
                 } else if (t == "ramp") {
                     //collision with ramp
@@ -473,12 +467,12 @@ function init() {
             }
         }
 
-        // Update camera zoom with velocity while maintaining aspect ratio
+        // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById('c');
         const aspectRatio = canvas.width / canvas.height;
         const zoomHeight = startHeight + velocity * 0.5;
-        camera.displayHeight = zoomHeight;
-        camera.displayWidth = zoomHeight * aspectRatio;
+        Camera.main.displayHeight = zoomHeight;
+        Camera.main.displayWidth = zoomHeight * aspectRatio;
 
         if (Client.connected) {
             const msg = {
@@ -550,9 +544,9 @@ function init() {
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
         cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
-        camera.rotate(0, startLine.rotation[1], 0);
+        Camera.main.rotate(0, startLine.rotation[1], 0);
         car.translation = vec.add(vec.add(startLine.translation, vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2])), [15, 0, 0]);
-        camera.translate(car.translation[0] + cameraDist[0] + 4.3, 10, car.translation[2] + cameraDist[2]);
+        Camera.main.translate(car.translation[0] + cameraDist[0] + 4.3, 10, car.translation[2] + cameraDist[2]);
     });
 
 

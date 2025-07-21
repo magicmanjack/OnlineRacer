@@ -1,5 +1,14 @@
 class Camera {
 
+    /*
+        Camera points towards the -z axis into the screen.
+        X axis to the right.
+        Y axis upwards.
+        origin bottom left.
+    */
+
+    static main = new Camera([0, 10, 15], [0, 0, 0]);
+
     constructor(translation, rotation) {
         this.translation = translation;
         this.rotation = rotation;

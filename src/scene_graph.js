@@ -285,10 +285,10 @@ class SceneNode {
     render() {
 
         if (debug && this.collisionPlane) {
-            this.collisionPlane.render(camera);
+            this.collisionPlane.render(Camera.main);
         }
         if (this.mesh) {
-            this.mesh.render(camera);
+            this.mesh.render(Camera.main);
         }
         this.children.forEach((child) => { child.render() });
     }
