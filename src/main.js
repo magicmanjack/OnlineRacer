@@ -30,11 +30,11 @@ function updateViewport() {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     // Update camera dimensions to match canvas aspect ratio
-    if (typeof camera !== 'undefined') {
+    if (typeof Camera.main !== 'undefined') {
         const aspectRatio = gl.canvas.width / gl.canvas.height;
         const baseHeight = 25;
-        camera.displayHeight = baseHeight;
-        camera.displayWidth = baseHeight * aspectRatio;
+        Camera.main.displayHeight = baseHeight;
+        Camera.main.displayWidth = baseHeight * aspectRatio;
     }
 }
 
