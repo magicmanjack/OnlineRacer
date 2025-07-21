@@ -48,14 +48,14 @@ Client.onMessage = (e) => {
             p.collisionPlane.scale = [2, 1, 3];
             p.update = () => {
                 p.collisionStep();
-                if(p.collisionPlane.collided) {
+                if (p.collisionPlane.collided) {
                     const collisions = p.collisionPlane.collisions;
                     collisions.forEach((collider) => {
                         const t = collider.parent.tag;
                         const p = collider.parent;
-                        
-                        if(t == "obstacle") {
-                            for(let i = 0; i < 4; i++) {
+
+                        if (t == "obstacle") {
+                            for (let i = 0; i < 4; i++) {
                                 const obstacleShard = new SceneNode();
                                 const obstacleMesh = p.getChildren("mesh")[0].mesh;
 
@@ -147,6 +147,9 @@ function init() {
 
     let controlsDisabled = false;
 
+    let checkpointStack = [];
+    let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
+
     // Timer display functions
     function formatTime(milliseconds) {
         const totalSeconds = milliseconds / 1000;
@@ -176,6 +179,26 @@ function init() {
             }
         }
     }
+
+    function getCheckpointNumber(checkpointName) {
+        return parseInt(checkpointName.slice(-1));
+    }
+
+    function allCheckpointsPassed() {
+        if (
+            checkpointStack.length === requiredCheckpoints.length &&
+            checkpointStack.every((val, idx) => val === requiredCheckpoints[idx])
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function resetCheckpoints() {
+        checkpointStack = [];
+    }
+
 
     function rotateSpeedFunction(x) {
         return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
@@ -294,10 +317,10 @@ function init() {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
                     if (t == "obstacle") {
-                        
+
                         for (let i = 0; i < 4; i++) {
                             const obstacleShard = new SceneNode();
-                            
+
                             const obstacleMesh = p.getChildren("mesh")[0].mesh;
 
                             obstacleShard.mesh = obstacleMesh.reuse();
@@ -382,6 +405,18 @@ function init() {
                 } else if (t == "magnet" && car.translation[1] < 1) {
                     terminalVelocity = 5;
                     acceleration = 0.2;
+                } else if (t == "checkpoint") {
+                    const checkpointName = p.name;
+                    let checkpointNumber = getCheckpointNumber(checkpointName);
+                    if (!checkpointStack.includes(checkpointName)) {
+                        if (checkpointStack.length == 0 && checkpointNumber == 1) {
+                            checkpointStack.push(checkpointName);
+                        } else if (checkpointStack.length != 0 && checkpointNumber == (getCheckpointNumber(checkpointStack[checkpointStack.length - 1]) + 1)) {
+                            checkpointStack.push(checkpointName);
+                        }
+                    } else if (checkpointStack.includes("checkpoint.00" + (checkpointNumber + 1))) {
+                        checkpointStack.pop();
+                    }
                 }
             }
         } else {
@@ -393,14 +428,14 @@ function init() {
         if (currentStartLineCollision && !lastStartLineCollision) {
             if (!startTimer) {
                 startTime = Date.now();
-                finalTime = 0; // Reset final time when starting new race
-                //console.log("Timer started");
+                finalTime = 0;
                 startTimer = true;
             } else {
-                finalTime = Date.now() - startTime;
-                const elapsed = finalTime / 1000;
-                //console.log(`Timer stopped: ${elapsed.toFixed(2)} seconds`);
-                startTimer = false;
+                if (allCheckpointsPassed()) {
+                    finalTime = Date.now() - startTime;
+                    startTimer = false;
+                }
+                resetCheckpoints();
             }
         }
 
@@ -478,15 +513,23 @@ function init() {
         ground.getChildren("ramp").forEach((e) => { e.tag = "ramp" });
 
         ground.getChildren("obstacle").forEach(e => {
-            e.tag="obstacle";
-            const meshChild = e.getChildren("mesh")[0]; 
+            e.tag = "obstacle";
+            const meshChild = e.getChildren("mesh")[0];
             meshChild.update = () => {
-                meshChild.rotate(0, 0.1, 0.07);  
+                meshChild.rotate(0, 0.1, 0.07);
             };
         });
 
         ground.getChildren("boost").forEach(e => {
             e.tag = "boost";
+        });
+
+        ground.getChildren("checkpoint").forEach(e => {
+            e.tag = "checkpoint";
+            // Preserve the original name from the 3D model for checkpoint identification
+            if (!e.name) {
+                e.name = e.tag; // Fallback if name isn't set
+            }
         });
 
         car.scaleBy(3, 3, 3);
