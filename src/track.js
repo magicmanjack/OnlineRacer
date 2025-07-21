@@ -114,6 +114,8 @@ function loadTrack1() {
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
 
+    Camera.main.translation = [0, 10, 15];
+
     car = new SceneNode();
 
     const gravity = -0.1;
