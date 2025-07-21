@@ -248,10 +248,10 @@ function init() {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
                     if (t == "obstacle") {
- 
+
                         for (let i = 0; i < 4; i++) {
                             let obstacleShard = new SceneNode();
-                            
+
                             obstacleShard.mesh = p.mesh.reuse();
                             obstacleShard.scaleBy(2, 2, 2);
                             obstacleShard.translation = [...p.translation];
@@ -259,13 +259,18 @@ function init() {
                             sceneGraph.root.addChild(obstacleShard);
 
                             let carDirNorm = vec.normalize([carDirection[0], 0, carDirection[2]]);
+                            if (velocity < 0) {
+                                carDirNorm = -carDirNorm;
+                            }
                             let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
-                            let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
+                            let maxAngleOffset = Math.PI / 4;
+                            let angle = baseAngle + ((i - 1.5) * maxAngleOffset / 2) + (Math.random() - 0.5) * maxAngleOffset;
                             let speed = 5 + Math.random() * 2;
+
                             let velocityVec = [
-                                Math.cos(angle) * speed + Math.random() * 2,
-                                2 + Math.random() * 2 + Math.random() * 2,
-                                Math.sin(angle) * speed + Math.random() * 2
+                                Math.cos(angle) * speed + carDirNorm[0] * Math.abs(velocity) * 0.8,
+                                2 + Math.random() * 3,
+                                Math.sin(angle) * speed + carDirNorm[2] * Math.abs(velocity) * 0.8
                             ];
 
                             let frames = 40;
@@ -400,13 +405,13 @@ function init() {
 
         startLine = ground.getChild("startline");
         startLine.tag = "start";
-        
+
         /*
         for(let i = 1; i <= 111; i++ ) {
             ground.getChild(`railing.${String(i).padStart(3, '0')}`).tag = "wall";
         }
         */
-          
+
 
         ground.getChildren("railing").forEach(element => {
             element.tag = "wall";
@@ -418,22 +423,23 @@ function init() {
         }
         */
 
-        ground.getChildren("cube").forEach((e) => {e.tag = "wall"});
+        ground.getChildren("cube").forEach((e) => { e.tag = "wall" });
 
-        ground.getChildren("magnetpad").forEach((e) => {e.tag = "magnet"});
+        ground.getChildren("magnetpad").forEach((e) => { e.tag = "magnet" });
 
-        ground.getChildren("ramp").forEach((e) => {e.tag = "ramp"});
+        ground.getChildren("ramp").forEach((e) => { e.tag = "ramp" });
 
         ground.getChildren("obstacle").forEach(e => {
-            e.tag="obstacle";
+            e.tag = "obstacle";
             e.update = () => {
-              e.rotate(0, 0.1, 0.07);  
-        }});
+                e.rotate(0, 0.1, 0.07);
+            }
+        });
 
         ground.getChildren("boost").forEach(e => {
             e.tag = "boost";
         });
-        
+
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
         cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
