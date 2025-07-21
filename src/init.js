@@ -325,7 +325,7 @@ function init() {
 
                             obstacleShard.mesh = obstacleMesh.reuse();
                             obstacleShard.scaleBy(2, 2, 2);
-                            obstacleShard.translation = [...p.translation];
+                            obstacleShard.translation = [...car.translation];
                             obstacleShard.rotation = [...p.rotation];
                             sceneGraph.root.addChild(obstacleShard);
 
