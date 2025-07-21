@@ -7,7 +7,8 @@ class Camera {
         origin bottom left.
     */
 
-    static main = new Camera([0, 10, 15], [0, 0, 0]);
+    static main = new Camera([0, 0, 15], [0, 0, 0]);
+    //track1 load position [0, 10, 15], [0, 0, 0]
 
     constructor(translation, rotation) {
         this.translation = translation;

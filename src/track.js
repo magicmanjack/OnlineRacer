@@ -1,5 +1,4 @@
 
-
 function loadTrack1() {
     debug = true;
 
@@ -171,16 +170,6 @@ function loadTrack1() {
                 timerDisplay.textContent = "00:00.00";
             }
         }
-    }
-
-    function showHUD() {
-        const HUD = document.getElementById('ui-overlay');
-        HUD.style.display = "block";
-    }
-
-    function hideHUD() {
-        const HUD = document.getElementById('ui-overlay');
-        HUD.style.display = "none";
     }
 
     function updateLapCounter() {
