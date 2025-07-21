@@ -173,6 +173,16 @@ function loadTrack1() {
         }
     }
 
+    function showHUD() {
+        const HUD = document.getElementById('ui-overlay');
+        HUD.style.display = "block";
+    }
+
+    function hideHUD() {
+        const HUD = document.getElementById('ui-overlay');
+        HUD.style.display = "none";
+    }
+
     function updateLapCounter() {
         const lapCounter = document.getElementById('lap-counter');
         lapCounter.textContent = `${numLaps}/3`;
