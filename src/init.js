@@ -10,10 +10,9 @@ function init() {
         HUD.style.display = "none";
     }
 
-    hideHUD();
     loadMenu();
     //loadTrack1();
-    
+
 }
 
 function loadMenu() {
