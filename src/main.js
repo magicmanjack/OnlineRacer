@@ -79,6 +79,8 @@ function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     sceneGraph.renderScene();
+    
+    UILayer.forEach((e) => {e.render()});
 
     requestAnimationFrame(render);
 }

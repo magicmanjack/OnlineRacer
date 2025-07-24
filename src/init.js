@@ -44,14 +44,11 @@ function loadMenu() {
         const factor = 0.0625;
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
-
-    const button = new SceneNode();
-    button.addMesh(["models/button.obj"]);
-    button.translation = [0, 0, -20];
-    button.scale = [7, 3, 1];
+    
+    UILayer.push(new UIPanel(0, 0, 0.5, 0.2, "textures/default.png"));
+    UILayer.push(new UIPanel(0.0, 0.4, 0.5, 0.2, "textures/default.png"));
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);
     sceneGraph.root.addChild(background);
-    sceneGraph.root.addChild(button);
 }

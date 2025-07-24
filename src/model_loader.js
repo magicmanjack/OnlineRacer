@@ -32,3 +32,44 @@ function loadModelFile(fileNames) {
         });
     });
 }
+
+loadTextureAsync = (textureName) => {
+
+    /*
+        Texture filtering currently set min and mag to nearest pixel.
+    */
+
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = textureName;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image.'));
+    }).then((img) => {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+        //Need to the y-axis in the src data because textures are stored internally flipped vertically.
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+        const isPowOf2 = (value) => (value & (value - 1)) === 0;
+
+        if (isPowOf2(img.width) && isPowOf2(img.height)) {
+            //Can use mipmapping.
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        } else {
+            //Cannot use mipmapping and can only use clamp to edge and nearest or linear filtering.
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        }
+
+        return texture;
+    });
+
+};

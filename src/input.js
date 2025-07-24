@@ -14,6 +14,8 @@ const input = {
     leftHeld : false,
     right : false,
     rightHeld : false,
+    mouseX : 0,
+    mouseY : 0,
     eventQueue: [],
     getTimeframeEvent : function(timestamp) {
         
@@ -66,6 +68,11 @@ const input = {
                     this.rightHeld = false;
                 }
             }
+
+            if(e.type === "mousemove") {
+                this.mouseX = e.pageX;
+                this.mouseY = e.pageY;
+            }
         }
     },
     reset : function() {
@@ -92,3 +99,10 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("keyup", (event) => {
     input.eventQueue.push(event);
 });
+
+const c = document.querySelector("#c");
+c.addEventListener("mousemove", (event) => {
+    input.eventQueue.push(event);
+});
+
+
