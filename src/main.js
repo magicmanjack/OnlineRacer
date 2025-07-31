@@ -80,7 +80,7 @@ function render() {
 
     sceneGraph.renderScene();
     
-    UILayer.forEach((e) => {e.render()});
+    UILayer.forEach((e) => {e.render(Camera.main)});
 
     requestAnimationFrame(render);
 }

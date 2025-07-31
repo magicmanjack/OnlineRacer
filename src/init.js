@@ -45,8 +45,7 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    UILayer.push(new UIPanel(0, 0, 0.5, 0.2, "textures/default.png"));
-    UILayer.push(new UIPanel(0.0, 0.4, 0.5, 0.2, "textures/default.png"));
+    UILayer.push(new UIPanel(0, 0, 15, 7, "textures/default.png"));
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);
