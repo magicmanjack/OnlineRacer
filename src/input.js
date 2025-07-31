@@ -18,6 +18,7 @@ const input = {
     mouseY : 0,
     mouseXNorm: 0,
     mouseYNorm: 0,
+    mouseClicked: false,
     eventQueue: [],
     getTimeframeEvent : function(timestamp) {
         
@@ -78,10 +79,14 @@ const input = {
                 this.mouseXNorm = 2*(this.mouseX / canvas.width)-1;
                 this.mouseYNorm = 2*(this.mouseY / canvas.height)-1;
             }
+
+            if(e.type === "click") {
+                this.mouseClicked = true;
+            }
         }
     },
     reset : function() {
-        //reset states if keys not held.
+        //reset states. e.g. if keys not held then reset key state so it is ready for the next update.
         if(!this.upHeld) {
             this.up = false;
         }
@@ -94,9 +99,13 @@ const input = {
         if(!this.leftHeld) {
             this.left = false;
         }
+        this.mouseClicked = false;
     }
 };
 
+/*All events get redirected
+to the input event queue so the game can
+ process them according to what frame they should be on*/
 document.addEventListener("keydown", (event) => {
     input.eventQueue.push(event);
 });
@@ -107,6 +116,10 @@ document.addEventListener("keyup", (event) => {
 
 const c = document.querySelector("#c");
 c.addEventListener("mousemove", (event) => {
+    input.eventQueue.push(event);
+});
+
+c.addEventListener("click", (event) => {
     input.eventQueue.push(event);
 });
 

@@ -119,7 +119,9 @@ class UIPanel {
         const my = input.mouseYNorm;
         
         if(mx >= ll[0] && mx <= rl[0] && my <= lu[1] && my >= ll[1]) {
-            console.log("Mouse hovering");
+            if(input.mouseClicked) {
+                console.log("Button clicked!");
+            }
         }
     }
 
