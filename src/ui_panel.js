@@ -4,11 +4,7 @@ class UIPanel {
 
     /*
         Represents a simple square panel that can be added to the UI layer.
-        Renders with a specified texture and utilizes orthographic projection.
-        Because of the ortho projection, the coordinates of the bounding box are
-        proportional to the view port x/y space. This allows for easy checking of
-        whether the mouse pointer intersects with a box. The coordinates of the panel
-        are in normalized space (e.g. [-1..1, -1...1]).
+        Renders with a specified texture.
      */
 
     projectionLocation;
@@ -108,15 +104,23 @@ class UIPanel {
         */
         //TODO: get transformed points. Get mouse postion in terms of NDC space. Check collision using traditional box method.
 
+        function perspectiveDivide(vec4) {
+            return [vec4[0]/vec4[3], vec4[1]/vec4[3], vec4[2]/vec4[3], 1];
+        }
+
         const proj = mat.projection(Camera.main.displayWidth, Camera.main.displayHeight, Camera.main.zNear, Camera.main.zFar);
         const v = this.vertices;
-        const ll = mat.multiplyVec(proj, [v[0], v[1], v[2], 1]);
-        const rl = mat.multiplyVec(proj, [v[3], v[4], v[5], 1]);
-        const lu = mat.multiplyVec(proj, [v[6], v[7], v[8], 1]);
-        const ru = mat.multiplyVec(proj, [v[9], v[10], v[11], 1]);
+        const ll = perspectiveDivide(mat.multiplyVec(proj, [v[0], v[1], v[2], 1]));
+        const rl = perspectiveDivide(mat.multiplyVec(proj, [v[3], v[4], v[5], 1]));
+        const lu = perspectiveDivide(mat.multiplyVec(proj, [v[6], v[7], v[8], 1]));
+        const ru = perspectiveDivide(mat.multiplyVec(proj, [v[9], v[10], v[11], 1]));
 
+        const mx = input.mouseXNorm; // Normalized mouse coordinates (to the window size) -1 to 1.
+        const my = input.mouseYNorm;
         
-
+        if(mx >= ll[0] && mx <= rl[0] && my <= lu[1] && my >= ll[1]) {
+            console.log("Mouse hovering");
+        }
     }
 
     render(cam) {

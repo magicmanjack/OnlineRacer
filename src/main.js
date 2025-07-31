@@ -63,6 +63,8 @@ function update() {
 
             sceneGraph.updateScene();
 
+            UILayer.forEach((e) => {e.checkMouseHover(0, 0)});
+
             input.reset();
 
             delta--;

@@ -16,6 +16,8 @@ const input = {
     rightHeld : false,
     mouseX : 0,
     mouseY : 0,
+    mouseXNorm: 0,
+    mouseYNorm: 0,
     eventQueue: [],
     getTimeframeEvent : function(timestamp) {
         
@@ -72,6 +74,9 @@ const input = {
             if(e.type === "mousemove") {
                 this.mouseX = e.pageX;
                 this.mouseY = e.pageY;
+                const canvas = document.querySelector("#c");
+                this.mouseXNorm = 2*(this.mouseX / canvas.width)-1;
+                this.mouseYNorm = 2*(this.mouseY / canvas.height)-1;
             }
         }
     },
