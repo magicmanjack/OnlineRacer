@@ -45,7 +45,17 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    UILayer.push(new UIPanel(0, 0, 15, 7, "textures/default.png"));
+    const b2 = new UIPanel(0, 0, 15, 3, "textures/default.png");
+    b2.whenClicked = () => {
+        console.log("b2 clicked");
+    };
+    
+    const b1 = new UIPanel(0, -5, 15, 3, "textures/default.png");
+    b1.whenClicked = () => {
+        console.log("b1 clicked");
+    };
+    UILayer.push(b2);
+    UILayer.push(b1);
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);

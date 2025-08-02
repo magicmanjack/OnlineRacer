@@ -73,9 +73,9 @@ const input = {
             }
 
             if(e.type === "mousemove") {
-                this.mouseX = e.pageX;
-                this.mouseY = e.pageY;
                 const canvas = document.querySelector("#c");
+                this.mouseX = e.pageX;
+                this.mouseY = canvas.height - e.pageY; // Align y axis with opengl y axis.
                 this.mouseXNorm = 2*(this.mouseX / canvas.width)-1;
                 this.mouseYNorm = 2*(this.mouseY / canvas.height)-1;
             }

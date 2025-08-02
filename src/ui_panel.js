@@ -23,6 +23,9 @@ class UIPanel {
     textureCoords = [];
     texture;
 
+    // callback function 
+    whenClicked;
+
     loaded;
 
     static shader;
@@ -98,7 +101,7 @@ class UIPanel {
 
     }
 
-    checkMouseHover(pointerX, pointerY) {
+    checkMouseHover() {
         /*
             Returns true if the mouse pointer is hovering over the panel.
         */
@@ -119,8 +122,12 @@ class UIPanel {
         const my = input.mouseYNorm;
         
         if(mx >= ll[0] && mx <= rl[0] && my <= lu[1] && my >= ll[1]) {
+            
             if(input.mouseClicked) {
-                console.log("Button clicked!");
+                //console.log("Button clicked!");
+                if(typeof this.whenClicked == "function") {
+                    this.whenClicked();
+                }
             }
         }
     }
