@@ -33,6 +33,10 @@ class SceneNode {
     collisionPlane;
     update;
 
+    // Used to keep track of the mesh loading progress on track load time.
+    static numMeshes = 0;
+    static numLoadedMeshes = 0;
+
     static collidables = [];
 
 
@@ -90,7 +94,7 @@ class SceneNode {
             Uses Assimpjs to load in meshes and properly set up scene heirarchy.
             Returns promise that resolves when meshes are loaded.
         */
-        
+        SceneNode.numMeshes++;
         return loadModelFile(fileNames).then((model) => {
             /*
                 Recursively search the node tree.
@@ -161,8 +165,8 @@ class SceneNode {
                     parent.sceneNode.addChild(childSceneNode);
                 }
             }
+            SceneNode.numLoadedMeshes++;
         });
-        
     }
 
     addCollisionPlane(collisionPlane) {
@@ -307,6 +311,15 @@ const sceneGraph = {
         the provided callback function*/
         UILayer = [];
         this.root = new SceneNode();
+        SceneNode.numMeshes = 0;
+        SceneNode.numLoadedMeshes = 0;
+
         loadCallback();
+    },
+    ready: function() {
+        /* Returns true if the number of meshes loaded matches
+        the number of meshes to load.*/
+        //console.log(`${SceneNode.numLoadedMeshes}/${SceneNode.numMeshes}`);
+        return SceneNode.numMeshes == SceneNode.numLoadedMeshes;
     }
 };

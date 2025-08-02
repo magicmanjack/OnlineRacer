@@ -80,10 +80,19 @@ function render() {
 
     update();
 
-    gl.clearColor(0.7, 0.7, 0.7, 1.0);
+    gl.clearColor(0.0, 0.8, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    sceneGraph.renderScene();
+    if(sceneGraph.ready()) {
+        if(toggleHUD) {
+            const HUD = document.getElementById('ui-overlay');
+            HUD.style.display = "block";
+        } else {
+            const HUD = document.getElementById('ui-overlay');
+            HUD.style.display = "none";
+        }
+        sceneGraph.renderScene();
+    }
     
     UILayer.forEach((e) => {e.render(Camera.main)});
 
