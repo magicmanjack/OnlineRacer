@@ -143,7 +143,7 @@ function loadTrack1() {
     let finalTime = 0;
     let lastStartLineCollision = false;
 
-    let controlsDisabled = false;
+    let controlsDisabled = true;
 
     let checkpointStack = [];
     let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
@@ -434,11 +434,7 @@ function loadTrack1() {
 
         // Handle start line collision only on transition from not colliding to colliding
         if (currentStartLineCollision && !lastStartLineCollision) {
-            if (!startTimer) {
-                startTime = Date.now();
-                finalTime = 0;
-                startTimer = true;
-            } else if (numLaps == 3) {
+            if (numLaps == 3) {
                 if (allCheckpointsPassed()) {
                     finalTime = Date.now() - startTime;
                     startTimer = false;
@@ -558,6 +554,45 @@ function loadTrack1() {
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
+
+
+    // Traffic light code
+    const light = new UIPanel(10, 5, 5, 10, ["textures/light_red.png", "textures/light_orange.png", "textures/light_green.png"]);
+    
+    let frameCounter = 0;
+    light.update = function() {
+        const ti = this.textureIndex;
+        const timePassed = () => frameCounter/UPDATES_PER_SECOND;
+
+        switch(ti) {
+            case 0: {
+                if(timePassed() > 7) {
+                    this.textureIndex++;
+                    frameCounter = 0;
+                }
+                break;
+            }
+            case 1: {
+                if(timePassed() > 2) {
+                    this.textureIndex++;
+                    frameCounter = 0;
+                    startTime = Date.now();
+                    finalTime = 0;
+                    startTimer = true;
+                    controlsDisabled = false;
+                }
+                break;
+            }
+            case 2: {
+                if(timePassed() > 2) {
+                    UILayer.splice(UILayer.indexOf(this), 1);
+                }
+                break;
+            }
+        }
+        frameCounter++;
+    };
+    UILayer.push(light);
 
     Client.connect();
 }

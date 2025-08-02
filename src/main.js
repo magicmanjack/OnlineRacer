@@ -65,7 +65,9 @@ function update() {
 
             UILayer.forEach((e) => {
                 e.checkMouseHover();
-                e.update();
+                if(typeof e.update == "function") {
+                    e.update();
+                }
             });
 
             input.reset();
@@ -92,9 +94,8 @@ function render() {
             HUD.style.display = "none";
         }
         sceneGraph.renderScene();
+        UILayer.forEach((e) => {e.render(Camera.main)});
     }
-    
-    UILayer.forEach((e) => {e.render(Camera.main)});
 
     requestAnimationFrame(render);
 }
