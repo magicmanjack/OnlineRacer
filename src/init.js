@@ -1,15 +1,5 @@
 function init() {
 
-    function showHUD() {
-        const HUD = document.getElementById('ui-overlay');
-        HUD.style.display = "block";
-    }
-
-    function hideHUD() {
-        const HUD = document.getElementById('ui-overlay');
-        HUD.style.display = "none";
-    }
-
     loadMenu();
     //loadTrack1();
 
@@ -45,16 +35,17 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    const b2 = new UIPanel(0, 0, 15, 3, "textures/default.png");
-    b2.whenClicked = () => {
-        console.log("b2 clicked");
+    const b1 = new UIPanel(0, 0, 16, 4, ["textures/connect_button_0.png", "textures/connect_button_1.png"]);
+    b1.whenClicked = function() {
+        sceneGraph.load(loadTrack1);
     };
-    
-    const b1 = new UIPanel(0, -5, 15, 3, "textures/default.png");
-    b1.whenClicked = () => {
-        console.log("b1 clicked");
-    };
-    UILayer.push(b2);
+    b1.update = function() {
+        if(this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+    }
     UILayer.push(b1);
 
     sceneGraph.root.addChild(car);

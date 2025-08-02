@@ -1,4 +1,4 @@
-const UILayer = [];
+let UILayer = [];
 
 class UIPanel {
 
@@ -21,16 +21,19 @@ class UIPanel {
     textureCoordsLocation;
     textureCoordsBuffer;
     textureCoords = [];
-    texture;
+    textures = [];
+    textureIndex;
 
     // callback function 
     whenClicked;
+    mouseHovering = false;
+    update;
 
     loaded;
 
     static shader;
 
-    constructor(x, y, w, h, texture) {
+    constructor(x, y, w, h, textures) {
 
         this.x = x;
         this.y = y;
@@ -55,16 +58,23 @@ class UIPanel {
         ];
 
         this.textureCoords = [
-            0, 1,
-            1, 1,
             0, 0,
-            1, 0
+            1, 0,
+            0, 1,
+            1, 1
         ];
 
-        loadTextureAsync(texture).then((texture) => {
-            this.loaded = true;
-            this.texture = texture;
-        });
+        this.textures = new Array(textures.length);
+        this.textureIndex = 0;
+
+        for(let i = 0; i < textures.length; i++) {
+            loadTextureAsync(textures[i]).then((texture) => {
+                if(i == textures.length - 1) {
+                    this.loaded = true;
+                }
+                this.textures[i] = texture;
+            });
+        }
 
         //Create a vao that will store rendering state.
         this.ext = gl.getExtension("OES_vertex_array_object");
@@ -122,13 +132,15 @@ class UIPanel {
         const my = input.mouseYNorm;
         
         if(mx >= ll[0] && mx <= rl[0] && my <= lu[1] && my >= ll[1]) {
-            
+            this.mouseHovering = true;
             if(input.mouseClicked) {
                 //console.log("Button clicked!");
                 if(typeof this.whenClicked == "function") {
                     this.whenClicked();
                 }
             }
+        } else {
+            this.mouseHovering = false;
         }
     }
 
@@ -137,7 +149,7 @@ class UIPanel {
             gl.useProgram(UIPanel.shader);
             gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
             this.ext.bindVertexArrayOES(this.vao);
-            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
         }  
     }

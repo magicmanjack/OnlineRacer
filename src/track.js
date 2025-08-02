@@ -1,7 +1,17 @@
+function showHUD() {
+    const HUD = document.getElementById('ui-overlay');
+    HUD.style.display = "block";
+}
+
+function hideHUD() {
+    const HUD = document.getElementById('ui-overlay');
+    HUD.style.display = "none";
+}
 
 function loadTrack1() {
-    debug = true;
-
+    debug = false;
+    showHUD();
+    
     let car;
     let playerID;
     let networkCars = new Map();

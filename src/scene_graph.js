@@ -301,5 +301,12 @@ const sceneGraph = {
     },
     renderScene: function () {
         this.root.render();
+    },
+    load: function(loadCallback) {
+        /*Clears the scene heirarchy and UI and then calls back
+        the provided callback function*/
+        UILayer = [];
+        this.root = new SceneNode();
+        loadCallback();
     }
 };
