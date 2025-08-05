@@ -1,5 +1,8 @@
+let lobby = [];
+
 let players = [];
 let availableId = 0;
+let numConnected = 0;
 
 Deno.serve({
     port: 80,
@@ -31,11 +34,20 @@ Deno.serve({
 })
 
 function onConnectionOpen(event) {
-    console.log("PLAYER CONNECTED");
+    numConnected++;
+    console.log(`PLAYER CONNECTED. TOTAL PLAYERS ${numConnected}`);
+    lobby.push(this);
+    for(let i = 0; i < lobby.length; i++) {
+        lobby[i].send(JSON.stringify({
+            type:"lobby_update_player_connected",
+            num:numConnected
+        }));
+    }
 }
 
 function onConnectionClose(event) {
-    console.log("PLAYER DISCONNECTED");
+    numConnected--;
+    console.log(`PLAYER DISCONNECTED. TOTAL PLAYERS ${numConnected}`);
     for(let i = 0; i < players.length; i++) {
         if(players[i].socket === this) {
             for(let j = 0; j < players.length; j++) {
@@ -94,6 +106,12 @@ function onPlayerMessage(event) {
                     players[i].player = msg.player;
                 }
             }
+            break;
+        case "get_num_players":
+            this.send(JSON.stringify({
+                type:"num_players",
+                numPlayers:numConnected
+            }));
             break;
     }
 }
