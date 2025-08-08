@@ -1,5 +1,17 @@
 let UILayer = [];
 
+function removeUIPanel(UIPanel) {
+    /* 
+        Removes a UIPanel from the UILayer.
+    */
+
+    for(let i = 0; i < UILayer.length; i++) {
+        if(UILayer[i] == UIPanel) {
+            UILayer.splice(i, 1);
+        }
+    }
+}
+
 class UIPanel {
 
     /*

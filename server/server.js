@@ -2,6 +2,7 @@ let lobby = [];
 
 let players = [];
 let availableId = 0;
+const availableIds = [1, 2, 3, 4];
 let numConnected = 0;
 
 Deno.serve({
@@ -33,21 +34,94 @@ Deno.serve({
     }
 })
 
+function getLobbyIds() {
+    /* returns a list of all the player Ids in the lobby. */
+    const ids = [];
+
+    for(let i = 0; i < lobby.length; i ++) {
+        ids.push(lobby[i].id);
+    }
+
+    return ids;
+}
+
+function getIdFromSocket(socket) {
+    /* returns the player id linked to the socket.*/
+    for(let i = 0; i < lobby.length; i++) {
+        if(lobby[i].socket == socket) {
+            return lobby[i].id;
+        }
+    }
+}
+
+function getSocketIndex(socket) {
+    /* returns the index of the socket in the lobby */
+    for(let i = 0; i < lobby.length; i++) {
+        if(lobby[i].socket == socket) {
+            return i;
+        }
+    }
+}
+
+function returnId(id) {
+    /* returns the id such that the order of ids is maintained */
+    for(let i = 0; i < availableIds.length; i++) {
+        if(availableIds[i] > id) {
+            //insert before the greater element.
+            availableIds.splice(i, 0, id);
+            return;
+        }
+    }
+}
+
+
+
 function onConnectionOpen(event) {
     numConnected++;
     console.log(`PLAYER CONNECTED. TOTAL PLAYERS ${numConnected}`);
-    lobby.push(this);
+    
+    const nextAvailableId = availableIds.shift();
+    
+    this.send(JSON.stringify({
+        type:"set_id",
+        id: nextAvailableId
+    }));
+
+    this.send(JSON.stringify({
+        type:"server_state",
+        ids:getLobbyIds()
+    }));
+
     for(let i = 0; i < lobby.length; i++) {
-        lobby[i].send(JSON.stringify({
+        lobby[i].socket.send(JSON.stringify({
             type:"lobby_update_player_connected",
-            num:numConnected
+            id: nextAvailableId
         }));
     }
+
+    lobby.push({id: nextAvailableId,
+                socket:this});
 }
 
 function onConnectionClose(event) {
     numConnected--;
     console.log(`PLAYER DISCONNECTED. TOTAL PLAYERS ${numConnected}`);
+
+    const playerId = getIdFromSocket(this);
+    lobby.splice(getSocketIndex(this), 1);// remove from lobby
+
+    returnId(playerId); // Return ID back to available ids.
+
+    //Let other players know.
+    
+    for(let i = 0; i < lobby.length; i++) {
+        lobby[i].socket.send(JSON.stringify({
+            type:"lobby_update_player_disconnected",
+            id:playerId
+        }));
+    }
+
+    /*
     for(let i = 0; i < players.length; i++) {
         if(players[i].socket === this) {
             for(let j = 0; j < players.length; j++) {
@@ -62,6 +136,7 @@ function onConnectionClose(event) {
             break;
         }
     }
+    */
 }
 
 function onPlayerMessage(event) {

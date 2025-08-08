@@ -1,7 +1,6 @@
 function init() {
 
     loadMenu();
-    //loadTrack1();
 
 }
 
@@ -68,9 +67,56 @@ let lobbyNum = 0;
 
 function loadLobby() {
     UILayer = [];
-    
+    const idToUIPanel = new Map();
+
     Client.onMessage = (e) => {
         const m = JSON.parse(e.data);
+
+        /*
+            If freshly joining lobby.
+        */
+        if(m.type == "set_id") {
+            const id = m.id;
+            const stripHeight = 5;
+            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`, 'textures/you.png']);
+            let frameCounter = 0;
+            playerStrip.update = function() {
+                frameCounter++;
+                const timePassed = frameCounter / UPDATES_PER_SECOND;
+                if(timePassed % 2 == 0) {
+                    //Every even second
+                    this.textureIndex = this.textureIndex ? 0 : 1;
+                }
+            }
+
+            idToUIPanel.set(id, playerStrip);
+            UILayer.unshift(playerStrip);
+        }
+
+        if(m.type == "server_state") {
+            m.ids.forEach((id) => {
+                    const stripHeight = 5;
+                    const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`]);
+                    idToUIPanel.set(id, playerStrip);
+                    UILayer.unshift(playerStrip);
+            });
+        }
+
+        /* If other players join lobby. */
+
+        if(m.type == "lobby_update_player_connected") {
+            const id = m.id;
+            const stripHeight = 5;
+            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`, 'textures/you.png']);
+            idToUIPanel.set(id, playerStrip);
+            UILayer.unshift(playerStrip);
+        }
+
+        if(m.type == "lobby_update_player_disconnected") {
+            console.log("player disconnected");
+            removeUIPanel(idToUIPanel.get(m.id));
+        }
+        /*
         if(m.type == "lobby_update_player_connected") {
                 if(lobbyNum == 0) {
                     //Just joined. Need to populate list   
@@ -88,6 +134,7 @@ function loadLobby() {
                     UILayer.unshift(playerStrip);
                 }
         }
+        */
     };
 
     const lobbyPlayerPanel = new UIPanel(0, 2, 20, 20, ["textures/lobby_players_panel.png"]);

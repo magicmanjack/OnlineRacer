@@ -6,7 +6,7 @@ class Client {
     //Use if hosting on Jacks network
     //static wsUri = "ws://222.155.115.120/";
     //Use if hosting locally on LAN
-    static wsUri = "ws://10.112.146.44";
+    static wsUri = "ws://10.112.150.43";
     //Use if hosting on link local
     //static wsUri = "ws://127.0.0.1/";
     static webSocket;
@@ -14,6 +14,7 @@ class Client {
     static onMessage;
     static onOpen;
     static onClose;
+    static id;
 
     static connect() {
         Client.webSocket = new WebSocket(Client.wsUri);
