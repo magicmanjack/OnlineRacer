@@ -594,5 +594,5 @@ function loadTrack1() {
     };
     UILayer.push(light);
 
-    Client.connect();
+    //Client.connect();
 }

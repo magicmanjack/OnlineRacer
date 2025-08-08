@@ -74,6 +74,12 @@ function returnId(id) {
     }
 }
 
+function sendAll(msg) {
+    for(let i = 0; i < lobby.length; i++) {
+        lobby[i].socket.send(JSON.stringify(msg));
+    }
+}
+
 
 
 function onConnectionOpen(event) {
@@ -188,6 +194,12 @@ function onPlayerMessage(event) {
                 numPlayers:numConnected
             }));
             break;
+        case "relay all":
+            sendAll({
+                type: msg.relay
+            });
+            break;
+            
     }
 }
 

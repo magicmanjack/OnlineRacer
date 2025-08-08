@@ -63,8 +63,6 @@ function connectingScreen() {
     UILayer.push(new UIPanel(0, 0, 3*4, 3, ["textures/connecting.png"]));
 }
 
-let lobbyNum = 0;
-
 function loadLobby() {
     UILayer = [];
     const idToUIPanel = new Map();
@@ -116,6 +114,10 @@ function loadLobby() {
             console.log("player disconnected");
             removeUIPanel(idToUIPanel.get(m.id));
         }
+
+        if(m.type == "initiate load track 1") {
+            sceneGraph.load(loadTrack1);
+        }
         /*
         if(m.type == "lobby_update_player_connected") {
                 if(lobbyNum == 0) {
@@ -144,6 +146,14 @@ function loadLobby() {
             this.textureIndex = 1;
         } else {
             this.textureIndex = 0;
+        }
+    }
+    beginButton.whenClicked = function() {
+        if(Client.connected) {
+            Client.webSocket.send(JSON.stringify({
+                type:"relay all",
+                relay:"initiate load track 1"
+            }));
         }
     }
 
