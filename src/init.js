@@ -91,7 +91,7 @@ function loadLobby() {
             UILayer.unshift(playerStrip);
         }
 
-        if(m.type == "server_state") {
+        if(m.type == "lobby_state") {
             m.ids.forEach((id) => {
                     const stripHeight = 5;
                     const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`]);
@@ -115,7 +115,7 @@ function loadLobby() {
             removeUIPanel(idToUIPanel.get(m.id));
         }
 
-        if(m.type == "initiate load track 1") {
+        if(m.type == "initiate_load_track_1") {
             sceneGraph.load(loadTrack1);
         }
         /*
@@ -151,8 +151,8 @@ function loadLobby() {
     beginButton.whenClicked = function() {
         if(Client.connected) {
             Client.webSocket.send(JSON.stringify({
-                type:"relay all",
-                relay:"initiate load track 1"
+                type:"relay_all",
+                relay:"initiate_load_track_1"
             }));
         }
     }

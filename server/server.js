@@ -1,9 +1,11 @@
-let lobby = [];
-
-let players = [];
-let availableId = 0;
 const availableIds = [1, 2, 3, 4];
 let numConnected = 0;
+
+let lobby = [];
+
+//old.
+let players = [];
+let availableId = 0;
 
 Deno.serve({
     port: 80,
@@ -54,6 +56,15 @@ function getIdFromSocket(socket) {
     }
 }
 
+function getSocketFromId(id) {
+    /* returns the socket linked to the player id */
+    for(let i = 0; i < lobby.length; i++) {
+        if(lobby[i].id == id) {
+            return lobby[i].socket;
+        }
+    }
+}
+
 function getSocketIndex(socket) {
     /* returns the index of the socket in the lobby */
     for(let i = 0; i < lobby.length; i++) {
@@ -61,6 +72,20 @@ function getSocketIndex(socket) {
             return i;
         }
     }
+}
+
+function getCarStates() {
+    //returns an array of {id, transform} for lobby players car.
+    const carStates = [];
+    for(let i = 0; i < lobby.length; i++) {
+        if(cars[lobby[i].id]) {
+            carStates.push({
+                id:lobby[i].id,
+                transform: cars[i]
+            });
+        }
+    }
+    return carStates;
 }
 
 function returnId(id) {
@@ -75,8 +100,18 @@ function returnId(id) {
 }
 
 function sendAll(msg) {
+    //Sends a message to all lobby players.
     for(let i = 0; i < lobby.length; i++) {
         lobby[i].socket.send(JSON.stringify(msg));
+    }
+}
+
+function sendAllOthers(msg, socketToIgnore) {
+    //Sends a message to all lobby players except to socketToIgnore.
+    for(let i = 0; i < lobby.length; i++) {
+        if(lobby[i].socket != socketToIgnore) {
+            lobby[i].socket.send(JSON.stringify(msg));
+        }
     }
 }
 
@@ -94,7 +129,7 @@ function onConnectionOpen(event) {
     }));
 
     this.send(JSON.stringify({
-        type:"server_state",
+        type:"lobby_state",
         ids:getLobbyIds()
     }));
 
@@ -153,6 +188,7 @@ function onPlayerMessage(event) {
     const msg = JSON.parse(event.data);
 
     switch(msg.type) {
+        /*
         case "get_unique_id":
             this.send(JSON.stringify({
                 type:"set_id",
@@ -194,7 +230,36 @@ function onPlayerMessage(event) {
                 numPlayers:numConnected
             }));
             break;
-        case "relay all":
+        */
+        case "add_car": {
+            const outMsg = {
+                type:"add_car",
+                id:msg.id,
+                transform:msg.transform 
+            }
+            if(msg.destinationId) {
+                //If destination Id provided then send to specific destination.
+                const dest = getSocketFromId(msg.destinationId);
+                dest.send(JSON.stringify(outMsg));
+            } else {
+                //send to all others.
+                sendAllOthers(outMsg, this);
+            }
+            break;
+        }
+
+        case "get_car_states":
+            //A single player has requested the states of all the cars on the server.
+            //Broadcast to all other players to relay their information.
+            sendAllOthers(msg, this);
+            break;
+
+        case "car_update":
+            sendAllOthers(msg, this);
+            break;
+        
+
+        case "relay_all":
             sendAll({
                 type: msg.relay
             });

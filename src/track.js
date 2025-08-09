@@ -12,105 +12,6 @@ function loadTrack1() {
     const startWidth = 25;
     const startHeight = 25;
 
-    Client.onOpen = (e) => {
-        const msg = {
-            type: "get_unique_id",
-        };
-        Client.webSocket.send(JSON.stringify(msg));
-    };
-
-    Client.onMessage = (e) => {
-        const msg = JSON.parse(e.data);
-        switch (msg.type) {
-            case "set_id":
-                playerID = msg.id;
-                Client.webSocket.send(JSON.stringify({
-                    type: "add_player",
-                    player: {
-                        id: playerID,
-                        translation: car.translation,
-                        rotation: car.rotation,
-                        scale: car.scale
-                    }
-                }));
-                break;
-            case "add_player": {
-                //attach player node to scene root.
-                let p = new SceneNode();
-                p.translation = msg.player.translation;
-                p.rotation = msg.player.rotation;
-                p.scale = msg.player.scale;
-                p.addMesh(["models/car.obj", "models/car.mtl"]);
-                sceneGraph.root.addChild(p);
-                p.tag = "car";
-                p.addCollisionPlane(new CollisionPlane());
-                p.collisionPlane.scale = [2, 1, 3];
-                p.update = () => {
-                    p.collisionStep();
-                    if (p.collisionPlane.collided) {
-                        const collisions = p.collisionPlane.collisions;
-                        collisions.forEach((collider) => {
-                            const t = collider.parent.tag;
-                            const c = collider.parent;
-
-                            if (t == "obstacle") {
-                                for (let i = 0; i < 4; i++) {
-                                    const obstacleShard = new SceneNode();
-                                    const obstacleMesh = c.getChildren("mesh")[0].mesh;
-
-                                    obstacleShard.mesh = obstacleMesh.reuse();
-                                    obstacleShard.scaleBy(2, 2, 2);
-                                    obstacleShard.translation = [...p.translation];
-                                    obstacleShard.rotation = [...c.rotation];
-                                    sceneGraph.root.addChild(obstacleShard);
-                                    let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
-                                    let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
-                                    let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
-                                    let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
-                                    let speed = 5 + Math.random() * 2;
-                                    let velocityVec = [
-                                        Math.cos(angle) * speed + Math.random() * 2,
-                                        2 + Math.random() * 2 + Math.random() * 2,
-                                        Math.sin(angle) * speed + Math.random() * 2
-                                    ];
-
-                                    let frames = 40;
-                                    obstacleShard.update = function () {
-                                        this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
-                                        velocityVec[1] -= 0.3;
-                                        frames--;
-                                        if (frames <= 0) {
-                                            this.remove();
-                                        }
-                                    };
-
-                                }
-                                c.remove();
-                            }
-                        });
-                    }
-                };
-
-                networkCars.set(msg.player.id, p);
-
-                break;
-            }
-            case "player_update": {
-                const c = networkCars.get(msg.player.id);
-                c.translation = msg.player.translation;
-                c.rotation = msg.player.rotation;
-                c.scale = msg.player.scale;
-
-                break;
-            }
-            case "remove_player": {
-                networkCars.get(msg.id).remove();
-                networkCars.set(msg.id, null);
-                break;
-            }
-        }
-    };
-
     // Initialize camera with proper aspect ratio
     const canvas = document.getElementById('c');
     const aspectRatio = canvas.width / canvas.height;
@@ -474,18 +375,9 @@ function loadTrack1() {
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
 
+        //Update car state over network.
         if (Client.connected) {
-            const msg = {
-                type: "player_update",
-                player: {
-                    translation: car.translation,
-                    rotation: car.rotation,
-                    scale: car.scale,
-                    id: playerID
-                }
-            };
-
-            Client.webSocket.send(JSON.stringify(msg));
+            carNetworkStep();
         }
     };
     car.addMesh(["models/car.obj", "models/car.mtl"]);
@@ -593,6 +485,7 @@ function loadTrack1() {
         frameCounter++;
     };
     UILayer.push(light);
-
-    //Client.connect();
+    
+    clientCar = car;
+    loadNetworkCars();
 }

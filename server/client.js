@@ -28,6 +28,12 @@ class Client {
         };
 
         ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+
+            if(msg.type == "set_id") {
+                Client.id = msg.id;
+            }
+
             if (typeof (Client.onMessage) === "function") {
                 Client.onMessage(e);
             }
