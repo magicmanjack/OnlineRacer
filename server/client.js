@@ -15,6 +15,7 @@ class Client {
     static onOpen;
     static onClose;
     static id;
+    static state; 
 
     static connect() {
         Client.webSocket = new WebSocket(Client.wsUri);

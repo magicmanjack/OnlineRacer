@@ -1,11 +1,19 @@
 let networkCars; // A mapping between player Ids and car objects.
 let clientCar; // The target car to have information sent to the server.
+let allClientsLoaded; // A boolean flips to true when each client has finished loading into a track.
 
-function loadNetworkCars() {
+let networkUpdate; //An function that gets called every frame.
+
+let lobbySize;
+let playersReady;
+
+function initRaceNetworking() {
     /* 
         Sets the network code to request and recieve information about
         the other players cars.
     */
+    playersReady = 0;
+    lobbySize = 0;
     networkCars = new Map(); // Refresh/or init mapping.
 
     Client.webSocket.send(JSON.stringify({
@@ -21,6 +29,10 @@ function loadNetworkCars() {
             scale: clientCar.scale
         }
     }));
+    Client.webSocket.send(JSON.stringify({
+        type:"get_lobby_size"
+    }))
+    Client.state = "waiting_for_lobby_size";
 
     Client.onMessage = (e) => {
         const msg = JSON.parse(e.data);
@@ -99,6 +111,14 @@ function loadNetworkCars() {
                 break;
             }
 
+            case "lobby_size":
+                
+                if(Client.state == "waiting_for_lobby_size") {
+                    lobbySize += msg.size;
+                    Client.state = "waiting_for_scene_ready";
+                }
+                break;
+
             case "car_update": {
                 const c = networkCars.get(msg.id);
                 c.translation = msg.transform.translation;
@@ -108,29 +128,57 @@ function loadNetworkCars() {
                 break;
             }
 
+            case "player_ready":{
+                playersReady++;
+                break;
+            }
+
             case "lobby_update_player_disconnected":
                 networkCars.get(msg.id).remove();
                 networkCars.set(msg.id, null);
+                
+                lobbySize--;
                 break;
         }
     };
-}
 
-function carNetworkStep() {
-    /*
-        Updates the clients car state over the network to
-        the other players. Call within update method after updating.
-    */
-    const msg = {
-        type:"car_update",
-        id:Client.id,
-        transform:{
-            translation:clientCar.translation,
-            rotation:clientCar.rotation,
-            scale:clientCar.scale
+    networkUpdate = function() {
+
+        //TODO: when playersReady == lobbySize init sequence.
+        //Check if server side "player_ready" is added.
+        
+        //console.log(Client.state);
+
+        switch(Client.state) {
+            case "waiting_for_scene_ready":
+                if(sceneGraph.ready()) {
+                    Client.webSocket.send(JSON.stringify({
+                        type:"player_ready"
+                    }));
+                    playersReady++;
+                    Client.state = "waiting_for_all_ready";
+                }
+                break;
+            case "waiting_for_all_ready":
+                //
+                //console.log(`playersReady ${playersReady}, lobbysize ${lobbySize}`);
+                if(playersReady == lobbySize) {
+                    allClientsLoaded = true;
+                    Client.state = "ready";
+                }
+                break;
         }
+
+        Client.webSocket.send(JSON.stringify({
+            type:"car_update",
+            id:Client.id,
+            transform:{
+                translation:clientCar.translation,
+                rotation:clientCar.rotation,
+                scale:clientCar.scale
+            }
+        }));
     }
-    Client.webSocket.send(JSON.stringify(msg));
 }
 
 

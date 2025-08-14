@@ -72,6 +72,11 @@ function update() {
 
             input.reset();
 
+            if(typeof networkUpdate == "function" && Client.connected) {
+                //Update states over network after updating game state.
+                networkUpdate();
+            }
+
             delta--;
         }
 

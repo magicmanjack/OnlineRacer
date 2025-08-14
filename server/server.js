@@ -198,6 +198,21 @@ function onPlayerMessage(event) {
         case "car_update":
             sendAllOthers(msg, this);
             break;
+
+        case "player_ready":
+            /*
+                Used to notify other players when a client has loaded into the game.
+                Crucial to coordinating the traffic light start sequence between clients.
+            */
+            sendAllOthers(msg, this);
+            break;
+
+        case "get_lobby_size":
+            this.send(JSON.stringify({
+                type:"lobby_size",
+                size: lobby.length
+            }));
+            break;
         
 
         case "relay_all":
@@ -205,6 +220,9 @@ function onPlayerMessage(event) {
                 type: msg.relay
             });
             break;
+
+        case "relay_all_others":
+            sendAllOthers({type: msg.relay}, this); 
             
     }
 }

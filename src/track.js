@@ -374,11 +374,6 @@ function loadTrack1() {
         const zoomHeight = startHeight + velocity * 0.5;
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
-
-        //Update car state over network.
-        if (Client.connected) {
-            carNetworkStep();
-        }
     };
     car.addMesh(["models/car.obj", "models/car.mtl"]);
     car.addCollisionPlane(new CollisionPlane());
@@ -456,36 +451,38 @@ function loadTrack1() {
         const ti = this.textureIndex;
         const timePassed = () => frameCounter/UPDATES_PER_SECOND;
 
-        switch(ti) {
-            case 0: {
-                if(timePassed() > 7) {
-                    this.textureIndex++;
-                    frameCounter = 0;
+        if(allClientsLoaded) {
+            switch(ti) {
+                case 0: {
+                    if(timePassed() > 7) {
+                        this.textureIndex++;
+                        frameCounter = 0;
+                    }
+                    break;
                 }
-                break;
-            }
-            case 1: {
-                if(timePassed() > 2) {
-                    this.textureIndex++;
-                    frameCounter = 0;
-                    startTime = Date.now();
-                    finalTime = 0;
-                    startTimer = true;
-                    controlsDisabled = false;
+                case 1: {
+                    if(timePassed() > 2) {
+                        this.textureIndex++;
+                        frameCounter = 0;
+                        startTime = Date.now();
+                        finalTime = 0;
+                        startTimer = true;
+                        controlsDisabled = false;
+                    }
+                    break;
                 }
-                break;
-            }
-            case 2: {
-                if(timePassed() > 2) {
-                    UILayer.splice(UILayer.indexOf(this), 1);
+                case 2: {
+                    if(timePassed() > 2) {
+                        UILayer.splice(UILayer.indexOf(this), 1);
+                    }
+                    break;
                 }
-                break;
             }
+            frameCounter++;
         }
-        frameCounter++;
     };
     UILayer.push(light);
     
     clientCar = car;
-    loadNetworkCars();
+    initRaceNetworking();
 }
