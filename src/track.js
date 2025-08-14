@@ -432,7 +432,12 @@ function loadTrack1() {
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
         cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
         Camera.main.rotate(0, startLine.rotation[1], 0);
-        car.translation = vec.add(vec.add(startLine.translation, vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2])), [15, 0, 0]);
+
+        //Car spawn point. Position needs to be linked to Client.id
+        const spawnSeperation = 20;
+        car.translation = vec.add(vec.add(startLine.translation, vec.rotate([ (-3*spawnSeperation) + spawnSeperation * Client.id, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2])), [15, 0, 0]);
+        
+        
         Camera.main.translate(car.translation[0] + cameraDist[0] + 4.3, 10, car.translation[2] + cameraDist[2]);
     });
 
