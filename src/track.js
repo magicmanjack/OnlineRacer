@@ -51,12 +51,12 @@ function loadTrack1() {
     let numLaps = 1;
     let gameFinished = false;
 
-    var dogBarkingBuffer = null;
+    var musicBuffer = null;
     var context = new AudioContext();
 
-    function loadDogSound() {
+    function loadSound() {
         var request = new XMLHttpRequest();
-        request.open("GET", "../race.ogg", true);
+        request.open("GET", "../race.ogg", true); // Source: https://opengameart.org/content/winning-the-race 
         request.responseType = "arraybuffer";
 
         // Decode asynchronously
@@ -64,11 +64,10 @@ function loadTrack1() {
             context.decodeAudioData(
                 request.response,
                 function (buffer) {
-                    dogBarkingBuffer = buffer;
+                    musicBuffer = buffer;
                 },
-                function(e) {
+                function (e) {
                     console.log(e);
-                    
                 }
             );
         };
@@ -78,11 +77,13 @@ function loadTrack1() {
     function playSound(buffer) {
         var source = context.createBufferSource(); // creates a sound source
         source.buffer = buffer; // tell the source which sound to play
-        source.connect(context.destination); // connect the source to the context's destination (the speakers)
         source.loop = true;
-        const gainNode = context.createGain()
-        gainNode.gain.value = 0.25;
-        gainNode.connect(context.destination);
+
+        // Set volume
+        const gainNode = context.createGain();
+        gainNode.gain.value = 0.15;
+        source.connect(gainNode).connect(context.destination);
+
         source.start(0); // play the source now
     }
 
@@ -555,7 +556,7 @@ function loadTrack1() {
                     if (timePassed() > 7) {
                         this.textureIndex++;
                         frameCounter = 0;
-                        loadDogSound();
+                        loadSound();
                     }
                     break;
                 }
@@ -567,7 +568,7 @@ function loadTrack1() {
                         finalTime = 0;
                         startTimer = true;
                         controlsDisabled = false;
-                        playSound(dogBarkingBuffer);
+                        playSound(musicBuffer);
                     }
                     break;
                 }
