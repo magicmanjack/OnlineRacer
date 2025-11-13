@@ -36,6 +36,7 @@ function initRaceNetworking() {
 
     Client.onMessage = (e) => {
         const msg = JSON.parse(e.data);
+        
         switch(msg.type) {
             case "get_car_states":
                 Client.webSocket.send(JSON.stringify({
@@ -139,6 +140,10 @@ function initRaceNetworking() {
                 
                 lobbySize--;
                 break;
+
+            case "player_finished":
+                leaderboard.add(msg.playerID, msg.timeFinished);
+
         }
     };
 
@@ -167,6 +172,10 @@ function initRaceNetworking() {
                     Client.state = "ready";
                 }
                 break;
+            case "ready":
+                //
+                
+                break;
         }
 
         Client.webSocket.send(JSON.stringify({
@@ -179,6 +188,21 @@ function initRaceNetworking() {
             }
         }));
     }
+
+
+}
+
+function sendRaceFinished(timetaken) {
+    Client.state = "race_finished";
+    //Need to communicate to other players
+    Client.webSocket.send(JSON.stringify({
+        type:"relay_all_others",
+        relay:{
+            type:"player_finished",
+            playerID: Client.id,
+            timeFinished: timetaken
+        }
+    }));
 }
 
 

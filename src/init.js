@@ -152,7 +152,9 @@ function loadLobby() {
         if(Client.connected) {
             Client.webSocket.send(JSON.stringify({
                 type:"relay_all",
-                relay:"initiate_load_track_1"
+                relay:{
+                    type:"initiate_load_track_1"
+                }
             }));
         }
     }

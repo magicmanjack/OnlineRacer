@@ -335,12 +335,19 @@ function loadTrack1() {
 
         // Handle start line collision only on transition from not colliding to colliding
         if (currentStartLineCollision && !lastStartLineCollision) {
-            if (numLaps == 3) {
+            if (numLaps == 1) { // Change back to 3
                 if (allCheckpointsPassed()) {
+                    //Race finished.
                     finalTime = Date.now() - startTime;
                     startTimer = false;
                     controlsDisabled = true;
                     gameFinished = true;
+
+                    //TODO: Alert other players:
+                    sendRaceFinished(finalTime);
+
+                    leaderboard.add(Client.id, finalTime);
+
                 }
             } else if (allCheckpointsPassed()) {
                 numLaps++;
@@ -374,6 +381,9 @@ function loadTrack1() {
         const zoomHeight = startHeight + velocity * 0.5;
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
+
+        //Update leaderboard
+        leaderboard.update();
     };
     car.addMesh(["models/car.obj", "models/car.mtl"]);
     car.addCollisionPlane(new CollisionPlane());
@@ -465,11 +475,13 @@ function loadTrack1() {
                     }
                     break;
                 }
+
                 case 1: {
                     if(timePassed() > 2) {
                         this.textureIndex++;
                         frameCounter = 0;
                         startTime = Date.now();
+                        leaderboard.timeOffset = startTime;
                         finalTime = 0;
                         startTimer = true;
                         controlsDisabled = false;
