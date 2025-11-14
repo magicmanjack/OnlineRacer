@@ -8,7 +8,7 @@ let players = [];
 let availableId = 0;
 
 Deno.serve({
-    port: 80,
+    port: 5174,
     async handler(request) {
         if(request.headers.get("upgrade") !== "websocket") {
             //Normal http request

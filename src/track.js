@@ -52,16 +52,18 @@ function loadTrack1() {
     let gameFinished = false;
 
     var musicBuffer = null;
-    var context = new AudioContext();
+    var soundBuffer = null;
+    var musicContext = new AudioContext();
+    var soundContext = new AudioContext();
 
-    function loadSound() {
+    function loadMusic(musicName) {
         var request = new XMLHttpRequest();
-        request.open("GET", "../race.ogg", true); // Source: https://opengameart.org/content/winning-the-race 
+        request.open("GET", musicName, true);
         request.responseType = "arraybuffer";
 
         // Decode asynchronously
         request.onload = function () {
-            context.decodeAudioData(
+            musicContext.decodeAudioData(
                 request.response,
                 function (buffer) {
                     musicBuffer = buffer;
@@ -74,15 +76,52 @@ function loadTrack1() {
         request.send();
     }
 
-    function playSound(buffer) {
-        var source = context.createBufferSource(); // creates a sound source
-        source.buffer = buffer; // tell the source which sound to play
-        source.loop = true;
+    function loadSound(soundName) {
+        var request = new XMLHttpRequest();
+        request.open("GET", soundName, true);
+        request.responseType = "arraybuffer";
 
+        // Decode asynchronously
+        request.onload = function () {
+            soundContext.decodeAudioData(
+                request.response,
+                function (buffer) {
+                    soundBuffer = buffer;
+                },
+                function (e) {
+                    console.log(e);
+                }
+            );
+        };
+        request.send();
+    }
+
+    function playMusic(buffer, loop = false) {
+        var source = musicContext.createBufferSource(); // creates a sound source
+        source.buffer = buffer; // tell the source which sound to play
         // Set volume
-        const gainNode = context.createGain();
+        const gainNode = musicContext.createGain();
         gainNode.gain.value = 0.15;
-        source.connect(gainNode).connect(context.destination);
+        source.connect(gainNode).connect(musicContext.destination);
+
+        if (loop) {
+            source.loop = true;
+        }
+
+        source.start(0); // play the source now
+    }
+
+    function playSound(buffer, loop = false) {
+        var source = soundContext.createBufferSource(); // creates a sound source
+        source.buffer = buffer; // tell the source which sound to play
+        // Set volume
+        const gainNode = soundContext.createGain();
+        gainNode.gain.value = 0.15;
+        source.connect(gainNode).connect(soundContext.destination);
+
+        if (loop) {
+            source.loop = true;
+        }
 
         source.start(0); // play the source now
     }
@@ -540,10 +579,13 @@ function loadTrack1() {
 
     // Traffic light code
     const light = new UIPanel(10, 5, 5, 10, [
+        "textures/light_off.png",
         "textures/light_red.png",
         "textures/light_orange.png",
         "textures/light_green.png",
     ]);
+    loadSound("sounds/sfx_red_light.mp3");
+    loadMusic("sounds/music_race.ogg");
 
     let frameCounter = 0;
     light.update = function () {
@@ -553,27 +595,43 @@ function loadTrack1() {
         if (allClientsLoaded) {
             switch (ti) {
                 case 0: {
-                    if (timePassed() > 7) {
+                    if (timePassed() > 2) {
+                        // Switch to Red
                         this.textureIndex++;
                         frameCounter = 0;
-                        loadSound();
+                        playSound(soundBuffer);
+                        loadSound("sounds/sfx_orange_light.mp3");
                     }
                     break;
                 }
                 case 1: {
                     if (timePassed() > 2) {
+                        // Switch to Orange
+                        this.textureIndex++;
+                        frameCounter = 0;
+                        playSound(soundBuffer);
+                        loadSound("sounds/sfx_green_light.mp3");
+                    }
+                    break;
+                }
+                case 2: {
+                    if (timePassed() > 2) {
+                        // Switch to Green
+                        // Start the race!
                         this.textureIndex++;
                         frameCounter = 0;
                         startTime = Date.now();
                         finalTime = 0;
                         startTimer = true;
                         controlsDisabled = false;
-                        playSound(musicBuffer);
+                        playSound(soundBuffer);
+                        playMusic(musicBuffer);
                     }
                     break;
                 }
-                case 2: {
+                case 3: {
                     if (timePassed() > 2) {
+                        // Disable countdown UI
                         UILayer.splice(UILayer.indexOf(this), 1);
                     }
                     break;
