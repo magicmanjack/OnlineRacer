@@ -130,6 +130,7 @@ function loadTrack1() {
     }
 
     const boostSfxEle = loadAudio("sfx_boost");
+    const obstacleCrashSfxEle = loadAudio("sfx_obstacle_crash");
 
     car.update = () => {
         // Input handling
@@ -243,6 +244,7 @@ function loadTrack1() {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
                     if (t == "obstacle") {
+                        obstacleCrashSfxEle.play();
                         for (let i = 0; i < 4; i++) {
                             const obstacleShard = new SceneNode();
 
