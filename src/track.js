@@ -129,6 +129,8 @@ function loadTrack1() {
                   0.12222;
     }
 
+    const boostSfxEle = loadAudio("sfx_boost");
+
     car.update = () => {
         // Input handling
         if (!controlsDisabled) {
@@ -236,6 +238,7 @@ function loadTrack1() {
                     carYVelocity += (1 / 25) * Math.abs(velocity);
                 } else if (t == "boost") {
                     boostTimer = 1;
+                    boostSfxEle.play();
                 } else if (t == "start") {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
