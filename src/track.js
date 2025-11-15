@@ -53,77 +53,19 @@ function loadTrack1() {
 
     var musicBuffer = null;
     var soundBuffer = null;
-    var musicContext = new AudioContext();
-    var soundContext = new AudioContext();
+    var audioContext = new AudioContext();
 
-    function loadMusic(musicName) {
-        var request = new XMLHttpRequest();
-        request.open("GET", musicName, true);
-        request.responseType = "arraybuffer";
+    function loadAudio(elementId) {
+        // Load file from audio element
+        const audioElement = document.getElementById(elementId);
+        const track = audioContext.createMediaElementSource(audioElement);
 
-        // Decode asynchronously
-        request.onload = function () {
-            musicContext.decodeAudioData(
-                request.response,
-                function (buffer) {
-                    musicBuffer = buffer;
-                },
-                function (e) {
-                    console.log(e);
-                }
-            );
-        };
-        request.send();
-    }
-
-    function loadSound(soundName) {
-        var request = new XMLHttpRequest();
-        request.open("GET", soundName, true);
-        request.responseType = "arraybuffer";
-
-        // Decode asynchronously
-        request.onload = function () {
-            soundContext.decodeAudioData(
-                request.response,
-                function (buffer) {
-                    soundBuffer = buffer;
-                },
-                function (e) {
-                    console.log(e);
-                }
-            );
-        };
-        request.send();
-    }
-
-    function playMusic(buffer, loop = false) {
-        var source = musicContext.createBufferSource(); // creates a sound source
-        source.buffer = buffer; // tell the source which sound to play
-        // Set volume
-        const gainNode = musicContext.createGain();
+        // Control volume
+        const gainNode = audioContext.createGain();
         gainNode.gain.value = 0.15;
-        source.connect(gainNode).connect(musicContext.destination);
+        track.connect(gainNode).connect(audioContext.destination);
 
-        if (loop) {
-            source.loop = true;
-        }
-
-        source.start(0); // play the source now
-    }
-
-    function playSound(buffer, loop = false) {
-        var source = soundContext.createBufferSource(); // creates a sound source
-        source.buffer = buffer; // tell the source which sound to play
-        // Set volume
-        const gainNode = soundContext.createGain();
-        gainNode.gain.value = 0.15;
-        source.connect(gainNode).connect(soundContext.destination);
-
-        if (loop) {
-            source.loop = true;
-        }
-
-        source.start(0); // play the source now
+        return audioElement;
     }
 
     // Timer display functions
@@ -584,8 +526,11 @@ function loadTrack1() {
         "textures/light_orange.png",
         "textures/light_green.png",
     ]);
-    loadSound("sounds/sfx_red_light.mp3");
-    loadMusic("sounds/music_race.ogg");
+    
+    const raceMusicEle = loadAudio("music_race");
+    const redLightSfxEle = loadAudio("sfx_red_light");
+    const orangeLightSfxEle = loadAudio("sfx_orange_light");
+    const greenLightSfxEle = loadAudio("sfx_green_light");
 
     let frameCounter = 0;
     light.update = function () {
@@ -599,8 +544,7 @@ function loadTrack1() {
                         // Switch to Red
                         this.textureIndex++;
                         frameCounter = 0;
-                        playSound(soundBuffer);
-                        loadSound("sounds/sfx_orange_light.mp3");
+                        redLightSfxEle.play();
                     }
                     break;
                 }
@@ -609,8 +553,7 @@ function loadTrack1() {
                         // Switch to Orange
                         this.textureIndex++;
                         frameCounter = 0;
-                        playSound(soundBuffer);
-                        loadSound("sounds/sfx_green_light.mp3");
+                        orangeLightSfxEle.play();
                     }
                     break;
                 }
@@ -624,8 +567,8 @@ function loadTrack1() {
                         finalTime = 0;
                         startTimer = true;
                         controlsDisabled = false;
-                        playSound(soundBuffer);
-                        playMusic(musicBuffer);
+                        greenLightSfxEle.play();
+                        raceMusicEle.play();
                     }
                     break;
                 }
