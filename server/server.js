@@ -7,6 +7,8 @@ let lobby = [];
 let players = [];
 let availableId = 0;
 
+let logging = false;
+
 Deno.serve({
     port: 5174,
     async handler(request) {
@@ -170,6 +172,9 @@ function onPlayerMessage(event) {
     */
     const msg = JSON.parse(event.data);
 
+    if(logging) {
+        console.log(`msg:\n${event.data}`);
+    }
     switch(msg.type) {
         
         case "add_car": {
@@ -216,13 +221,32 @@ function onPlayerMessage(event) {
         
 
         case "relay_all":
-            sendAll({
-                type: msg.relay
-            });
+            /*
+                Relays message to every single client that has a connection to the server.
+                Message to the server is object of structure:
+                
+                {
+                    type: "relay_all"
+                    relay: msg_object_to_relay
+                }
+            */
+            
+            sendAll(msg.relay);
             break;
 
         case "relay_all_others":
-            sendAllOthers({type: msg.relay}, this); 
+            /*
+            Relays message to every other client connected to server except for the client that sent the message.
+            Of structure:
+
+                {
+                    type: "relay_all_others"
+                    relay: msg_object_to_relay
+                }
+
+            */
+
+            sendAllOthers(msg.relay, this);  //<<<<whats going on here aye?
             
     }
 }
