@@ -55,14 +55,15 @@ function loadTrack1() {
     var soundBuffer = null;
     var audioContext = new AudioContext();
 
-    function loadAudio(elementId) {
+    function loadAudio(elementId, volume = 0.15) {
         // Load file from audio element
         const audioElement = document.getElementById(elementId);
         const track = audioContext.createMediaElementSource(audioElement);
 
         // Control volume
         const gainNode = audioContext.createGain();
-        gainNode.gain.value = 0.15;
+        gainNode.gain.value = volume;
+
         track.connect(gainNode).connect(audioContext.destination);
 
         return audioElement;
