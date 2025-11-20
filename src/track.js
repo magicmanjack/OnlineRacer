@@ -401,8 +401,8 @@ function loadTrack1() {
 
                     //TODO: Alert other players:
                     sendRaceFinished(finalTime);
-
                     leaderboard.add(Client.id, finalTime);
+                    leaderboard.show();
 
                 }
             } else if (allCheckpointsPassed()) {
