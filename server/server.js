@@ -246,7 +246,7 @@ function onPlayerMessage(event) {
 
             */
 
-            sendAllOthers(msg.relay, this);  //<<<<whats going on here aye?
+            sendAllOthers(msg.relay, this);
             
     }
 }

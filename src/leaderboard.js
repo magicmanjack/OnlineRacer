@@ -8,10 +8,30 @@ const leaderboard = {
     // which will wait for the delayTime before being processed.
 
     placings: [], // Stores list of {time, playerID} which represents the placings.
+
+    leaderboardUIDimensions: {
+        x: 0, 
+        y: 2,
+        w: 20,
+        h: 20
+    },
+
+    placingsUI: [], // Stores the UIPanels that hold each placing.
+
+    visible: false,
+
+    placingUIDimensions: {
+
+        offsetX : 0,
+        offsetY : 2,
+        scaleX : 0.8,
+        scaleY : 0.18 * 0.8
+
+    },
     
     popWaiting: function() {
         //Checks the head of the queue and returns waiting that have spent longer than the delay time.
-        toReturn = [];
+        let toReturn = [];
         while(this.waiting.length > 0) {
             if(Date.now() - (this.waiting[0].time + this.timeOffset) > this.delayTime) {
                 toReturn.push(this.waiting.shift());
@@ -30,30 +50,78 @@ const leaderboard = {
             id:playerID,
             time:timeTaken
         }
+        
         for(let i = 0; i < this.waiting.length; i++) {
             if(this.waiting[i].time > element.time) {
+                
                 this.waiting.splice(i, 0, element);
+                
                 return;
             }
         }
         //Otherwise add to end
         this.waiting.push(element);
+        
     },
 
     update: function() {
         //Check to see if any leader board updates
         const updates = this.popWaiting();
+        
         if(updates.length > 0) {
-            
-            for(let i = 0; i < this.placings.length; i++) {
-                if(this.placings[i].time > updates[0].time) {
-                    this.placings = [...this.placings.slice(0, i), ...updates, this.placings.slice(i, this.placings.length)];
-                    console.log(leaderboard.placings);
-                    return;
+
+            if(this.placings.length == 0) {
+                this.placings = updates;
+            } else {
+                for(let i = 0; i < this.placings.length; i++) {
+
+                    if(this.placings[i].time > updates[0].time) {
+                        for(let j = 0; j < updates.length; j++) {
+                            this.placings.splice(i + j, 0, updates[j]);
+                            
+                        }
+                        break;
+                    } else if(i + 1 == this.placings.length) {
+                        
+                        this.placings = [...this.placings, ...updates];
+                        break;
+                    }
                 }
+                
             }
-            this.placings.push(...updates);
-            console.log(leaderboard.placings);
+            if(this.visible) {
+                this.show();
+            }
+        }
+    },
+
+    show: function() {
+        /*
+            instead of redrawing
+            the entire table, only draw the placings that are missing.
+        */
+
+        const lDim = this.leaderboardUIDimensions;
+
+        if(!this.visible) {
+            const leaderboardBG = new UIPanel(lDim.x, lDim.y, lDim.w, lDim.h, ["textures/leaderboard.png"]);
+            UILayer.push(leaderboardBG);
+            this.visible = true;
+        }
+
+        if(this.placings.length - this.placingsUI.length > 0) {
+            //There is UI panels that need to be added to leaderboard
+            
+            for(let i = this.placingsUI.length; i < this.placings.length; i++) {
+                const dim = this.placingUIDimensions;
+                //Offset X and Y from leaderboard middle;
+                const placingPanel = new UIPanel(lDim.x + dim.offsetX,
+                    lDim.y + dim.offsetY + i * dim.scaleY * lDim.h * -1,
+                    lDim.w * dim.scaleX, lDim.h * dim.scaleY,
+                    [`textures/leaderboard_player${this.placings[i].id}.png`]);
+                    this.placingsUI.push(placingPanel);
+                    UILayer.unshift(placingPanel);
+            }
         }
     }
 }
