@@ -10,7 +10,7 @@ let availableId = 0;
 let logging = false;
 
 Deno.serve({
-    port: 80,
+    port: 5174,
     async handler(request) {
         if(request.headers.get("upgrade") !== "websocket") {
             //Normal http request

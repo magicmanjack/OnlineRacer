@@ -1,6 +1,5 @@
 let toggleHUD = false;
 
-
 function loadTrack1() {
     debug = false;
     toggleHUD = true;
@@ -13,7 +12,7 @@ function loadTrack1() {
     const startHeight = 25;
 
     // Initialize camera with proper aspect ratio
-    const canvas = document.getElementById('c');
+    const canvas = document.getElementById("c");
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
@@ -52,17 +51,37 @@ function loadTrack1() {
     let numLaps = 1;
     let gameFinished = false;
 
+    var musicBuffer = null;
+    var soundBuffer = null;
+    var audioContext = new AudioContext();
+
+    function loadAudio(elementId, volume = 0.15) {
+        // Load file from audio element
+        const audioElement = document.getElementById(elementId);
+        const track = audioContext.createMediaElementSource(audioElement);
+
+        // Control volume
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = volume;
+
+        track.connect(gainNode).connect(audioContext.destination);
+
+        return audioElement;
+    }
+
     // Timer display functions
     function formatTime(milliseconds) {
         const totalSeconds = milliseconds / 1000;
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = Math.floor(totalSeconds % 60);
         const centiseconds = Math.floor((totalSeconds % 1) * 100);
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+        return `${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}.${centiseconds.toString().padStart(2, "0")}`;
     }
 
     function updateTimerDisplay() {
-        const timerDisplay = document.getElementById('timer-display');
+        const timerDisplay = document.getElementById("timer-display");
 
         if (startTimer) {
             const elapsed = Date.now() - startTime;
@@ -79,7 +98,7 @@ function loadTrack1() {
     }
 
     function updateLapCounter() {
-        const lapCounter = document.getElementById('lap-counter');
+        const lapCounter = document.getElementById("lap-counter");
         lapCounter.textContent = `${numLaps}/3`;
     }
 
@@ -90,7 +109,9 @@ function loadTrack1() {
     function allCheckpointsPassed() {
         if (
             checkpointStack.length === requiredCheckpoints.length &&
-            checkpointStack.every((val, idx) => val === requiredCheckpoints[idx])
+            checkpointStack.every(
+                (val, idx) => val === requiredCheckpoints[idx]
+            )
         ) {
             return true;
         } else {
@@ -102,14 +123,17 @@ function loadTrack1() {
         checkpointStack = [];
     }
 
-
     function rotateSpeedFunction(x) {
-        return x >= 0 ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5 :
-            -1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9) / 0.12222;
+        return x >= 0
+            ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5
+            : (-1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9)) /
+                  0.12222;
     }
 
-    car.update = () => {
+    const boostSfxEle = loadAudio("sfx_boost");
+    const obstacleCrashSfxEle = loadAudio("sfx_obstacle_crash");
 
+    car.update = () => {
         // Input handling
         if (!controlsDisabled) {
             if (input.up) {
@@ -135,17 +159,16 @@ function loadTrack1() {
             }
         }
 
-
         //
 
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         Camera.main.rotate(0, cameraRotationStep, 0);
-        cameraDisp = vec.subtract(Camera.main.translation, car.translation)
+        cameraDisp = vec.subtract(Camera.main.translation, car.translation);
 
         newPos = vec.rotate(cameraDisp, 0, cameraRotationStep, 0);
 
-        Camera.main.translation = vec.add(newPos, car.translation)
+        Camera.main.translation = vec.add(newPos, car.translation);
 
         cameraRotationY += cameraRotationStep;
 
@@ -178,11 +201,14 @@ function loadTrack1() {
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
 
-
         // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
         car.translate(carDelta[0], carDelta[1], carDelta[2]);
-        const camDelta = [newcarDirection[0], newcarDirection[1], newcarDirection[2]];
+        const camDelta = [
+            newcarDirection[0],
+            newcarDirection[1],
+            newcarDirection[2],
+        ];
         Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
         if (car.translation[1] < 0) {
@@ -199,7 +225,6 @@ function loadTrack1() {
             const collisions = car.collisionPlane.collisions;
 
             for (let i = 0; i < collisions.length; i++) {
-
                 const t = collisions[i].parent.tag;
                 const p = collisions[i].parent;
 
@@ -210,17 +235,17 @@ function loadTrack1() {
                     velocity = 0;
                     car.translate(carInv[0], carYVelocity, carInv[2]);
                     Camera.main.translate(camInv[0], camInv[1], camInv[2]);
-
                 } else if (t == "ramp") {
                     //collision with ramp
-                    carYVelocity += 1 / 25 * Math.abs(velocity);
+                    carYVelocity += (1 / 25) * Math.abs(velocity);
                 } else if (t == "boost") {
                     boostTimer = 1;
+                    boostSfxEle.play();
                 } else if (t == "start") {
                     currentStartLineCollision = true;
                 } else if (t == "obstacle" || t == "car") {
                     if (t == "obstacle") {
-
+                        obstacleCrashSfxEle.play();
                         for (let i = 0; i < 4; i++) {
                             const obstacleShard = new SceneNode();
 
@@ -232,31 +257,46 @@ function loadTrack1() {
                             obstacleShard.rotation = [...p.rotation];
                             sceneGraph.root.addChild(obstacleShard);
 
-                            let carDirNorm = vec.normalize([carDirection[0], 0, carDirection[2]]);
+                            let carDirNorm = vec.normalize([
+                                carDirection[0],
+                                0,
+                                carDirection[2],
+                            ]);
                             if (velocity < 0) {
                                 carDirNorm = -carDirNorm;
                             }
-                            let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
+                            let baseAngle = Math.atan2(
+                                carDirNorm[2],
+                                carDirNorm[0]
+                            );
                             let maxAngleOffset = Math.PI / 4;
-                            let angle = baseAngle + ((i - 1.5) * maxAngleOffset / 2) + (Math.random() - 0.5) * maxAngleOffset;
+                            let angle =
+                                baseAngle +
+                                ((i - 1.5) * maxAngleOffset) / 2 +
+                                (Math.random() - 0.5) * maxAngleOffset;
                             let speed = 5 + Math.random() * 2;
 
                             let velocityVec = [
-                                Math.cos(angle) * speed + carDirNorm[0] * Math.abs(velocity) * 0.8,
+                                Math.cos(angle) * speed +
+                                    carDirNorm[0] * Math.abs(velocity) * 0.8,
                                 2 + Math.random() * 3,
-                                Math.sin(angle) * speed + carDirNorm[2] * Math.abs(velocity) * 0.8
+                                Math.sin(angle) * speed +
+                                    carDirNorm[2] * Math.abs(velocity) * 0.8,
                             ];
 
                             let frames = 40;
                             obstacleShard.update = function () {
-                                this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
+                                this.translate(
+                                    velocityVec[0],
+                                    velocityVec[1],
+                                    velocityVec[2]
+                                );
                                 velocityVec[1] -= 0.3;
                                 frames--;
                                 if (frames <= 0) {
                                     this.remove();
                                 }
                             };
-
                         }
                         p.remove();
                     }
@@ -275,13 +315,15 @@ function loadTrack1() {
                     controlsDisabled = true;
                     let speed = Math.abs(velocity);
                     // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
-                    let rotationFrames = Math.min(60, Math.round(30 * 15 / speed));
+                    let rotationFrames = Math.min(
+                        60,
+                        Math.round((30 * 15) / speed)
+                    );
                     let direction = Math.random();
                     let rotationStep = (4 * Math.PI) / rotationFrames;
                     if (direction < 0.5) {
                         rotationStep = -1 * rotationStep;
                     }
-
 
                     if (!car.spinning) {
                         car.spinning = true;
@@ -318,12 +360,26 @@ function loadTrack1() {
                     const checkpointName = p.name;
                     let checkpointNumber = getCheckpointNumber(checkpointName);
                     if (!checkpointStack.includes(checkpointName)) {
-                        if (checkpointStack.length == 0 && checkpointNumber == 1) {
+                        if (
+                            checkpointStack.length == 0 &&
+                            checkpointNumber == 1
+                        ) {
                             checkpointStack.push(checkpointName);
-                        } else if (checkpointStack.length != 0 && checkpointNumber == (getCheckpointNumber(checkpointStack[checkpointStack.length - 1]) + 1)) {
+                        } else if (
+                            checkpointStack.length != 0 &&
+                            checkpointNumber ==
+                                getCheckpointNumber(
+                                    checkpointStack[checkpointStack.length - 1]
+                                ) +
+                                    1
+                        ) {
                             checkpointStack.push(checkpointName);
                         }
-                    } else if (checkpointStack.includes("checkpoint.00" + (checkpointNumber + 1))) {
+                    } else if (
+                        checkpointStack.includes(
+                            "checkpoint.00" + (checkpointNumber + 1)
+                        )
+                    ) {
                         checkpointStack.pop();
                     }
                 }
@@ -376,7 +432,7 @@ function loadTrack1() {
         }
 
         // Update Camera.main zoom with velocity while maintaining aspect ratio
-        const canvas = document.getElementById('c');
+        const canvas = document.getElementById("c");
         const aspectRatio = canvas.width / canvas.height;
         const zoomHeight = startHeight + velocity * 0.5;
         Camera.main.displayHeight = zoomHeight;
@@ -391,7 +447,6 @@ function loadTrack1() {
 
     ground = new SceneNode();
     ground.addMesh(["models/track01.fbx"]).then(() => {
-
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
@@ -401,8 +456,7 @@ function loadTrack1() {
         }
         */
 
-
-        ground.getChildren("railing").forEach(element => {
+        ground.getChildren("railing").forEach((element) => {
             element.tag = "wall";
         });
 
@@ -412,13 +466,19 @@ function loadTrack1() {
         }
         */
 
-        ground.getChildren("cube").forEach((e) => { e.tag = "wall" });
+        ground.getChildren("cube").forEach((e) => {
+            e.tag = "wall";
+        });
 
-        ground.getChildren("magnetpad").forEach((e) => { e.tag = "magnet" });
+        ground.getChildren("magnetpad").forEach((e) => {
+            e.tag = "magnet";
+        });
 
-        ground.getChildren("ramp").forEach((e) => { e.tag = "ramp" });
+        ground.getChildren("ramp").forEach((e) => {
+            e.tag = "ramp";
+        });
 
-        ground.getChildren("obstacle").forEach(e => {
+        ground.getChildren("obstacle").forEach((e) => {
             e.tag = "obstacle";
             const meshChild = e.getChildren("mesh")[0];
             meshChild.update = () => {
@@ -426,11 +486,11 @@ function loadTrack1() {
             };
         });
 
-        ground.getChildren("boost").forEach(e => {
+        ground.getChildren("boost").forEach((e) => {
             e.tag = "boost";
         });
 
-        ground.getChildren("checkpoint").forEach(e => {
+        ground.getChildren("checkpoint").forEach((e) => {
             e.tag = "checkpoint";
             // Preserve the original name from the 3D model for checkpoint identification
             if (!e.name) {
@@ -440,44 +500,84 @@ function loadTrack1() {
 
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
-        cameraDist = vec.rotate([0, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2]);
+        cameraDist = vec.rotate(
+            [0, 0, 50],
+            startLine.rotation[0],
+            startLine.rotation[1],
+            startLine.rotation[2]
+        );
         Camera.main.rotate(0, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
         const spawnSeperation = 20;
-        car.translation = vec.add(vec.add(startLine.translation, vec.rotate([ (-3*spawnSeperation) + spawnSeperation * Client.id, 0, 50], startLine.rotation[0], startLine.rotation[1], startLine.rotation[2])), [15, 0, 0]);
-        
-        
-        Camera.main.translate(car.translation[0] + cameraDist[0] + 4.3, 10, car.translation[2] + cameraDist[2]);
-    });
+        car.translation = vec.add(
+            vec.add(
+                startLine.translation,
+                vec.rotate(
+                    [-3 * spawnSeperation + spawnSeperation * Client.id, 0, 50],
+                    startLine.rotation[0],
+                    startLine.rotation[1],
+                    startLine.rotation[2]
+                )
+            ),
+            [15, 0, 0]
+        );
 
+        Camera.main.translate(
+            car.translation[0] + cameraDist[0] + 4.3,
+            10,
+            car.translation[2] + cameraDist[2]
+        );
+    });
 
     ground.translate(0, -5, -50);
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(ground);
 
-
     // Traffic light code
-    const light = new UIPanel(10, 5, 5, 10, ["textures/light_red.png", "textures/light_orange.png", "textures/light_green.png"]);
+    const light = new UIPanel(10, 5, 5, 10, [
+        "textures/light_off.png",
+        "textures/light_red.png",
+        "textures/light_orange.png",
+        "textures/light_green.png",
+    ]);
     
-    let frameCounter = 0;
-    light.update = function() {
-        const ti = this.textureIndex;
-        const timePassed = () => frameCounter/UPDATES_PER_SECOND;
+    const raceMusicEle = loadAudio("music_race");
+    const redLightSfxEle = loadAudio("sfx_red_light");
+    const orangeLightSfxEle = loadAudio("sfx_orange_light");
+    const greenLightSfxEle = loadAudio("sfx_green_light");
 
-        if(allClientsLoaded) {
-            switch(ti) {
+    let frameCounter = 0;
+    light.update = function () {
+        const ti = this.textureIndex;
+        const timePassed = () => frameCounter / UPDATES_PER_SECOND;
+
+        if (allClientsLoaded) {
+            switch (ti) {
                 case 0: {
-                    if(timePassed() > 7) {
+                    if (timePassed() > 2) {
+                        // Switch to Red
                         this.textureIndex++;
                         frameCounter = 0;
+                        redLightSfxEle.play();
                     }
                     break;
                 }
 
                 case 1: {
-                    if(timePassed() > 2) {
+                    if (timePassed() > 2) {
+                        // Switch to Orange
+                        this.textureIndex++;
+                        frameCounter = 0;
+                        orangeLightSfxEle.play();
+                    }
+                    break;
+                }
+                case 2: {
+                    if (timePassed() > 2) {
+                        // Switch to Green
+                        // Start the race!
                         this.textureIndex++;
                         frameCounter = 0;
                         startTime = Date.now();
@@ -485,11 +585,14 @@ function loadTrack1() {
                         finalTime = 0;
                         startTimer = true;
                         controlsDisabled = false;
+                        greenLightSfxEle.play();
+                        raceMusicEle.play();
                     }
                     break;
                 }
-                case 2: {
-                    if(timePassed() > 2) {
+                case 3: {
+                    if (timePassed() > 2) {
+                        // Disable countdown UI
                         UILayer.splice(UILayer.indexOf(this), 1);
                     }
                     break;
@@ -499,7 +602,16 @@ function loadTrack1() {
         }
     };
     UILayer.push(light);
-    
+
+    function finishedLoading(bufferList) {
+        // Create two sources and play them both together.
+        var source1 = context.createBufferSource();
+        source1.buffer = bufferList[0];
+
+        source1.connect(context.destination);
+        source1.noteOn(0);
+    }
+
     clientCar = car;
     initRaceNetworking();
 }
