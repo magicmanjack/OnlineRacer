@@ -73,6 +73,13 @@ const currentGamepad = {
         ["Xbox Guide", false],
     ]),
 
+    axes: [
+        0,
+        0,
+        0,
+        0
+    ],
+
     timestamp: 0,
 
     update() {
@@ -83,6 +90,14 @@ const currentGamepad = {
         if (activeGamepad && activeGamepad.timestamp !== this.timestamp) {
             this.timestamp = activeGamepad.timestamp;
 
+            console.log(activeGamepad);
+
+            // Update axes
+            for (let i = 0; i < this.axes.length; i++) {
+                this.axes[i] = activeGamepad.axes[i];
+            }
+
+            // Update button states
             for (let i = 0; i < this.buttons.length; i++) {
                 this.buttons[i] = activeGamepad.buttons[i].pressed;
                 this.buttonStates.set(
@@ -94,6 +109,26 @@ const currentGamepad = {
             return;
         }
     },
+
+    isPressed(button) {
+        return this.buttonStates.get(button);
+    },
+
+    getLeftXAxis() {
+        return this.axes[0];
+    },
+
+    getLeftYAxis() {
+        return this.axes[1];
+    },
+
+    getRightXAxis() {
+        return this.axes[2];
+    },
+
+    getRightYAxis() {
+        return this.axes[3];
+    }
     //     controller: {},
     //     turbo: false,
     //     buttons: [

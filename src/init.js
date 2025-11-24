@@ -51,7 +51,7 @@ function loadMenu() {
             this.textureIndex = 0;
         }
 
-        if (currentGamepad.buttonStates.get("A")) {
+        if (currentGamepad.isPressed("A")) {
             b1.whenClicked();
         }
     }
@@ -152,7 +152,7 @@ function loadLobby() {
             this.textureIndex = 0;
         }
 
-        if (currentGamepad.buttonStates.get("A")) {
+        if (currentGamepad.isPressed("A")) {
             beginButton.whenClicked();
         }
     }

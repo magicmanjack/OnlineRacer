@@ -136,22 +136,22 @@ function loadTrack1() {
     car.update = () => {
         // Input handling
         if (!controlsDisabled) {
-            if (input.up) {
+            if (input.up || currentGamepad.isPressed("RT")) {
                 velocity += acceleration;
             }
-            if (input.down) {
+            if (input.down || currentGamepad.isPressed("LT")) {
                 velocity -= 0.9;
                 if (velocity < -4) {
                     velocity = -4;
                 }
             }
-            if (input.left && Math.abs(velocity) > 0.5) {
+            if ((input.left || currentGamepad.getLeftXAxis() < -0.25) && Math.abs(velocity) > 0.5) {
                 car.rotate(0, rotateSpeed, 0);
                 carRotationY += rotateSpeed;
 
                 carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
             }
-            if (input.right && Math.abs(velocity) > 0.5) {
+            if ((input.right || currentGamepad.getLeftXAxis() > 0.25) && Math.abs(velocity) > 0.5) {
                 car.rotate(0, -rotateSpeed, 0);
                 carRotationY -= rotateSpeed;
 
