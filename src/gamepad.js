@@ -73,6 +73,11 @@ const currentGamepad = {
         ["Xbox Guide", false],
     ]),
 
+    triggerValues: new Map([
+        ["LT", 0],
+        ["RT", 0],
+    ]),
+
     axes: [
         0,
         0,
@@ -90,8 +95,6 @@ const currentGamepad = {
         if (activeGamepad && activeGamepad.timestamp !== this.timestamp) {
             this.timestamp = activeGamepad.timestamp;
 
-            console.log(activeGamepad);
-
             // Update axes
             for (let i = 0; i < this.axes.length; i++) {
                 this.axes[i] = activeGamepad.axes[i];
@@ -104,6 +107,11 @@ const currentGamepad = {
                     this.buttonMappings.get(i),
                     this.buttons[i]
                 );
+
+                // Update trigger values if pressed
+                if (i == 6 || i == 7) {
+                    this.triggerValues.set(this.buttonMappings.get(i), activeGamepad.buttons[i].value);
+                }
             }
         } else {
             return;
@@ -128,6 +136,14 @@ const currentGamepad = {
 
     getRightYAxis() {
         return this.axes[3];
+    },
+
+    getLeftTriggerValue() {
+        return this.triggerValues.get("LT");
+    },
+
+    getRightTriggerValue() {
+        return this.triggerValues.get("RT");
     }
     //     controller: {},
     //     turbo: false,

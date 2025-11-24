@@ -137,24 +137,33 @@ function loadTrack1() {
         // Input handling
         if (!controlsDisabled) {
             if (input.up || currentGamepad.isPressed("RT")) {
-                velocity += acceleration;
+                if (input.up) {
+                    velocity += acceleration;
+                }
+                else {
+                    velocity += acceleration * currentGamepad.getRightTriggerValue();
+                }
             }
             if (input.down || currentGamepad.isPressed("LT")) {
-                velocity -= 0.9;
+                if (input.down) {
+                    velocity -= 0.9;
+                } else {
+                    velocity -= 0.9 * currentGamepad.getLeftTriggerValue();
+                }
+
                 if (velocity < -4) {
                     velocity = -4;
                 }
             }
-            if ((input.left || currentGamepad.getLeftXAxis() < -0.25) && Math.abs(velocity) > 0.5) {
+            if ((input.left || currentGamepad.isPressed("DPad-Left") || currentGamepad.getLeftXAxis() < -0.35) && Math.abs(velocity) > 0.5) {
                 car.rotate(0, rotateSpeed, 0);
-                carRotationY += rotateSpeed;
+                carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
 
                 carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
             }
-            if ((input.right || currentGamepad.getLeftXAxis() > 0.25) && Math.abs(velocity) > 0.5) {
+            if ((input.right || currentGamepad.isPressed("DPad-Right") || currentGamepad.getLeftXAxis() > 0.35) && Math.abs(velocity) > 0.5) {
                 car.rotate(0, -rotateSpeed, 0);
-                carRotationY -= rotateSpeed;
-
+                carRotationY -= rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
                 carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
             }
         }
