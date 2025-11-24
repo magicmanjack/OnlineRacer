@@ -10,3 +10,18 @@ This will start the server on the localhost. Open up your browser of choice and 
 ## Ingame snapshots:
 <img width="1593" height="1050" alt="Screenshot 2025-08-15 at 12 52 32 AM" src="https://github.com/user-attachments/assets/a99887ed-db39-4739-a071-3ee6953f7f6d" />
 <img width="1625" height="916" alt="Screenshot 2025-08-15 at 12 54 49 AM" src="https://github.com/user-attachments/assets/8fdba23f-57d1-4691-b5ea-840e633dee2c" />
+
+## How to make tracks (in Blender):
+To make objects collidable (so the car cannot pass through them) you must add a collider to it. How to do this is explained below. A collider must be a 2D shape, as the collision detection uses simple 2D SAT collision in the x-z plane.
+
+To create special objects you must name the object with one of the prefixes below.
+
+
+Special object name prefixes:
+- 'collider' creates a collider plane.
+- 'boost' creates a speed boost object. Must have a childed collider.
+- 'checkpoint' followed by a number in the form of '.000'. A checkpoint is a plane that spans the width of the race track. The checkpoint registers when a car passes through it and is essential for the start/finish line to function properly.
+- 'magnetpad'. Must have a childed collider.
+- 'ramp' creates a ramp. Must have childed collider.
+- 'startline' creates a start line. Must have a childed collider.
+
