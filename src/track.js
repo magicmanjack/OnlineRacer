@@ -551,8 +551,19 @@ function loadTrack1() {
         "textures/light_orange.png",
         "textures/light_green.png",
     ]);
+
+    const raceMusicChoices = [
+        "music_race01",
+        "music_race02",
+        "music_race03",
+        "music_race04",
+        "music_race05",
+        "music_race06",
+    ];
     
-    const raceMusicEle = loadAudio("music_race");
+    // Choose a random music track
+    const raceMusicEle = loadAudio(raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]);
+
     const redLightSfxEle = loadAudio("sfx_red_light");
     const orangeLightSfxEle = loadAudio("sfx_orange_light");
     const greenLightSfxEle = loadAudio("sfx_green_light");
