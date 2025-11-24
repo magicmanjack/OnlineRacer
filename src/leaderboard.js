@@ -28,6 +28,13 @@ const leaderboard = {
         scaleY : 0.18 * 0.8
 
     },
+
+    placingIconUIDimenions: {
+        offsetX : 6,
+        offsetY : 0,
+        scaleX : 0.14,
+        scaleY : 0.61
+    },
     
     popWaiting: function() {
         //Checks the head of the queue and returns waiting that have spent longer than the delay time.
@@ -114,14 +121,33 @@ const leaderboard = {
             
             for(let i = this.placingsUI.length; i < this.placings.length; i++) {
                 const dim = this.placingUIDimensions;
+                const iDim = this.placingIconUIDimenions;
                 //Offset X and Y from leaderboard middle;
+                // i + 1 is also equivalent to the placing.
+    
                 const placingPanel = new UIPanel(lDim.x + dim.offsetX,
                     lDim.y + dim.offsetY + i * dim.scaleY * lDim.h * -1,
                     lDim.w * dim.scaleX, lDim.h * dim.scaleY,
                     [`textures/leaderboard_player${this.placings[i].id}.png`]);
                     this.placingsUI.push(placingPanel);
                     UILayer.unshift(placingPanel);
+                
+                if(i < 3) {
+                    let prefixes = ['first', 'second', 'third'];
+                    const placingIcon = new UIPanel(lDim.x + dim.offsetX + iDim.offsetX,
+                    lDim.y + dim.offsetY + iDim.offsetY + i * dim.scaleY * lDim.h * -1,
+                    lDim.w * dim.scaleX * iDim.scaleX, lDim.h * dim.scaleY * iDim.scaleY, [`textures/${prefixes[i]}_place_icon.png`]);
+                    UILayer.unshift(placingIcon);
+                }
             }
         }
     }
+}
+
+function testLeaderboard() {
+    leaderboard.add(1, 1);
+    leaderboard.add(2, 2);
+    leaderboard.add(4, 3);
+    leaderboard.add(3, 4);
+    leaderboard.show();
 }
