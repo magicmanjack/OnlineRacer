@@ -58,9 +58,17 @@ class CollisionPlane {
     }  
 
     loadVertices = (mesh) => {
-        
-        
-        this.vertices = mesh.vertices;
+    
+        // Loads vertices from mesh.faces and mesh.vertices
+        for(let i = 0; i < mesh.faces.length; i++) {
+           //For each face
+
+           for(let j = 0; j < mesh.faces[i].length; j++) {
+                //For each vertex index of a face
+                this.vertices = this.vertices.concat(mesh.vertices.slice(mesh.faces[i][j] * 3, mesh.faces[i][j] * 3 + 3));     
+           }
+           
+        }
 
         this.positionBuffer = gl.createBuffer();
         
@@ -102,6 +110,14 @@ class CollisionPlane {
             const p1 = verts[i];
             const p2 = i+1 < verts.length ? verts[i+1] : verts[0]; 
             
+            
+            if(vec.magnitude(vec.subtract(p1, p2)) == 0) {
+                // In the case that the points refer to the same point, do not generate normal.
+                continue;
+            }
+            
+            
+
             const edge = vec.subtract(p1, p2);
             const norm = vec.normalize(vec.perp(edge));
             
@@ -111,6 +127,11 @@ class CollisionPlane {
         for(let i = 0; i < otherVerts.length; i++) {
             const p1 = otherVerts[i];
             const p2 = i+1 < otherVerts.length ? otherVerts[i+1] : otherVerts[0]; 
+
+            if(vec.magnitude(vec.subtract(p1, p2)) == 0) {
+                // In the case that the points refer to the same point, do not generate normal.
+                continue;
+            }
 
             const edge = vec.subtract(p1, p2);
             const norm = vec.normalize(vec.perp(edge));
@@ -155,7 +176,7 @@ class CollisionPlane {
                 return false;
             }
         }
-
+        
         return true;
 
     }

@@ -12,9 +12,12 @@ This will start the server on the localhost. Open up your browser of choice and 
 <img width="1625" height="916" alt="Screenshot 2025-08-15 at 12 54 49 AM" src="https://github.com/user-attachments/assets/8fdba23f-57d1-4691-b5ea-840e633dee2c" />
 
 ## How to make tracks (in Blender):
-To make objects collidable (so the car cannot pass through them) you must add a collider to it. How to do this is explained below. A collider must be a 2D shape, as the collision detection uses simple 2D SAT collision in the x-z plane.
+When creating objects, if scaling the object, make sure to apply the scaling to the mesh data so that the scaling is represented as 1.0. This is because the game is unable to extract the scaling from a transformation 
+matrix yet. This is just a workaround to the problem and not a permanent fix.
 
-To create special objects you must name the object with one of the prefixes below.
+To make objects collidable (so the car cannot pass through them) you must add a collider to it. How to do this is explained below. A collider must be a 2D shape, and orientated to be in the x-z plane, as the collision detection uses simple 2D SAT collision in the x-z plane.
+
+To create special objects (objects that have different functionality in the game) you must name the object with one of the prefixes below. There is no rules on how the object should be shaped or textured however.
 
 
 Special object name prefixes:
