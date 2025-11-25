@@ -60,11 +60,19 @@ function loadTrack1() {
         const audioElement = document.getElementById(elementId);
         const track = audioContext.createMediaElementSource(audioElement);
 
-        // Control volume
+        // Set default volume
         const gainNode = audioContext.createGain();
         gainNode.gain.value = volume;
 
-        track.connect(gainNode).connect(audioContext.destination);
+        // Add modifier based on volume slider (0% to 200% of default volume value)
+        const volumeControlGainNode = audioContext.createGain();
+        volumeControlGainNode.gain.value = volume;
+        const volumeControl = document.querySelector("#volume");
+        volumeControl.addEventListener("input", () => {
+            volumeControlGainNode.gain.value = volumeControl.value;
+        });
+
+        track.connect(gainNode).connect(volumeControlGainNode).connect(audioContext.destination);
 
         return audioElement;
     }
