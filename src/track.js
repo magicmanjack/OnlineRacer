@@ -17,7 +17,7 @@ function loadTrack1() {
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
     
-    const cameraPosRelativeToCar = [0, 45, 55];
+    const cameraPosRelativeToCar = [0, 18, 65];
     
 
     car = new SceneNode();
@@ -510,7 +510,7 @@ function loadTrack1() {
         }
         */
 
-        ground.getChildren("railing").forEach((element) => {
+        ground.getChildren("solid").forEach((element) => {
             element.tag = "wall";
         });
 
@@ -519,10 +519,6 @@ function loadTrack1() {
             ground.getChild(`cube.${String(i).padStart(3, '0')}`).tag = "wall";
         }
         */
-
-        ground.getChildren("cube").forEach((e) => {
-            e.tag = "wall";
-        });
 
         ground.getChildren("magnetpad").forEach((e) => {
             e.tag = "magnet";
@@ -561,7 +557,7 @@ function loadTrack1() {
         //Start line assumed to be oriented so that it is pointing in the -z direction.
         const spawnSeperation = 20;
         car.translation = vec.add(
-            startLine.translation,
+            [startLine.translation[0], 0, startLine.translation[2]],
             [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
         );
 
