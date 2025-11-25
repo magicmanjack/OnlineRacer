@@ -87,6 +87,8 @@ function render() {
 
     update();
 
+    currentGamepad.update();
+
     gl.clearColor(0.0, 0.8, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -104,3 +106,12 @@ function render() {
 
     requestAnimationFrame(render);
 }
+
+window.addEventListener("gamepadconnected", (event) => {
+    console.log("Gamepad connected.");
+    currentGamepad.index = event.gamepad.index;
+});
+
+window.addEventListener("gamepaddisconnected", (event) => {
+    console.log("Gamepad disconnected.");
+});

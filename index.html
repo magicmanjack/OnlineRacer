@@ -17,6 +17,10 @@
             <div id="speedometer">
                 <div id="speed-bar"></div>
             </div>
+            <div id="volume-slider">
+                Volume
+                <input type="range" id="volume" min="0" max="2" value="1" step="0.01" />
+            </div>
         </div>
     </div>
     <script>
@@ -58,6 +62,7 @@
     <script type="text/javascript" src="src/camera.js"></script>
     <script type="text/javascript" src="src/plane.js"></script>
     <script type="text/javascript" src="src/cube.js"></script>
+    <script type="text/javascript" src="src/gamepad.js"></script>
     <script type="text/javascript" src="src/mesh.js"></script>
     <script type="text/javascript" src="src/collision_plane.js"></script>
     <script type="text/javascript" src="src/scene_graph.js"></script>
@@ -70,7 +75,12 @@
     <script type="text/javascript" src="src/init.js"></script>
     <script type="text/javascript" src="src/main.js"></script>
 
-    <audio id="music_race" src="sounds/music_race.ogg" loop></audio>
+    <audio id="music_race01" src="sounds/music_race01.ogg" loop></audio>
+    <audio id="music_race02" src="sounds/music_race02.ogg" loop></audio>
+    <audio id="music_race03" src="sounds/music_race03.ogg" loop></audio>
+    <audio id="music_race04" src="sounds/music_race04.mp3" loop></audio>
+    <audio id="music_race05" src="sounds/music_race05.wav" loop></audio>
+    <audio id="music_race06" src="sounds/music_race06.ogg" loop></audio>
     <audio id="sfx_red_light" src="sounds/sfx_red_light.mp3"></audio>
     <audio id="sfx_orange_light" src="sounds/sfx_orange_light.mp3"></audio>
     <audio id="sfx_green_light" src="sounds/sfx_green_light.mp3"></audio>

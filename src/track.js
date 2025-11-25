@@ -60,11 +60,19 @@ function loadTrack1() {
         const audioElement = document.getElementById(elementId);
         const track = audioContext.createMediaElementSource(audioElement);
 
-        // Control volume
+        // Set default volume
         const gainNode = audioContext.createGain();
         gainNode.gain.value = volume;
 
-        track.connect(gainNode).connect(audioContext.destination);
+        // Add modifier based on volume slider (0% to 200% of default volume value)
+        const volumeControlGainNode = audioContext.createGain();
+        volumeControlGainNode.gain.value = volume;
+        const volumeControl = document.querySelector("#volume");
+        volumeControl.addEventListener("input", () => {
+            volumeControlGainNode.gain.value = volumeControl.value;
+        });
+
+        track.connect(gainNode).connect(volumeControlGainNode).connect(audioContext.destination);
 
         return audioElement;
     }
@@ -136,27 +144,70 @@ function loadTrack1() {
     car.update = () => {
         // Input handling
         if (!controlsDisabled) {
-            if (input.up) {
-                velocity += acceleration;
+
+            // Acceleration
+            if (input.up || currentGamepad.isPressed("RT")) {
+                if (input.up) {
+                    velocity += acceleration;
+                }
+                else {
+                    velocity += acceleration * currentGamepad.getRightTriggerValue();
+                }
             }
-            if (input.down) {
-                velocity -= 0.9;
+
+            // Deceleration
+            if (input.down || currentGamepad.isPressed("LT")) {
+                if (input.down) {
+                    velocity -= 0.9;
+                } else {
+                    velocity -= 0.9 * currentGamepad.getLeftTriggerValue();
+                }
+
                 if (velocity < -4) {
                     velocity = -4;
                 }
             }
-            if (input.left && Math.abs(velocity) > 0.5) {
-                car.rotate(0, rotateSpeed, 0);
-                carRotationY += rotateSpeed;
 
-                carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
-            }
-            if (input.right && Math.abs(velocity) > 0.5) {
-                car.rotate(0, -rotateSpeed, 0);
-                carRotationY -= rotateSpeed;
+            // Car Movement
+            // Using one big if-else statement so only one block can run at a time
+            if (Math.abs(velocity) > 0.5) {
+                
+                // Analog Movement
+                const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
+                if (currentGamepad.getLeftXAxis() < -0.15) {
+                    car.rotate(0, rotateSpeed * absLeftXAxis, 0);
+                    carRotationY += rotateSpeed * absLeftXAxis;
 
-                carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
+                    carDirection = vec.rotate(carDirection, 0, rotateSpeed * absLeftXAxis, 0);
+                }
+                else if (currentGamepad.getLeftXAxis() > 0.15) {
+                    car.rotate(0, -rotateSpeed * absLeftXAxis, 0);
+                    carRotationY -= rotateSpeed * absLeftXAxis;
+
+                    carDirection = vec.rotate(carDirection, 0, -rotateSpeed * absLeftXAxis, 0);
+                }
+                // Digital Movement
+                else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
+                    car.rotate(0, rotateSpeed, 0);
+                    carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
+
+                    carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
+                }
+                else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
+                    car.rotate(0, -rotateSpeed, 0);
+                    carRotationY -= rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
+                    carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
+                }
             }
+
+            // Independent Camera Rotation (used for testing)
+            // if (currentGamepad.getRightXAxis() < -0.15) {
+            //     carRotationY -= rotateSpeed * -currentGamepad.getRightXAxis();
+            // }
+            // if (currentGamepad.getRightXAxis() > 0.15) {
+            //     carRotationY += rotateSpeed * currentGamepad.getRightXAxis();
+            // }
+            
         }
 
         //
@@ -542,8 +593,19 @@ function loadTrack1() {
         "textures/light_orange.png",
         "textures/light_green.png",
     ]);
+
+    const raceMusicChoices = [
+        "music_race01",
+        "music_race02",
+        "music_race03",
+        "music_race04",
+        "music_race05",
+        "music_race06",
+    ];
     
-    const raceMusicEle = loadAudio("music_race");
+    // Choose a random music track
+    const raceMusicEle = loadAudio(raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]);
+
     const redLightSfxEle = loadAudio("sfx_red_light");
     const orangeLightSfxEle = loadAudio("sfx_orange_light");
     const greenLightSfxEle = loadAudio("sfx_green_light");

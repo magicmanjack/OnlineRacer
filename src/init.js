@@ -50,6 +50,10 @@ function loadMenu() {
         } else {
             this.textureIndex = 0;
         }
+
+        if (currentGamepad.isPressed("A")) {
+            b1.whenClicked();
+        }
     }
     UILayer.push(b1);
 
@@ -146,6 +150,10 @@ function loadLobby() {
             this.textureIndex = 1;
         } else {
             this.textureIndex = 0;
+        }
+
+        if (currentGamepad.isPressed("A")) {
+            beginButton.whenClicked();
         }
     }
     beginButton.whenClicked = function() {
