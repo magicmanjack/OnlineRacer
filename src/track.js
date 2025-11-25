@@ -16,14 +16,15 @@ function loadTrack1() {
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
-
-    Camera.main.translation = [0, 10, 15];
+    
+    const cameraPosRelativeToCar = [0, 45, 55];
+    
 
     car = new SceneNode();
 
     const gravity = -0.1;
 
-    let carDirection = vec.rotate([0, 0, -1], 0, 0.25, 0);
+    let carDirection = vec.rotate([0, 0, -1], 0, 0, 0);
     let velocity = 0;
     let carYVelocity = 0;
     let rotateSpeed = 0;
@@ -37,6 +38,8 @@ function loadTrack1() {
     let acceleration = 0.4;
     let friction = 0.2;
     let boostTimer = 0;
+
+    let groundLevel = 5;
 
     let startTimer = false;
     let startTime = 0;
@@ -262,9 +265,9 @@ function loadTrack1() {
         ];
         Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
-        if (car.translation[1] < 0) {
+        if (car.translation[1] < groundLevel) {
             //If car phases through ground
-            car.translation[1] = 0;
+            car.translation[1] = groundLevel;
             carYVelocity = 0;
         }
 
@@ -497,7 +500,7 @@ function loadTrack1() {
     car.collisionPlane.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.addMesh(["models/track01.fbx"]).then(() => {
+    ground.addMesh(["models/track01_new.fbx"]).then(() => {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
@@ -551,34 +554,22 @@ function loadTrack1() {
 
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
-        cameraDist = vec.rotate(
-            [0, 0, 50],
-            startLine.rotation[0],
-            startLine.rotation[1],
-            startLine.rotation[2]
-        );
+        
         Camera.main.rotate(0, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
+        //Start line assumed to be oriented so that it is pointing in the -z direction.
         const spawnSeperation = 20;
         car.translation = vec.add(
-            vec.add(
-                startLine.translation,
-                vec.rotate(
-                    [-3 * spawnSeperation + spawnSeperation * Client.id, 0, 50],
-                    startLine.rotation[0],
-                    startLine.rotation[1],
-                    startLine.rotation[2]
-                )
-            ),
-            [15, 0, 0]
+            startLine.translation,
+            [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
         );
 
-        Camera.main.translate(
-            car.translation[0] + cameraDist[0] + 4.3,
-            10,
-            car.translation[2] + cameraDist[2]
+        Camera.main.translation = vec.add(
+            car.translation, 
+            cameraPosRelativeToCar
         );
+ 
     });
 
     ground.translate(0, -5, -50);
