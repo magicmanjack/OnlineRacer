@@ -34,7 +34,10 @@ function loadTrack1() {
     let cameraRotationY = 0;
     let cameraLagFactor = 0.1;
 
-    let terminalVelocity = 17;
+    const TERMINAL_VEL = 30;
+    const BOOST_TERMINAL_VEL = TERMINAL_VEL * 1.5;
+    speedo.maxSpeed = TERMINAL_VEL;
+    let terminalVelocity = TERMINAL_VEL;
     let acceleration = 0.4;
     let friction = 0.2;
     let boostTimer = 0;
@@ -439,7 +442,7 @@ function loadTrack1() {
                 }
             }
         } else {
-            terminalVelocity = 17;
+            terminalVelocity = TERMINAL_VEL;
             acceleration = 0.4;
         }
 
@@ -476,7 +479,7 @@ function loadTrack1() {
 
         // logic for boost pads:
         if (boostTimer > 0) {
-            if (velocity < 25) {
+            if (velocity < BOOST_TERMINAL_VEL) {
                 velocity += 0.5;
             }
             boostTimer += 1;

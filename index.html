@@ -42,10 +42,14 @@
         window.addEventListener('resize', resizeCanvas);
 
         // Update speedometer display
+        const speedo = {
+            maxSpeed: 0
+        }
+
         function updateSpeedometer(velocity) {
             const speedBar = document.getElementById('speed-bar');
             const speed = Math.abs(velocity);
-            const maxSpeed = 17;
+            const maxSpeed = speedo.maxSpeed;
             const percentage = Math.min((speed / maxSpeed) * 100, 100);
             speedBar.style.width = percentage + '%';
             if (percentage >= 100) {
