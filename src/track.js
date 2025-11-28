@@ -28,15 +28,29 @@ function loadTrack1() {
     let velocity = 0;
     let carYVelocity = 0;
     let rotateSpeed = 0;
-    let maxRotateSpeed = 0.05;
+    const MAX_ROTATE_SPEED = 0.04;
 
     let carRotationY = 0;
     let cameraRotationY = 0;
     let cameraLagFactor = 0.1;
 
-    let terminalVelocity = 17;
-    let acceleration = 0.4;
-    let friction = 0.2;
+    const TERMINAL_VEL = 30;
+    const BOOST_TERMINAL_VEL = TERMINAL_VEL * 1.5;
+    speedo.maxSpeed = TERMINAL_VEL;
+    let terminalVelocity = TERMINAL_VEL;
+
+    const MAGNET_TERMINAL_VEL = TERMINAL_VEL / 6;
+    
+    const ACCELERATION = 0.4;
+    let acceleration = ACCELERATION;
+
+    const FRICTION = 0.2;
+    const POST_TERMINAL_FRICTION = 0.5; 
+    /*
+        POST_TERMINAL_FRICTION is the friction that occurs if the velocity is greater than terminal,
+        in order to bring it down to terminal velocity smoothly.
+    */
+    const MAGNET_FRICTION = POST_TERMINAL_FRICTION * 2;
     let boostTimer = 0;
 
     let groundLevel = 5;
@@ -229,18 +243,24 @@ function loadTrack1() {
         //Accelerations
 
         if (velocity > 0) {
+            //Car going fowards.
             cameraLagFactor = 0.1;
-            velocity -= friction;
+            velocity -= FRICTION;
             if (velocity < 0) {
                 velocity = 0;
             }
             if (velocity > terminalVelocity) {
-                velocity -= 0.5;
+                if(terminalVelocity == MAGNET_TERMINAL_VEL) {
+                    velocity -= MAGNET_FRICTION * 2;
+                } else {
+                    velocity -= POST_TERMINAL_FRICTION;
+                }
             }
         }
         if (velocity < 0) {
+            //Car going backwards
             cameraLagFactor = 0.3;
-            velocity += 0.2;
+            velocity += FRICTION;
             if (velocity > 0) {
                 velocity = 0;
             }
@@ -249,7 +269,7 @@ function loadTrack1() {
         if (velocity == 0) {
             rotateSpeed = 0;
         } else {
-            rotateSpeed = maxRotateSpeed * rotateSpeedFunction(velocity);
+            rotateSpeed = MAX_ROTATE_SPEED * rotateSpeedFunction(velocity);
         }
 
         let newcarDirection = vec.scale(velocity, carDirection);
@@ -281,7 +301,9 @@ function loadTrack1() {
             for (let i = 0; i < collisions.length; i++) {
                 const t = collisions[i].parent.tag;
                 const p = collisions[i].parent;
-
+                if(debug) {
+                    console.log(t);
+                }
                 if (t == "wall") {
                     //A collision resulted. Add negative of delta pos to undo.
                     let carInv = vec.scale(-1, carDelta);
@@ -403,12 +425,12 @@ function loadTrack1() {
                             car.originalUpdate && car.originalUpdate.call(this);
                         };
                     }
-                } else if (t == "magnet" && car.translation[1] < 1) {
-                    terminalVelocity = 5;
+                } else if (t == "magnet" && car.translation[1] < groundLevel + 1) {
+                    terminalVelocity = MAGNET_TERMINAL_VEL;
                     if (Math.abs(velocity) > 2) {
-                        acceleration = 0.2;
+                        acceleration = ACCELERATION / 2;
                     } else {
-                        acceleration = 0.4;
+                        acceleration = ACCELERATION; // to prevent the car from getting stuck 
                     }
                 } else if (t == "checkpoint") {
                     const checkpointName = p.name;
@@ -439,8 +461,8 @@ function loadTrack1() {
                 }
             }
         } else {
-            terminalVelocity = 17;
-            acceleration = 0.4;
+            terminalVelocity = TERMINAL_VEL;
+            acceleration = ACCELERATION;
         }
 
         // Handle start line collision only on transition from not colliding to colliding
@@ -476,8 +498,11 @@ function loadTrack1() {
 
         // logic for boost pads:
         if (boostTimer > 0) {
-            if (velocity < 25) {
-                velocity += 0.5;
+            if (velocity < BOOST_TERMINAL_VEL) {
+                velocity += POST_TERMINAL_FRICTION; 
+                /* Cancels out POST_TERMINAL_FRICTION so that the car can keep accelerating
+                past the normal terminalVelocity
+                */
             }
             boostTimer += 1;
             if (boostTimer >= 60) {
