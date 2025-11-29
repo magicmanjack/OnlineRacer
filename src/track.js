@@ -65,7 +65,7 @@ function loadTrack1() {
     let checkpointStack = [];
     let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
 
-    let numLaps = 1;
+    let lapCount = 1;
     let gameFinished = false;
 
     var musicBuffer = null;
@@ -124,7 +124,7 @@ function loadTrack1() {
 
     function updateLapCounter() {
         const lapCounter = document.getElementById("lap-counter");
-        lapCounter.textContent = `${numLaps}/3`;
+        lapCounter.textContent = `${lapCount}/3`;
     }
 
     function getCheckpointNumber(checkpointName) {
@@ -328,7 +328,7 @@ function loadTrack1() {
                             const obstacleMesh = p.getChildren("mesh")[0].mesh;
 
                             obstacleShard.mesh = obstacleMesh.reuse();
-                            obstacleShard.scaleBy(2, 2, 2);
+                            obstacleShard.scaleBy(20, 20, 20);
                             obstacleShard.translation = [...car.translation];
                             obstacleShard.rotation = [...p.rotation];
                             sceneGraph.root.addChild(obstacleShard);
@@ -467,7 +467,7 @@ function loadTrack1() {
 
         // Handle start line collision only on transition from not colliding to colliding
         if (currentStartLineCollision && !lastStartLineCollision) {
-            if (numLaps == 1) { // Change back to 3
+            if (lapCount == 3) {
                 if (allCheckpointsPassed()) {
                     //Race finished.
                     finalTime = Date.now() - startTime;
@@ -482,7 +482,7 @@ function loadTrack1() {
 
                 }
             } else if (allCheckpointsPassed()) {
-                numLaps++;
+                lapCount++;
                 updateLapCounter();
             }
             resetCheckpoints();
