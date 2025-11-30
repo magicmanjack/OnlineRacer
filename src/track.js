@@ -1,7 +1,6 @@
 let toggleHUD = false;
 
 function loadTrack1() {
-    debug = false;
     toggleHUD = true;
 
     let car;
@@ -29,6 +28,14 @@ function loadTrack1() {
     let carYVelocity = 0;
     let rotateSpeed = 0;
     const MAX_ROTATE_SPEED = 0.04;
+
+    let carRoll = 0;
+    const CAR_ROLL_ANGULAR_ACC = 0.015;
+    const CAR_ROLL_REDUCE_FACTOR = 0.85; // The amount that the roll gets scaled by to red
+    const MAX_CAR_ROLL = 0.8;
+    /*
+        carRoll is for the model animation when turning. The car will tilt.
+    */
 
     let carRotationY = 0;
     let cameraRotationY = 0;
@@ -65,6 +72,7 @@ function loadTrack1() {
     let checkpointStack = [];
     let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
 
+    let NUM_LAPS = 3;
     let lapCount = 1;
     let gameFinished = false;
 
@@ -124,7 +132,7 @@ function loadTrack1() {
 
     function updateLapCounter() {
         const lapCounter = document.getElementById("lap-counter");
-        lapCounter.textContent = `${lapCount}/3`;
+        lapCounter.textContent = `${lapCount}/${NUM_LAPS}`;
     }
 
     function getCheckpointNumber(checkpointName) {
@@ -196,24 +204,49 @@ function loadTrack1() {
                     carRotationY += rotateSpeed * absLeftXAxis;
 
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed * absLeftXAxis, 0);
+
+                    //car animation logic
+                    carRoll += CAR_ROLL_ANGULAR_ACC;
+                    if(carRoll > MAX_CAR_ROLL) {
+                        carRoll = MAX_CAR_ROLL;
+                    }
                 }
                 else if (currentGamepad.getLeftXAxis() > 0.15) {
                     car.rotate(0, -rotateSpeed * absLeftXAxis, 0);
                     carRotationY -= rotateSpeed * absLeftXAxis;
 
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed * absLeftXAxis, 0);
+
+                    //car animation logic
+                    carRoll -= CAR_ROLL_ANGULAR_ACC;
+                    if(carRoll < -MAX_CAR_ROLL) {
+                        carRoll = -MAX_CAR_ROLL;
+                    }
+
                 }
                 // Digital Movement
                 else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
                     car.rotate(0, rotateSpeed, 0);
                     carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
-
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
+
+                    //car animation logic
+                    carRoll += CAR_ROLL_ANGULAR_ACC;
+                    if(carRoll > MAX_CAR_ROLL) {
+                        carRoll = MAX_CAR_ROLL;
+                    }
                 }
                 else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
                     car.rotate(0, -rotateSpeed, 0);
                     carRotationY -= rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
+
+                    //car animation logic
+                    carRoll -= CAR_ROLL_ANGULAR_ACC;
+                    
+                    if(carRoll < -MAX_CAR_ROLL) {
+                        carRoll = -MAX_CAR_ROLL;
+                    }
                 }
             }
 
@@ -227,7 +260,9 @@ function loadTrack1() {
             
         }
 
-        //
+        //Car animations
+        car.getChild("carModel").rotation = [0, 0, -carRoll];
+        carRoll *= CAR_ROLL_REDUCE_FACTOR;
 
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
@@ -274,6 +309,8 @@ function loadTrack1() {
 
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
+
+        
 
         // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
@@ -467,7 +504,7 @@ function loadTrack1() {
 
         // Handle start line collision only on transition from not colliding to colliding
         if (currentStartLineCollision && !lastStartLineCollision) {
-            if (lapCount == 3) {
+            if (lapCount == NUM_LAPS) {
                 if (allCheckpointsPassed()) {
                     //Race finished.
                     finalTime = Date.now() - startTime;
@@ -520,7 +557,14 @@ function loadTrack1() {
         //Update leaderboard
         leaderboard.update();
     };
-    car.addMesh(["models/car.obj", "models/car.mtl"]);
+
+    //car.addMesh(["models/car.obj", "models/car.mtl"]);
+    const carModel = new SceneNode();
+    //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
+    carModel.addMesh(["models/car.obj", "models/car.mtl"]);
+    carModel.name = "carModel";
+    car.addChild(carModel);
+
     car.addCollisionPlane(new CollisionPlane());
     car.collisionPlane.scale = [2, 1, 3];
 
