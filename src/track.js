@@ -30,12 +30,15 @@ function loadTrack1() {
     const MAX_ROTATE_SPEED = 0.04;
 
     let carRoll = 0;
-    const CAR_ROLL_ANGULAR_ACC = 0.015;
-    const CAR_ROLL_REDUCE_FACTOR = 0.85; // The amount that the roll gets scaled by to red
-    const MAX_CAR_ROLL = 0.8;
+    const CAR_ROLL_ANGULAR_ACC = 0.05;
+    const CAR_ROLL_REDUCE_FACTOR = 0.87; // The amount that the roll gets scaled by to red
+    const MAX_CAR_ROLL = 0.5;
     /*
         carRoll is for the model animation when turning. The car will tilt.
     */
+    const CAR_HOVER_AMPLITUDE = 0.2; 
+    //The maximum displacement amplitude of the car in the vertical direction when hovering.
+    const CAR_HOVER_FREQUENCY = 0.5; // How many oscillations per second.
 
     let carRotationY = 0;
     let cameraRotationY = 0;
@@ -263,7 +266,13 @@ function loadTrack1() {
         //Car animations
         car.getChild("carModel").rotation = [0, 0, -carRoll];
         carRoll *= CAR_ROLL_REDUCE_FACTOR;
+        car.getChild("carModel").translation = [
+            0,
+            CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
+            0];
 
+        
+        //Camera movement calculations.
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         Camera.main.rotate(0, cameraRotationStep, 0);
