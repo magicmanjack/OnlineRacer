@@ -212,7 +212,7 @@ const mat3x3 = {
     */
     multiply: function (a, b) {
         /*
-        Multiplies matrices a and b. (4x4)
+        Multiplies matrices a and b. (3x3)
         */
         if (a.length != 9 || b.length != 9) {
             console.log("Can only multiply (3x3)*(3x3)");

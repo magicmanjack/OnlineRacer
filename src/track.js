@@ -15,9 +15,10 @@ function loadTrack1() {
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
-    
-    const cameraPosRelativeToCar = [0, 18, 65];
-    
+    const cameraPosRelativeToCar = [0, 50*0.8, 110*0.8];
+    let cameraRotationY = 0;
+    let cameraLagFactor = 0.1;
+    const CAMERA_DOWN_TILT = -0.2;    
 
     car = new SceneNode();
 
@@ -41,8 +42,6 @@ function loadTrack1() {
     const CAR_HOVER_FREQUENCY = 0.5; // How many oscillations per second.
 
     let carRotationY = 0;
-    let cameraRotationY = 0;
-    let cameraLagFactor = 0.1;
 
     const TERMINAL_VEL = 30;
     const BOOST_TERMINAL_VEL = TERMINAL_VEL * 1.5;
@@ -661,7 +660,7 @@ function loadTrack1() {
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
         
-        Camera.main.rotate(0, startLine.rotation[1], 0);
+        Camera.main.rotate(CAMERA_DOWN_TILT, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
         //Start line assumed to be oriented so that it is pointing in the -z direction.
