@@ -1,7 +1,6 @@
 let toggleHUD = false;
 
 function loadTrack1() {
-    debug = false;
     toggleHUD = true;
 
     let car;
@@ -16,9 +15,10 @@ function loadTrack1() {
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
-    
-    const cameraPosRelativeToCar = [0, 18, 65];
-    
+    const cameraPosRelativeToCar = [0, 50*0.8, 110*0.8];
+    let cameraRotationY = 0;
+    let cameraLagFactor = 0.1;
+    const CAMERA_DOWN_TILT = -0.2;    
 
     car = new SceneNode();
 
@@ -30,9 +30,18 @@ function loadTrack1() {
     let rotateSpeed = 0;
     const MAX_ROTATE_SPEED = 0.04;
 
+    let carRoll = 0;
+    const CAR_ROLL_ANGULAR_ACC = 0.05;
+    const CAR_ROLL_REDUCE_FACTOR = 0.87; // The amount that the roll gets scaled by to red
+    const MAX_CAR_ROLL = 0.5;
+    /*
+        carRoll is for the model animation when turning. The car will tilt.
+    */
+    const CAR_HOVER_AMPLITUDE = 0.2; 
+    //The maximum displacement amplitude of the car in the vertical direction when hovering.
+    const CAR_HOVER_FREQUENCY = 0.5; // How many oscillations per second.
+
     let carRotationY = 0;
-    let cameraRotationY = 0;
-    let cameraLagFactor = 0.1;
 
     const TERMINAL_VEL = 30;
     const BOOST_TERMINAL_VEL = TERMINAL_VEL * 1.5;
@@ -65,7 +74,8 @@ function loadTrack1() {
     let checkpointStack = [];
     let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
 
-    let numLaps = 1;
+    let NUM_LAPS = 3;
+    let lapCount = 1;
     let gameFinished = false;
 
     var musicBuffer = null;
@@ -124,7 +134,7 @@ function loadTrack1() {
 
     function updateLapCounter() {
         const lapCounter = document.getElementById("lap-counter");
-        lapCounter.textContent = `${numLaps}/3`;
+        lapCounter.textContent = `${lapCount}/${NUM_LAPS}`;
     }
 
     function getCheckpointNumber(checkpointName) {
@@ -196,24 +206,57 @@ function loadTrack1() {
                     carRotationY += rotateSpeed * absLeftXAxis;
 
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed * absLeftXAxis, 0);
+
+                    //car animation logic
+                    if(velocity > 0) {
+                        carRoll += CAR_ROLL_ANGULAR_ACC;
+                        if(carRoll > MAX_CAR_ROLL) {
+                            carRoll = MAX_CAR_ROLL;
+                        }
+                    }
                 }
                 else if (currentGamepad.getLeftXAxis() > 0.15) {
                     car.rotate(0, -rotateSpeed * absLeftXAxis, 0);
                     carRotationY -= rotateSpeed * absLeftXAxis;
 
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed * absLeftXAxis, 0);
+
+                    //car animation logic
+                    if(velocity > 0) {
+                        carRoll -= CAR_ROLL_ANGULAR_ACC;
+                        if(carRoll < -MAX_CAR_ROLL) {
+                            carRoll = -MAX_CAR_ROLL;
+                        }
+                    }
+
                 }
                 // Digital Movement
                 else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
                     car.rotate(0, rotateSpeed, 0);
                     carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
-
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
+
+                    //car animation logic
+                    if(velocity > 0) {
+                        carRoll += CAR_ROLL_ANGULAR_ACC;
+                        if(carRoll > MAX_CAR_ROLL) {
+                            carRoll = MAX_CAR_ROLL;
+                        }
+                    }
                 }
                 else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
                     car.rotate(0, -rotateSpeed, 0);
                     carRotationY -= rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
+
+                    //car animation logic
+                    if(velocity > 0) {
+                        carRoll -= CAR_ROLL_ANGULAR_ACC;
+                        
+                        if(carRoll < -MAX_CAR_ROLL) {
+                            carRoll = -MAX_CAR_ROLL;
+                        }
+                    }
                 }
             }
 
@@ -227,8 +270,40 @@ function loadTrack1() {
             
         }
 
-        //
+        //Car animations
+        car.getChild("carModel").rotation = [0, 0, -carRoll];
+        carRoll *= CAR_ROLL_REDUCE_FACTOR;
+        car.getChild("carModel").translation = [
+            0,
+            CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
+            0];
+        //Car boost animation
+        //First layer booster
+        const booster1 = car.getChildByMesh("booster_1");
+        
+        if(booster1) {
+            const a = 0.05;
+            const f = 8;
+            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
 
+            const minScale = 0.3;
+            const scale = Math.min((1 - minScale) * Math.abs(velocity) / TERMINAL_VEL + minScale + vibration, 1);
+            
+            booster1.scale = [scale, scale, scale];
+        }
+        //Second layer booster
+        const booster2 = car.getChildByMesh("booster_2");
+        if(booster2) {
+            const a = 0.05;
+            const f = 8;
+            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+
+            const scale = Math.min(Math.abs(velocity) / TERMINAL_VEL + vibration, 1);
+            booster2.scale = [scale, scale, scale];
+        }
+        
+        
+        //Camera movement calculations.
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         Camera.main.rotate(0, cameraRotationStep, 0);
@@ -241,7 +316,7 @@ function loadTrack1() {
         cameraRotationY += cameraRotationStep;
 
         //Accelerations
-
+        
         if (velocity > 0) {
             //Car going fowards.
             cameraLagFactor = 0.1;
@@ -274,6 +349,8 @@ function loadTrack1() {
 
         let newcarDirection = vec.scale(velocity, carDirection);
         carYVelocity = carYVelocity + gravity;
+
+        
 
         // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
@@ -328,7 +405,7 @@ function loadTrack1() {
                             const obstacleMesh = p.getChildren("mesh")[0].mesh;
 
                             obstacleShard.mesh = obstacleMesh.reuse();
-                            obstacleShard.scaleBy(2, 2, 2);
+                            obstacleShard.scaleBy(20, 20, 20);
                             obstacleShard.translation = [...car.translation];
                             obstacleShard.rotation = [...p.rotation];
                             sceneGraph.root.addChild(obstacleShard);
@@ -467,7 +544,7 @@ function loadTrack1() {
 
         // Handle start line collision only on transition from not colliding to colliding
         if (currentStartLineCollision && !lastStartLineCollision) {
-            if (numLaps == 1) { // Change back to 3
+            if (lapCount == NUM_LAPS) {
                 if (allCheckpointsPassed()) {
                     //Race finished.
                     finalTime = Date.now() - startTime;
@@ -482,7 +559,7 @@ function loadTrack1() {
 
                 }
             } else if (allCheckpointsPassed()) {
-                numLaps++;
+                lapCount++;
                 updateLapCounter();
             }
             resetCheckpoints();
@@ -520,7 +597,14 @@ function loadTrack1() {
         //Update leaderboard
         leaderboard.update();
     };
-    car.addMesh(["models/car.obj", "models/car.mtl"]);
+
+    //car.addMesh(["models/car.obj", "models/car.mtl"]);
+    const carModel = new SceneNode();
+    //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
+    carModel.addMesh(["models/car.fbx"]);
+    carModel.name = "carModel";
+    car.addChild(carModel);
+
     car.addCollisionPlane(new CollisionPlane());
     car.collisionPlane.scale = [2, 1, 3];
 
@@ -576,7 +660,7 @@ function loadTrack1() {
         car.scaleBy(3, 3, 3);
         car.rotate(0, Math.PI + startLine.rotation[1], 0);
         
-        Camera.main.rotate(0, startLine.rotation[1], 0);
+        Camera.main.rotate(CAMERA_DOWN_TILT, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
         //Start line assumed to be oriented so that it is pointing in the -z direction.
