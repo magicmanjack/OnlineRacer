@@ -209,9 +209,11 @@ function loadTrack1() {
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed * absLeftXAxis, 0);
 
                     //car animation logic
-                    carRoll += CAR_ROLL_ANGULAR_ACC;
-                    if(carRoll > MAX_CAR_ROLL) {
-                        carRoll = MAX_CAR_ROLL;
+                    if(velocity > 0) {
+                        carRoll += CAR_ROLL_ANGULAR_ACC;
+                        if(carRoll > MAX_CAR_ROLL) {
+                            carRoll = MAX_CAR_ROLL;
+                        }
                     }
                 }
                 else if (currentGamepad.getLeftXAxis() > 0.15) {
@@ -221,9 +223,11 @@ function loadTrack1() {
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed * absLeftXAxis, 0);
 
                     //car animation logic
-                    carRoll -= CAR_ROLL_ANGULAR_ACC;
-                    if(carRoll < -MAX_CAR_ROLL) {
-                        carRoll = -MAX_CAR_ROLL;
+                    if(velocity > 0) {
+                        carRoll -= CAR_ROLL_ANGULAR_ACC;
+                        if(carRoll < -MAX_CAR_ROLL) {
+                            carRoll = -MAX_CAR_ROLL;
+                        }
                     }
 
                 }
@@ -234,9 +238,11 @@ function loadTrack1() {
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
 
                     //car animation logic
-                    carRoll += CAR_ROLL_ANGULAR_ACC;
-                    if(carRoll > MAX_CAR_ROLL) {
-                        carRoll = MAX_CAR_ROLL;
+                    if(velocity > 0) {
+                        carRoll += CAR_ROLL_ANGULAR_ACC;
+                        if(carRoll > MAX_CAR_ROLL) {
+                            carRoll = MAX_CAR_ROLL;
+                        }
                     }
                 }
                 else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
@@ -245,10 +251,12 @@ function loadTrack1() {
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
 
                     //car animation logic
-                    carRoll -= CAR_ROLL_ANGULAR_ACC;
-                    
-                    if(carRoll < -MAX_CAR_ROLL) {
-                        carRoll = -MAX_CAR_ROLL;
+                    if(velocity > 0) {
+                        carRoll -= CAR_ROLL_ANGULAR_ACC;
+                        
+                        if(carRoll < -MAX_CAR_ROLL) {
+                            carRoll = -MAX_CAR_ROLL;
+                        }
                     }
                 }
             }
@@ -270,7 +278,31 @@ function loadTrack1() {
             0,
             CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
             0];
+        //Car boost animation
+        //First layer booster
+        const booster1 = car.getChildByMesh("booster_1");
+        
+        if(booster1) {
+            const a = 0.05;
+            const f = 8;
+            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
 
+            const minScale = 0.3;
+            const scale = Math.min((1 - minScale) * Math.abs(velocity) / TERMINAL_VEL + minScale + vibration, 1);
+            
+            booster1.scale = [scale, scale, scale];
+        }
+        //Second layer booster
+        const booster2 = car.getChildByMesh("booster_2");
+        if(booster2) {
+            const a = 0.05;
+            const f = 8;
+            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+
+            const scale = Math.min(Math.abs(velocity) / TERMINAL_VEL + vibration, 1);
+            booster2.scale = [scale, scale, scale];
+        }
+        
         
         //Camera movement calculations.
         let rotationDiff = carRotationY - cameraRotationY;
@@ -285,7 +317,7 @@ function loadTrack1() {
         cameraRotationY += cameraRotationStep;
 
         //Accelerations
-
+        
         if (velocity > 0) {
             //Car going fowards.
             cameraLagFactor = 0.1;
@@ -570,7 +602,7 @@ function loadTrack1() {
     //car.addMesh(["models/car.obj", "models/car.mtl"]);
     const carModel = new SceneNode();
     //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
-    carModel.addMesh(["models/car.obj", "models/car.mtl"]);
+    carModel.addMesh(["models/car.fbx"]);
     carModel.name = "carModel";
     car.addChild(carModel);
 

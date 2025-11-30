@@ -239,7 +239,7 @@ class SceneNode {
         */
         for(let i = 0; i < this.children.length; i++) {
             const c = this.children[i];
-            if(c.mesh !== undefined && c.mesh.name == meshName) {
+            if(c.mesh !== null && c.mesh.name == meshName) {
                 return c;
             }
 
