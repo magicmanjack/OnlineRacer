@@ -64,9 +64,26 @@ class SceneNode {
     }
 
     rotate(rx, ry, rz) {
+        /*
+            Simply applies the change angles around each axis to the rotation vector.
+        */
         this.rotation[0] += rx;
         this.rotation[1] += ry;
         this.rotation[2] += rz;
+    }
+
+    rotateRelative(rx, ry, rz) {
+        /*
+            Applies a rotation after the current rotation.
+        */
+        const newRot = mat.rotate(rx, ry, rz);
+        const originalRot = mat.rotate(this.rotation[0], this.rotation[1], this.rotation[2]);
+
+        const result = mat.multiply(newRot, originalRot);
+
+        //Save new resulting rotation vector
+        this.rotation = mat.getRotationVector(result);
+
     }
 
     calculateLocal(o) {

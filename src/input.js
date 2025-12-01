@@ -6,6 +6,7 @@ const input = {
     downBinding : "s",
     leftBinding : "a",
     rightBinding : "d",
+    driftBinding : "Enter",
     up : false,
     upHeld : false,
     down : false,
@@ -14,6 +15,8 @@ const input = {
     leftHeld : false,
     right : false,
     rightHeld : false,
+    drift : false,
+    driftHeld: false,
     mouseX : 0,
     mouseY : 0,
     mouseXNorm: 0,
@@ -54,6 +57,10 @@ const input = {
                     this.right = true;
                     this.rightHeld = true;
                 }
+                if(k === this.driftBinding) {
+                    this.drift = true;
+                    this.driftHeld = true;
+                }
             }
             
             if(e.type === "keyup") {
@@ -69,6 +76,9 @@ const input = {
                 }
                 if(k === this.rightBinding) {
                     this.rightHeld = false;
+                }
+                if(k === this.driftBinding) {
+                    this.driftHeld = false;
                 }
             }
 
@@ -98,6 +108,9 @@ const input = {
         }
         if(!this.leftHeld) {
             this.left = false;
+        }
+        if(!this.driftHeld) {
+            this.drift = false;
         }
         this.mouseClicked = false;
     }

@@ -7,6 +7,8 @@ let networkUpdate; //An function that gets called every frame.
 let lobbySize;
 let playersReady;
 
+
+
 function initRaceNetworking() {
     /* 
         Sets the network code to request and recieve information about
@@ -24,9 +26,9 @@ function initRaceNetworking() {
         type: "add_car",
         id: Client.id,
         transform: {
-            translation: clientCar.translation,
-            rotation: clientCar.rotation,
-            scale: clientCar.scale
+            translation: clientCar.node.translation,
+            rotation: clientCar.node.rotation,
+            scale: clientCar.node.scale
         }
     }));
     Client.webSocket.send(JSON.stringify({
@@ -43,9 +45,9 @@ function initRaceNetworking() {
                     type: "add_car",
                     id: Client.id,
                     transform: {
-                        translation: clientCar.translation,
-                        rotation: clientCar.rotation,
-                        scale: clientCar.scale
+                        translation: clientCar.node.translation,
+                        rotation: clientCar.node.rotation,
+                        scale: clientCar.node.scale
                     },
                     destinationId: msg.returnId
                 }));
@@ -53,19 +55,58 @@ function initRaceNetworking() {
             
             case "add_car": {
                 //attach player node to scene root.
-                let p = new SceneNode();
-                p.translation = msg.transform.translation;
-                p.rotation = msg.transform.rotation;
-                p.scale = msg.transform.scale;
-                p.addMesh(["models/car.obj", "models/car.mtl"]);
-                sceneGraph.root.addChild(p);
-                p.tag = "car";
-                p.addCollisionPlane(new CollisionPlane());
-                p.collisionPlane.scale = [2, 1, 3];
-                p.update = () => {
-                    p.collisionStep();
-                    if (p.collisionPlane.collided) {
-                        const collisions = p.collisionPlane.collisions;
+                let p = new Car();
+                p.node.translation = msg.transform.translation;
+                p.node.rotation = msg.transform.rotation;
+                p.node.scale = msg.transform.scale;
+                
+                sceneGraph.root.addChild(p.node);
+                p.node.tag = "car";
+                p.node.addCollisionPlane(new CollisionPlane());
+                p.node.collisionPlane.scale = [2, 1, 3];
+
+                const carModel = new SceneNode();
+                //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
+                carModel.addMesh(["models/car.fbx"]);
+                carModel.name = "carModel";
+                p.node.addChild(carModel);
+
+                p.node.update = () => {
+                    p.node.getChild("carModel").translation = [
+                        0,
+                        CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
+                        0
+                    ];
+
+                    //First layer booster
+                    const booster1 = p.node.getChildByMesh("booster_1");
+                    
+                    if(booster1) {
+                        const a = 0.05;
+                        const f = 8;
+                        const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+
+                        const minScale = 0.3;
+                        
+                        const scale = Math.min((1 - minScale) * Math.abs(p.velocityXZ) / TERMINAL_VEL + minScale + vibration, 1);
+                        
+                        booster1.scale = [scale, scale, scale];
+                    }
+                    
+                    //Second layer booster
+                    const booster2 = p.node.getChildByMesh("booster_2");
+                    if(booster2) {
+                        const a = 0.05;
+                        const f = 8;
+                        const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+
+                        const scale = Math.min(Math.abs(p.velocityXZ) / TERMINAL_VEL + vibration, 1);
+                        booster2.scale = [scale, scale, scale];
+                    }
+                    p.node.collisionStep();
+                    if (p.node.collisionPlane.collided) {
+
+                        const collisions = p.node.collisionPlane.collisions;
                         collisions.forEach((collider) => {
                             const t = collider.parent.tag;
                             const c = collider.parent;
@@ -77,7 +118,7 @@ function initRaceNetworking() {
 
                                     obstacleShard.mesh = obstacleMesh.reuse();
                                     obstacleShard.scaleBy(2, 2, 2);
-                                    obstacleShard.translation = [...p.translation];
+                                    obstacleShard.translation = [...p.node.translation];
                                     obstacleShard.rotation = [...c.rotation];
                                     sceneGraph.root.addChild(obstacleShard);
                                     let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
@@ -122,10 +163,16 @@ function initRaceNetworking() {
 
             case "car_update": {
                 const c = networkCars.get(msg.id);
-                c.translation = msg.transform.translation;
-                c.rotation = msg.transform.rotation;
-                c.scale = msg.transform.scale;
-
+                c.node.translation = msg.transform.translation;
+                c.node.rotation = msg.transform.rotation;
+                c.node.scale = msg.transform.scale;
+                c.velocityXZ = msg.velocity;
+                const carModel = c.node.getChild("carModel");
+                if(carModel) {
+                    carModel.translation = msg.modelTransform.translation;
+                    carModel.rotation = msg.modelTransform.rotation;
+                    carModel.scale = msg.modelTransform.scale;
+                }
                 break;
             }
 
@@ -135,7 +182,7 @@ function initRaceNetworking() {
             }
 
             case "lobby_update_player_disconnected":
-                networkCars.get(msg.id).remove();
+                networkCars.get(msg.id).node.remove();
                 networkCars.set(msg.id, null);
                 
                 lobbySize--;
@@ -153,6 +200,29 @@ function initRaceNetworking() {
         //Check if server side "player_ready" is added.
         
         //console.log(Client.state);
+
+        function getCarModelTransform() {
+            /*
+                Gets the transform of the car model node, which is a child node of the car scene node.
+            */
+            const carModel = clientCar.node.getChild("carModel");
+            if(carModel) {
+                return {
+                    translation:carModel.translation,
+                    rotation:carModel.rotation,
+                    scale:carModel.scale,
+                }
+            } else {
+                /* 
+                    Not loaded in yet
+                */
+                return {
+                    translation:[0, 0, 0],
+                    rotation:[0, 0, 0],
+                    scale:[1, 1, 1],
+                }
+            }
+        }
 
         switch(Client.state) {
             case "waiting_for_scene_ready":
@@ -182,10 +252,12 @@ function initRaceNetworking() {
             type:"car_update",
             id:Client.id,
             transform:{
-                translation:clientCar.translation,
-                rotation:clientCar.rotation,
-                scale:clientCar.scale
-            }
+                translation:clientCar.node.translation,
+                rotation:clientCar.node.rotation,
+                scale:clientCar.node.scale,
+            },
+            modelTransform:getCarModelTransform(),
+            velocity:clientCar.velocityXZ
         }));
     }
 

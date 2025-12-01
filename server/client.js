@@ -9,7 +9,6 @@ class Client {
     //Use if hosting locally on LAN
     static wsUri = "ws://localhost:5174";
     // static wsUri = "ws://192.168.1.237:5174";
-   
 
     //Use if hosting on link local
     // static wsUri = "ws://127.0.0.1/";

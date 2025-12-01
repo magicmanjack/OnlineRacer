@@ -182,7 +182,7 @@ function onPlayerMessage(event) {
             const outMsg = {
                 type:"add_car",
                 id:msg.id,
-                transform:msg.transform 
+                transform:msg.transform,
             }
             if(msg.destinationId) {
                 //If destination Id provided then send to specific destination.
