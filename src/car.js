@@ -3,8 +3,12 @@ const GRAVITY = -0.1;
 const MAX_ROTATE_SPEED = 0.04;
 
 const CAR_ROLL_ANGULAR_ACC = 0.05;
+const CAR_YAW_ANGULAR_ACC = 0.05;
 const CAR_ROLL_REDUCE_FACTOR = 0.87; // The amount that the roll gets scaled by to red
+const CAR_YAW_REDUCE_FACTOR = 0.87;
 const MAX_CAR_ROLL = 0.5;
+const MAX_CAR_YAW = 0.5;
+
 /*
     carRoll is for the model animation when turning. The car will tilt.
 */
@@ -28,6 +32,9 @@ const POST_TERMINAL_FRICTION = 0.5;
 const MAGNET_FRICTION = POST_TERMINAL_FRICTION * 2;
 
 const BREAK_FRICTION = 0.9;
+
+const DRIFT_FRICTION = 0.15;
+const DRIFT_TURN_FACTOR = 1.1;
 
 class Car {
     constructor() {

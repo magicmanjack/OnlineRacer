@@ -32,6 +32,7 @@ function loadTrack1() {
     let rotateSpeed = 0;
 
     let carRoll = 0;
+    let carYaw = 0;
 
     let carRotationY = 0;
 
@@ -174,6 +175,10 @@ function loadTrack1() {
                 }
             }
 
+            if(input.drift) {
+                car.velocityXZ -= DRIFT_FRICTION;
+            }
+
             // Car Movement
             // Using one big if-else statement so only one block can run at a time
             if (Math.abs(car.velocityXZ) > 0.5) {
@@ -192,6 +197,12 @@ function loadTrack1() {
                         if(carRoll > MAX_CAR_ROLL) {
                             carRoll = MAX_CAR_ROLL;
                         }
+                        if(input.drift) {
+                            carYaw -= CAR_YAW_ANGULAR_ACC;
+                            if(carYaw < -MAX_CAR_YAW) {
+                                carYaw = -MAX_CAR_YAW;
+                            }
+                        }
                     }
                 }
                 else if (currentGamepad.getLeftXAxis() > 0.15) {
@@ -206,15 +217,22 @@ function loadTrack1() {
                         if(carRoll < -MAX_CAR_ROLL) {
                             carRoll = -MAX_CAR_ROLL;
                         }
+                        if(input.drift) {
+                            carYaw += CAR_YAW_ANGULAR_ACC;
+                            if(carYaw > MAX_CAR_YAW) {
+                                carYaw = MAX_CAR_YAW;
+                            }
+                        }
+
                     }
 
                 }
                 // Digital Movement
                 else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
-                    
-                    car.node.rotate(0, rotateSpeed, 0);
-                    carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
-                    carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
+                    const r = input.drift ? rotateSpeed * DRIFT_TURN_FACTOR : rotateSpeed; 
+                    car.node.rotate(0, r, 0);
+                    carRotationY += r; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
+                    carDirection = vec.rotate(carDirection, 0, r, 0);
 
                     //car animation logic
                     if(car.velocityXZ > 0) {
@@ -224,14 +242,18 @@ function loadTrack1() {
                         }
 
                         if(input.drift) {
-
+                            carYaw -= CAR_YAW_ANGULAR_ACC;
+                            if(carYaw < -MAX_CAR_YAW) {
+                                carYaw = -MAX_CAR_YAW;
+                            }
                         }
                     }
                 }
                 else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
-                    car.node.rotate(0, -rotateSpeed, 0);
-                    carRotationY -= rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
-                    carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
+                    const r = input.drift ? rotateSpeed * DRIFT_TURN_FACTOR : rotateSpeed; 
+                    car.node.rotate(0, -r, 0);
+                    carRotationY -= r; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
+                    carDirection = vec.rotate(carDirection, 0, -r, 0);
 
                     //car animation logic
                     if(car.velocityXZ > 0) {
@@ -239,6 +261,13 @@ function loadTrack1() {
                         
                         if(carRoll < -MAX_CAR_ROLL) {
                             carRoll = -MAX_CAR_ROLL;
+                        }
+                    }
+
+                    if(input.drift) {
+                        carYaw += CAR_YAW_ANGULAR_ACC;
+                        if(carYaw > MAX_CAR_YAW) {
+                            carYaw = MAX_CAR_YAW;
                         }
                     }
                 }
@@ -256,7 +285,10 @@ function loadTrack1() {
 
         //Car animations
         car.node.getChild("carModel").rotation = [0, 0, -carRoll];
+        car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
+        
         carRoll *= CAR_ROLL_REDUCE_FACTOR;
+        carYaw *= CAR_YAW_REDUCE_FACTOR;
         car.node.getChild("carModel").translation = [
             0,
             CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
