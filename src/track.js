@@ -150,7 +150,7 @@ function loadTrack1() {
     car.node.update = () => {
         // Input handling
         if (!controlsDisabled) {
-
+            
             // Acceleration
             if (input.up || currentGamepad.isPressed("RT")) {
                 if (input.up) {
@@ -164,9 +164,9 @@ function loadTrack1() {
             // Deceleration
             if (input.down || currentGamepad.isPressed("LT")) {
                 if (input.down) {
-                    car.velocityXZ -= 0.9;
+                    car.velocityXZ -= BREAK_FRICTION;
                 } else {
-                    car.velocityXZ -= 0.9 * currentGamepad.getLeftTriggerValue();
+                    car.velocityXZ -= BREAK_FRICTION * currentGamepad.getLeftTriggerValue();
                 }
 
                 if (car.velocityXZ < -4) {
@@ -177,7 +177,7 @@ function loadTrack1() {
             // Car Movement
             // Using one big if-else statement so only one block can run at a time
             if (Math.abs(car.velocityXZ) > 0.5) {
-                
+
                 // Analog Movement
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
@@ -211,6 +211,7 @@ function loadTrack1() {
                 }
                 // Digital Movement
                 else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
+                    
                     car.node.rotate(0, rotateSpeed, 0);
                     carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
@@ -220,6 +221,10 @@ function loadTrack1() {
                         carRoll += CAR_ROLL_ANGULAR_ACC;
                         if(carRoll > MAX_CAR_ROLL) {
                             carRoll = MAX_CAR_ROLL;
+                        }
+
+                        if(input.drift) {
+
                         }
                     }
                 }

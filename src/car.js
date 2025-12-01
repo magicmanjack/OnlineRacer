@@ -27,6 +27,8 @@ const POST_TERMINAL_FRICTION = 0.5;
 */
 const MAGNET_FRICTION = POST_TERMINAL_FRICTION * 2;
 
+const BREAK_FRICTION = 0.9;
+
 class Car {
     constructor() {
         this.node = new SceneNode();
