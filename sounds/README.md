@@ -34,3 +34,13 @@ Created by Iwan Gabovitch (qubodup@gmail.com)
 
 ## sfx_obstacle_crash
 https://opengameart.org/content/crash-collision
+
+## sfx_next_lap_reached
+"Jingle_Win_Synth_03.wav" from https://opengameart.org/content/electric-sound-effects-library 
+
+From the Electric Sound Effects Library created by Little Robot Sound Factory (www.littlerobotsoundfactory.com)
+
+## sfx_race_finished
+"Jingle_Win_Synth_00.wav" from https://opengameart.org/content/electric-sound-effects-library 
+
+From the Electric Sound Effects Library created by Little Robot Sound Factory (www.littlerobotsoundfactory.com)

@@ -167,6 +167,8 @@ function loadTrack1() {
 
     const boostSfxEle = loadAudio("sfx_boost");
     const obstacleCrashSfxEle = loadAudio("sfx_obstacle_crash");
+    const nextLapReachedSfxEle = loadAudio("sfx_next_lap_reached");
+    const raceFinishedSfxEle = loadAudio("sfx_race_finished");
 
     car.update = () => {
         // Input handling
@@ -557,10 +559,13 @@ function loadTrack1() {
                     leaderboard.add(Client.id, finalTime);
                     leaderboard.show();
 
+                    raceFinishedSfxEle.play();
                 }
             } else if (allCheckpointsPassed()) {
                 lapCount++;
                 updateLapCounter();
+
+                nextLapReachedSfxEle.play();
             }
             resetCheckpoints();
         }
