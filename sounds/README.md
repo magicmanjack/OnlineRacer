@@ -28,7 +28,7 @@ https://opengameart.org/content/let-the-games-begin-0
 https://www.zapsplat.com/author/zapsplat/
 
 ## sfx_boost
-"boost_end.wav" from https://opengameart.org/content/racing-speed-boost-sound
+"boost_end.wav" from https://opengameart.org/content/racing-speed-boost-sound (slowed down by approximately 25%)
 
 Created by Iwan Gabovitch (qubodup@gmail.com)
 

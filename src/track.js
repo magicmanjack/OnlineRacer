@@ -233,7 +233,7 @@ function loadTrack1() {
                 // Digital Movement
                 else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
                     car.rotate(0, rotateSpeed, 0);
-                    carRotationY += rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
+                    carRotationY += rotateSpeed;
                     carDirection = vec.rotate(carDirection, 0, rotateSpeed, 0);
 
                     //car animation logic
@@ -246,7 +246,7 @@ function loadTrack1() {
                 }
                 else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
                     car.rotate(0, -rotateSpeed, 0);
-                    carRotationY -= rotateSpeed; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
+                    carRotationY -= rotateSpeed;
                     carDirection = vec.rotate(carDirection, 0, -rotateSpeed, 0);
 
                     //car animation logic
