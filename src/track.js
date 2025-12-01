@@ -175,7 +175,7 @@ function loadTrack1() {
                 }
             }
 
-            if(input.drift) {
+            if(input.drift || currentGamepad.isPressed("X")) {
                 car.velocityXZ -= DRIFT_FRICTION;
             }
 
@@ -197,7 +197,7 @@ function loadTrack1() {
                         if(carRoll > MAX_CAR_ROLL) {
                             carRoll = MAX_CAR_ROLL;
                         }
-                        if(input.drift) {
+                        if(currentGamepad.isPressed("X")) {
                             carYaw -= CAR_YAW_ANGULAR_ACC;
                             if(carYaw < -MAX_CAR_YAW) {
                                 carYaw = -MAX_CAR_YAW;
@@ -217,7 +217,7 @@ function loadTrack1() {
                         if(carRoll < -MAX_CAR_ROLL) {
                             carRoll = -MAX_CAR_ROLL;
                         }
-                        if(input.drift) {
+                        if(currentGamepad.isPressed("X")) {
                             carYaw += CAR_YAW_ANGULAR_ACC;
                             if(carYaw > MAX_CAR_YAW) {
                                 carYaw = MAX_CAR_YAW;
