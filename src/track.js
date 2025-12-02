@@ -1,7 +1,7 @@
 let toggleHUD = false;
 
-const CAMERA_REL_CAR = [0, 50*0.8, 110*0.8];
-const CAMERA_DOWN_TILT = -0.2;  
+const CAMERA_REL_CAR = [0, 50 * 0.8, 110 * 0.8];
+const CAMERA_DOWN_TILT = -0.2;
 
 const NUM_LAPS = 3;
 
@@ -22,12 +22,12 @@ function loadTrack1() {
     Camera.main.displayWidth = startHeight * aspectRatio;
 
     let cameraRotationY = 0;
-    let cameraLagFactor = 0.1;  
+    let cameraLagFactor = 0.1;
 
     car = new Car();
 
     let carDirection = vec.rotate([0, 0, -1], 0, 0, 0);
-    
+
     let carYVelocity = 0;
     let rotateSpeed = 0;
 
@@ -79,7 +79,9 @@ function loadTrack1() {
             volumeControlGainNode.gain.value = volumeControl.value;
         });
 
-        track/*.connect(gainNode)*/.connect(volumeControlGainNode).connect(audioContext.destination);
+        track /*.connect(gainNode)*/
+            .connect(volumeControlGainNode)
+            .connect(audioContext.destination);
 
         return audioElement;
     }
@@ -153,14 +155,13 @@ function loadTrack1() {
     car.node.update = () => {
         // Input handling
         if (!controlsDisabled) {
-            
             // Acceleration
             if (input.up || currentGamepad.isPressed("RT")) {
                 if (input.up) {
                     car.velocityXZ += acceleration;
-                }
-                else {
-                    car.velocityXZ += acceleration * currentGamepad.getRightTriggerValue();
+                } else {
+                    car.velocityXZ +=
+                        acceleration * currentGamepad.getRightTriggerValue();
                 }
             }
 
@@ -169,7 +170,8 @@ function loadTrack1() {
                 if (input.down) {
                     car.velocityXZ -= BREAK_FRICTION;
                 } else {
-                    car.velocityXZ -= BREAK_FRICTION * currentGamepad.getLeftTriggerValue();
+                    car.velocityXZ -=
+                        BREAK_FRICTION * currentGamepad.getLeftTriggerValue();
                 }
 
                 if (car.velocityXZ < -4) {
@@ -177,98 +179,110 @@ function loadTrack1() {
                 }
             }
 
-            if(input.drift || currentGamepad.isPressed("X")) {
+            if (input.drift || currentGamepad.isPressed("X")) {
                 car.velocityXZ -= DRIFT_FRICTION;
             }
 
             // Car Movement
             // Using one big if-else statement so only one block can run at a time
             if (Math.abs(car.velocityXZ) > 0.5) {
-
                 // Analog Movement
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
                     car.node.rotate(0, rotateSpeed * absLeftXAxis, 0);
                     carRotationY += rotateSpeed * absLeftXAxis;
 
-                    carDirection = vec.rotate(carDirection, 0, rotateSpeed * absLeftXAxis, 0);
+                    carDirection = vec.rotate(
+                        carDirection,
+                        0,
+                        rotateSpeed * absLeftXAxis,
+                        0
+                    );
 
                     //car animation logic
-                    if(car.velocityXZ > 0) {
+                    if (car.velocityXZ > 0) {
                         carRoll += CAR_ROLL_ANGULAR_ACC;
-                        if(carRoll > MAX_CAR_ROLL) {
+                        if (carRoll > MAX_CAR_ROLL) {
                             carRoll = MAX_CAR_ROLL;
                         }
-                        if(currentGamepad.isPressed("X")) {
+                        if (currentGamepad.isPressed("X")) {
                             carYaw -= CAR_YAW_ANGULAR_ACC;
-                            if(carYaw < -MAX_CAR_YAW) {
+                            if (carYaw < -MAX_CAR_YAW) {
                                 carYaw = -MAX_CAR_YAW;
                             }
                         }
                     }
-                }
-                else if (currentGamepad.getLeftXAxis() > 0.15) {
+                } else if (currentGamepad.getLeftXAxis() > 0.15) {
                     car.node.rotate(0, -rotateSpeed * absLeftXAxis, 0);
                     carRotationY -= rotateSpeed * absLeftXAxis;
 
-                    carDirection = vec.rotate(carDirection, 0, -rotateSpeed * absLeftXAxis, 0);
+                    carDirection = vec.rotate(
+                        carDirection,
+                        0,
+                        -rotateSpeed * absLeftXAxis,
+                        0
+                    );
 
                     //car animation logic
-                    if(car.velocityXZ > 0) {
+                    if (car.velocityXZ > 0) {
                         carRoll -= CAR_ROLL_ANGULAR_ACC;
-                        if(carRoll < -MAX_CAR_ROLL) {
+                        if (carRoll < -MAX_CAR_ROLL) {
                             carRoll = -MAX_CAR_ROLL;
                         }
-                        if(currentGamepad.isPressed("X")) {
+                        if (currentGamepad.isPressed("X")) {
                             carYaw += CAR_YAW_ANGULAR_ACC;
-                            if(carYaw > MAX_CAR_YAW) {
+                            if (carYaw > MAX_CAR_YAW) {
                                 carYaw = MAX_CAR_YAW;
                             }
                         }
-
                     }
-
                 }
                 // Digital Movement
-                else if ((input.left || currentGamepad.isPressed("DPad-Left"))) {
-                    const r = input.drift ? rotateSpeed * DRIFT_TURN_FACTOR : rotateSpeed; 
+                else if (input.left || currentGamepad.isPressed("DPad-Left")) {
+                    const r = input.drift
+                        ? rotateSpeed * DRIFT_TURN_FACTOR
+                        : rotateSpeed;
                     car.node.rotate(0, r, 0);
                     carRotationY += r; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
                     carDirection = vec.rotate(carDirection, 0, r, 0);
 
                     //car animation logic
-                    if(car.velocityXZ > 0) {
+                    if (car.velocityXZ > 0) {
                         carRoll += CAR_ROLL_ANGULAR_ACC;
-                        if(carRoll > MAX_CAR_ROLL) {
+                        if (carRoll > MAX_CAR_ROLL) {
                             carRoll = MAX_CAR_ROLL;
                         }
 
-                        if(input.drift) {
+                        if (input.drift) {
                             carYaw -= CAR_YAW_ANGULAR_ACC;
-                            if(carYaw < -MAX_CAR_YAW) {
+                            if (carYaw < -MAX_CAR_YAW) {
                                 carYaw = -MAX_CAR_YAW;
                             }
                         }
                     }
-                }
-                else if ((input.right || currentGamepad.isPressed("DPad-Right"))) {
-                    const r = input.drift ? rotateSpeed * DRIFT_TURN_FACTOR : rotateSpeed; 
+                } else if (
+                    input.right ||
+                    currentGamepad.isPressed("DPad-Right")
+                ) {
+                    const r = input.drift
+                        ? rotateSpeed * DRIFT_TURN_FACTOR
+                        : rotateSpeed;
                     car.node.rotate(0, -r, 0);
                     carRotationY -= r; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
                     carDirection = vec.rotate(carDirection, 0, -r, 0);
 
                     //car animation logic
-                    if(car.velocityXZ > 0) {
+                    if (car.velocityXZ > 0) {
                         carRoll -= CAR_ROLL_ANGULAR_ACC;
-                        
-                        if(carRoll < -MAX_CAR_ROLL) {
+
+                        if (carRoll < -MAX_CAR_ROLL) {
                             carRoll = -MAX_CAR_ROLL;
                         }
                     }
 
-                    if(input.drift) {
+                    if (input.drift) {
                         carYaw += CAR_YAW_ANGULAR_ACC;
-                        if(carYaw > MAX_CAR_YAW) {
+                        if (carYaw > MAX_CAR_YAW) {
                             carYaw = MAX_CAR_YAW;
                         }
                     }
@@ -282,50 +296,66 @@ function loadTrack1() {
             // if (currentGamepad.getRightXAxis() > 0.15) {
             //     carRotationY += rotateSpeed * currentGamepad.getRightXAxis();
             // }
-            
         }
 
         //Car animations
         car.node.getChild("carModel").rotation = [0, 0, -carRoll];
         car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
-        
+
         carRoll *= CAR_ROLL_REDUCE_FACTOR;
         carYaw *= CAR_YAW_REDUCE_FACTOR;
         car.node.getChild("carModel").translation = [
             0,
-            CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
-            0];
+            CAR_HOVER_AMPLITUDE *
+                Math.cos(
+                    (2 * Math.PI * CAR_HOVER_FREQUENCY * performance.now()) /
+                        1000
+                ),
+            0,
+        ];
         //Car boost animation
         //First layer booster
         const booster1 = car.node.getChildByMesh("booster_1");
-        
-        if(booster1) {
+
+        if (booster1) {
             const a = 0.05;
             const f = 8;
-            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+            const vibration =
+                a * Math.sin((2 * Math.PI * performance.now() * f) / 1000);
 
             const minScale = 0.3;
-            const scale = Math.min((1 - minScale) * Math.abs(car.velocityXZ) / TERMINAL_VEL + minScale + vibration, 1);
-            
+            const scale = Math.min(
+                ((1 - minScale) * Math.abs(car.velocityXZ)) / TERMINAL_VEL +
+                    minScale +
+                    vibration,
+                1
+            );
+
             booster1.scale = [scale, scale, scale];
         }
         //Second layer booster
         const booster2 = car.node.getChildByMesh("booster_2");
-        if(booster2) {
+        if (booster2) {
             const a = 0.05;
             const f = 8;
-            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+            const vibration =
+                a * Math.sin((2 * Math.PI * performance.now() * f) / 1000);
 
-            const scale = Math.min(Math.abs(car.velocityXZ) / TERMINAL_VEL + vibration, 1);
+            const scale = Math.min(
+                Math.abs(car.velocityXZ) / TERMINAL_VEL + vibration,
+                1
+            );
             booster2.scale = [scale, scale, scale];
         }
-        
-        
+
         //Camera movement calculations.
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
         Camera.main.rotate(0, cameraRotationStep, 0);
-        cameraDisp = vec.subtract(Camera.main.translation, car.node.translation);
+        cameraDisp = vec.subtract(
+            Camera.main.translation,
+            car.node.translation
+        );
 
         newPos = vec.rotate(cameraDisp, 0, cameraRotationStep, 0);
 
@@ -334,7 +364,7 @@ function loadTrack1() {
         cameraRotationY += cameraRotationStep;
 
         //Accelerations
-        
+
         if (car.velocityXZ > 0) {
             //Car going fowards.
             cameraLagFactor = 0.1; // Move this out
@@ -343,7 +373,7 @@ function loadTrack1() {
                 car.velocityXZ = 0;
             }
             if (car.velocityXZ > terminalVelocity) {
-                if(terminalVelocity == MAGNET_TERMINAL_VEL) {
+                if (terminalVelocity == MAGNET_TERMINAL_VEL) {
                     car.velocityXZ -= MAGNET_FRICTION * 2;
                 } else {
                     car.velocityXZ -= POST_TERMINAL_FRICTION;
@@ -362,13 +392,12 @@ function loadTrack1() {
         if (car.velocityXZ == 0) {
             rotateSpeed = 0;
         } else {
-            rotateSpeed = MAX_ROTATE_SPEED * rotateSpeedFunction(car.velocityXZ);
+            rotateSpeed =
+                MAX_ROTATE_SPEED * rotateSpeedFunction(car.velocityXZ);
         }
 
         let newcarDirection = vec.scale(car.velocityXZ, carDirection);
         carYVelocity = carYVelocity + GRAVITY;
-
-        
 
         // Translation of the car in the new direction.
         const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
@@ -396,7 +425,7 @@ function loadTrack1() {
             for (let i = 0; i < collisions.length; i++) {
                 const t = collisions[i].parent.tag;
                 const p = collisions[i].parent;
-                if(debug) {
+                if (debug) {
                     console.log(t);
                 }
                 if (t == "wall") {
@@ -424,7 +453,9 @@ function loadTrack1() {
 
                             obstacleShard.mesh = obstacleMesh.reuse();
                             obstacleShard.scaleBy(20, 20, 20);
-                            obstacleShard.translation = [...car.node.translation];
+                            obstacleShard.translation = [
+                                ...car.node.translation,
+                            ];
                             obstacleShard.rotation = [...p.rotation];
                             sceneGraph.root.addChild(obstacleShard);
 
@@ -449,10 +480,14 @@ function loadTrack1() {
 
                             let velocityVec = [
                                 Math.cos(angle) * speed +
-                                    carDirNorm[0] * Math.abs(car.velocityXZ) * 0.8,
+                                    carDirNorm[0] *
+                                        Math.abs(car.velocityXZ) *
+                                        0.8,
                                 2 + Math.random() * 3,
                                 Math.sin(angle) * speed +
-                                    carDirNorm[2] * Math.abs(car.velocityXZ) * 0.8,
+                                    carDirNorm[2] *
+                                        Math.abs(car.velocityXZ) *
+                                        0.8,
                             ];
 
                             let frames = 40;
@@ -520,12 +555,15 @@ function loadTrack1() {
                             car.originalUpdate && car.originalUpdate.call(this);
                         };
                     }
-                } else if (t == "magnet" && car.node.translation[1] < groundLevel + 1) {
+                } else if (
+                    t == "magnet" &&
+                    car.node.translation[1] < groundLevel + 1
+                ) {
                     terminalVelocity = MAGNET_TERMINAL_VEL;
                     if (Math.abs(car.velocityXZ) > 2) {
                         acceleration = ACCELERATION / 2;
                     } else {
-                        acceleration = ACCELERATION; // to prevent the car from getting stuck 
+                        acceleration = ACCELERATION; // to prevent the car from getting stuck
                     }
                 } else if (t == "checkpoint") {
                     const checkpointName = p.name;
@@ -597,7 +635,7 @@ function loadTrack1() {
         // logic for boost pads:
         if (boostTimer > 0) {
             if (car.velocityXZ < BOOST_TERMINAL_VEL) {
-                car.velocityXZ += POST_TERMINAL_FRICTION; 
+                car.velocityXZ += POST_TERMINAL_FRICTION;
                 /* Cancels out POST_TERMINAL_FRICTION so that the car can keep accelerating
                 past the normal terminalVelocity
                 */
@@ -679,7 +717,7 @@ function loadTrack1() {
 
         car.node.scaleBy(3, 3, 3);
         car.node.rotate(0, Math.PI + startLine.rotation[1], 0);
-        
+
         Camera.main.rotate(CAMERA_DOWN_TILT, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
@@ -690,11 +728,7 @@ function loadTrack1() {
             [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
         );
 
-        Camera.main.translation = vec.add(
-            car.node.translation, 
-            CAMERA_REL_CAR
-        );
- 
+        Camera.main.translation = vec.add(car.node.translation, CAMERA_REL_CAR);
     });
 
     ground.translate(0, -5, -50);
@@ -718,15 +752,18 @@ function loadTrack1() {
         "music_race05",
         "music_race06",
     ];
-    
+
     // Choose a random music track
-    const raceMusicEle = loadAudio(raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]);
+    const raceMusicEle = loadAudio(
+        raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]
+    );
 
     const redLightSfxEle = loadAudio("sfx_red_light");
     const orangeLightSfxEle = loadAudio("sfx_orange_light");
     const greenLightSfxEle = loadAudio("sfx_green_light");
 
     let frameCounter = 0;
+    let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
     light.update = function () {
         const ti = this.textureIndex;
         const timePassed = () => frameCounter / UPDATES_PER_SECOND;
@@ -742,7 +779,6 @@ function loadTrack1() {
                     }
                     break;
                 }
-
                 case 1: {
                     if (timePassed() > 2) {
                         // Switch to Orange
@@ -769,7 +805,16 @@ function loadTrack1() {
                     break;
                 }
                 case 3: {
-                    if (timePassed() > 2) {
+                    if (
+                        (input.up || currentGamepad.isPressed("RT")) &&
+                        boostTimer <= 0 &&
+                        timePassed() < 0.25
+                    ) {
+                        // TODO: Check for a button press instead of held button to avoid easy free boosts
+                        boostTimer = 0.1;
+                        boostSfxEle.play();
+                        break;
+                    } else if (timePassed() > 2) {
                         // Disable countdown UI
                         UILayer.splice(UILayer.indexOf(this), 1);
                     }
