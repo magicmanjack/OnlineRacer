@@ -6,6 +6,7 @@ let networkUpdate; //An function that gets called every frame.
 
 let lobbySize;
 let playersReady;
+let playersFinished;
 
 
 
@@ -17,6 +18,7 @@ function initRaceNetworking() {
     playersReady = 0;
     lobbySize = 0;
     networkCars = new Map(); // Refresh/or init mapping.
+    playersFinished = [];
 
     Client.webSocket.send(JSON.stringify({
         type:"get_car_states",
@@ -184,12 +186,17 @@ function initRaceNetworking() {
             case "lobby_update_player_disconnected":
                 networkCars.get(msg.id).node.remove();
                 networkCars.set(msg.id, null);
-                
+                const i = playersFinished.indexOf(msg.id);
+                if(i >= 0) {
+                    playersFinished.splice(i, 1);
+                }
                 lobbySize--;
                 break;
 
             case "player_finished":
                 leaderboard.add(msg.playerID, msg.timeFinished);
+                playersFinished.push(msg.playerID);
+                break;
 
         }
     };
@@ -239,13 +246,29 @@ function initRaceNetworking() {
                 //console.log(`playersReady ${playersReady}, lobbysize ${lobbySize}`);
                 if(playersReady == lobbySize) {
                     allClientsLoaded = true;
-                    Client.state = "ready";
+                    Client.state = "racing";
                 }
                 break;
-            case "ready":
-                //
+            case "racing":
                 
                 break;
+            case "race_finished":
+                toggleHUD = false;
+                if(playersFinished.length == lobbySize) {
+                    //Signal for 'next race' button to show
+                    
+                    nextRaceButton = new UIPanel(4, -6, 8, 2, ["textures/default.png"]);
+                    nextRaceButton.whenClicked = () => {
+                        Client.state = "load_next_race";
+                    };
+                    UILayer.unshift(nextRaceButton);
+                    Client.state = "wait_for_next_race";
+                }
+                break;
+            case "load_next_race":
+                sceneGraph.load(loadTrack1);
+                break;
+                
         }
 
         Client.webSocket.send(JSON.stringify({
@@ -268,7 +291,7 @@ function sendRaceFinished(timetaken) {
     Client.state = "race_finished";
     //Need to communicate to other players
     Client.webSocket.send(JSON.stringify({
-        type:"relay_all_others",
+        type:"relay_all",
         relay:{
             type:"player_finished",
             playerID: Client.id,

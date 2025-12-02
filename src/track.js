@@ -5,6 +5,40 @@ const CAMERA_DOWN_TILT = -0.2;
 
 const NUM_LAPS = 3;
 
+var musicBuffer = null;
+var soundBuffer = null;
+var audioContext = new AudioContext();
+
+const audio = {
+    musicBuffer : musicBuffer,
+    soundBuffer : soundBuffer,
+    audioContext : audioContext,
+    elements: [],
+    loadAudio: function(elementId, volume = 0.15) {
+        // Load file from audio element
+        const audioElement = document.getElementById(elementId);
+        if(!this.elements.includes(elementId)) {
+            const track = this.audioContext.createMediaElementSource(audioElement);
+
+            // Set default volume
+            const gainNode = this.audioContext.createGain();
+            gainNode.gain.value = volume;
+
+            // Add modifier based on volume slider (0% to 200% of default volume value)
+            const volumeControlGainNode = this.audioContext.createGain();
+            volumeControlGainNode.gain.value = volume;
+            const volumeControl = document.querySelector("#volume");
+            volumeControl.addEventListener("input", () => {
+                volumeControlGainNode.gain.value = volumeControl.value;
+            });
+
+            track.connect(gainNode).connect(volumeControlGainNode).connect(this.audioContext.destination);
+            this.elements.push(elementId);
+        }
+        return audioElement;
+    }
+}
+
 function loadTrack1() {
     toggleHUD = true;
 
@@ -20,6 +54,8 @@ function loadTrack1() {
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = startHeight;
     Camera.main.displayWidth = startHeight * aspectRatio;
+    Camera.main.translation = [0, 0, 15];
+    Camera.main.rotation = [0, 0, 0];
 
     let cameraRotationY = 0;
     let cameraLagFactor = 0.1;  
@@ -57,33 +93,7 @@ function loadTrack1() {
 
     let lapCount = 1;
     let gameFinished = false;
-
-    var musicBuffer = null;
-    var soundBuffer = null;
-    var audioContext = new AudioContext();
-
-    function loadAudio(elementId, volume = 0.15) {
-        // Load file from audio element
-        const audioElement = document.getElementById(elementId);
-        const track = audioContext.createMediaElementSource(audioElement);
-
-        // Set default volume
-        const gainNode = audioContext.createGain();
-        gainNode.gain.value = volume;
-
-        // Add modifier based on volume slider (0% to 200% of default volume value)
-        const volumeControlGainNode = audioContext.createGain();
-        volumeControlGainNode.gain.value = volume;
-        const volumeControl = document.querySelector("#volume");
-        volumeControl.addEventListener("input", () => {
-            volumeControlGainNode.gain.value = volumeControl.value;
-        });
-
-        track.connect(gainNode).connect(volumeControlGainNode).connect(audioContext.destination);
-
-        return audioElement;
-    }
-
+    
     // Timer display functions
     function formatTime(milliseconds) {
         const totalSeconds = milliseconds / 1000;
@@ -145,8 +155,8 @@ function loadTrack1() {
                   0.12222;
     }
 
-    const boostSfxEle = loadAudio("sfx_boost");
-    const obstacleCrashSfxEle = loadAudio("sfx_obstacle_crash");
+    const boostSfxEle = audio.loadAudio("sfx_boost");
+    const obstacleCrashSfxEle = audio.loadAudio("sfx_obstacle_crash");
 
     car.node.update = () => {
         // Input handling
@@ -570,7 +580,6 @@ function loadTrack1() {
 
                     //TODO: Alert other players:
                     sendRaceFinished(finalTime);
-                    leaderboard.add(Client.id, finalTime);
                     leaderboard.show();
 
                 }
@@ -715,11 +724,11 @@ function loadTrack1() {
     ];
     
     // Choose a random music track
-    const raceMusicEle = loadAudio(raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]);
+    const raceMusicEle = audio.loadAudio(raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]);
 
-    const redLightSfxEle = loadAudio("sfx_red_light");
-    const orangeLightSfxEle = loadAudio("sfx_orange_light");
-    const greenLightSfxEle = loadAudio("sfx_green_light");
+    const redLightSfxEle = audio.loadAudio("sfx_red_light");
+    const orangeLightSfxEle = audio.loadAudio("sfx_orange_light");
+    const greenLightSfxEle = audio.loadAudio("sfx_green_light");
 
     let frameCounter = 0;
     light.update = function () {
