@@ -23,7 +23,7 @@ const leaderboard = {
     placingUIDimensions: {
 
         offsetX : 0,
-        offsetY : 2,
+        offsetY : 4,
         scaleX : 0.8,
         scaleY : 0.18 * 0.8
 
