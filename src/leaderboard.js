@@ -85,7 +85,13 @@ const leaderboard = {
                     if(this.placings[i].time > updates[0].time) {
                         for(let j = 0; j < updates.length; j++) {
                             this.placings.splice(i + j, 0, updates[j]);
-                            
+                        }
+                        //Need to redraw the entire leader board
+                        if(this.visible) {
+                            for(let i = 0; i < this.placingsUI.length; i++) {
+                                removeUIPanel(this.placingsUI[i]);
+                            }
+                            this.placingsUI = [];
                         }
                         break;
                     } else if(i + 1 == this.placings.length) {
@@ -124,13 +130,13 @@ const leaderboard = {
                 const iDim = this.placingIconUIDimenions;
                 //Offset X and Y from leaderboard middle;
                 // i + 1 is also equivalent to the placing.
-    
+                
                 const placingPanel = new UIPanel(lDim.x + dim.offsetX,
                     lDim.y + dim.offsetY + i * dim.scaleY * lDim.h * -1,
                     lDim.w * dim.scaleX, lDim.h * dim.scaleY,
                     [`textures/leaderboard_player${this.placings[i].id}.png`]);
-                    this.placingsUI.push(placingPanel);
-                    UILayer.unshift(placingPanel);
+                this.placingsUI.push(placingPanel);
+                UILayer.unshift(placingPanel);
                 
                 if(i < 3) {
                     let prefixes = ['first', 'second', 'third'];
@@ -141,6 +147,12 @@ const leaderboard = {
                 }
             }
         }
+    },
+    reset: function() {
+        this.visible = false;
+        this.waiting = [];
+        this.placings = [];
+        this.placingsUI = [];
     }
 }
 
