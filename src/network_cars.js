@@ -15,6 +15,7 @@ function initRaceNetworking() {
         Sets the network code to request and recieve information about
         the other players cars.
     */
+    allClientsLoaded = false;
     playersReady = 0;
     lobbySize = 0;
     networkCars = new Map(); // Refresh/or init mapping.
@@ -25,15 +26,6 @@ function initRaceNetworking() {
         returnId:Client.id
     }));
     Client.webSocket.send(JSON.stringify({
-        type: "add_car",
-        id: Client.id,
-        transform: {
-            translation: clientCar.node.translation,
-            rotation: clientCar.node.rotation,
-            scale: clientCar.node.scale
-        }
-    }));
-    Client.webSocket.send(JSON.stringify({
         type:"get_lobby_size"
     }))
     Client.state = "waiting_for_lobby_size";
@@ -42,6 +34,7 @@ function initRaceNetworking() {
         const msg = JSON.parse(e.data);
         
         switch(msg.type) {
+            
             case "get_car_states":
                 Client.webSocket.send(JSON.stringify({
                     type: "add_car",
@@ -57,6 +50,7 @@ function initRaceNetworking() {
             
             case "add_car": {
                 //attach player node to scene root.
+                console.log("Add car");
                 let p = new Car();
                 p.node.translation = msg.transform.translation;
                 p.node.rotation = msg.transform.rotation;
@@ -165,15 +159,17 @@ function initRaceNetworking() {
 
             case "car_update": {
                 const c = networkCars.get(msg.id);
-                c.node.translation = msg.transform.translation;
-                c.node.rotation = msg.transform.rotation;
-                c.node.scale = msg.transform.scale;
-                c.velocityXZ = msg.velocity;
-                const carModel = c.node.getChild("carModel");
-                if(carModel) {
-                    carModel.translation = msg.modelTransform.translation;
-                    carModel.rotation = msg.modelTransform.rotation;
-                    carModel.scale = msg.modelTransform.scale;
+                if (c) {
+                    c.node.translation = msg.transform.translation;
+                    c.node.rotation = msg.transform.rotation;
+                    c.node.scale = msg.transform.scale;
+                    c.velocityXZ = msg.velocity;
+                    const carModel = c.node.getChild("carModel");
+                    if(carModel) {
+                        carModel.translation = msg.modelTransform.translation;
+                        carModel.rotation = msg.modelTransform.rotation;
+                        carModel.scale = msg.modelTransform.scale;
+                    }
                 }
                 break;
             }
@@ -196,6 +192,12 @@ function initRaceNetworking() {
             case "player_finished":
                 leaderboard.add(msg.playerID, msg.timeFinished);
                 playersFinished.push(msg.playerID);
+                break;
+
+            case "load_next_track":
+                if(Client.state != "loading_next_track") {
+                    Client.state = "loading_next_track";
+                }
                 break;
 
         }
@@ -259,14 +261,20 @@ function initRaceNetworking() {
                     
                     nextRaceButton = new UIPanel(4, -6, 8, 2, ["textures/default.png"]);
                     nextRaceButton.whenClicked = () => {
-                        Client.state = "load_next_race";
+                        Client.webSocket.send(JSON.stringify({
+                            type:"relay_all",
+                            relay:{
+                                type:"load_next_track"
+                            }
+                        }));
                     };
                     UILayer.unshift(nextRaceButton);
-                    Client.state = "wait_for_next_race";
+                    Client.state = "waiting";
                 }
                 break;
-            case "load_next_race":
+            case "loading_next_track":
                 sceneGraph.load(loadTrack1);
+                leaderboard.reset();
                 break;
                 
         }

@@ -3,7 +3,7 @@ let toggleHUD = false;
 const CAMERA_REL_CAR = [0, 50 * 0.8, 110 * 0.8];
 const CAMERA_DOWN_TILT = -0.2;
 
-const NUM_LAPS = 3;
+const NUM_LAPS = 1;
 
 var musicBuffer = null;
 var soundBuffer = null;
