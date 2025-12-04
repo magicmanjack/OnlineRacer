@@ -21,6 +21,8 @@ const audio = {
             const track =
                 this.audioContext.createMediaElementSource(audioElement);
 
+            audioElement.muted = false;
+
             // Set default volume
             // const gainNode = this.audioContext.createGain();
             // gainNode.gain.value = volume;
@@ -29,6 +31,11 @@ const audio = {
             const volumeControlGainNode = this.audioContext.createGain();
             volumeControlGainNode.gain.value = volume;
             const volumeControl = document.querySelector("#volume");
+
+            // Set to initial volume
+            volumeControlGainNode.gain.value = volumeControl.value;
+
+            // Add event to allow user to adjust volume
             volumeControl.addEventListener("input", () => {
                 volumeControlGainNode.gain.value = volumeControl.value;
             });
@@ -37,7 +44,9 @@ const audio = {
                 // .connect(gainNode)
                 .connect(volumeControlGainNode)
                 .connect(this.audioContext.destination);
+
             this.elements.set(elementId, audioElement);
+            // console.log("Added " + elementId + " with " + audioElement);
         }
         return audioElement;
     },
