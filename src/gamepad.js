@@ -73,6 +73,46 @@ const currentGamepad = {
         ["Xbox Guide", false],
     ]),
 
+    buttonPressedStates: new Map([
+        ["A", false],
+        ["B", false],
+        ["X", false],
+        ["Y", false],
+        ["LB", false],
+        ["RB", false],
+        ["LT", false],
+        ["RT", false],
+        ["Back", false],
+        ["Start", false],
+        ["LS", false],
+        ["RS", false],
+        ["DPad-Up", false],
+        ["DPad-Down", false],
+        ["DPad-Left", false],
+        ["DPad-Right", false],
+        ["Xbox Guide", false],
+    ]),
+
+    buttonReleasedStates: new Map([
+        ["A", false],
+        ["B", false],
+        ["X", false],
+        ["Y", false],
+        ["LB", false],
+        ["RB", false],
+        ["LT", false],
+        ["RT", false],
+        ["Back", false],
+        ["Start", false],
+        ["LS", false],
+        ["RS", false],
+        ["DPad-Up", false],
+        ["DPad-Down", false],
+        ["DPad-Left", false],
+        ["DPad-Right", false],
+        ["Xbox Guide", false],
+    ]),
+
     triggerValues: new Map([
         ["LT", 0],
         ["RT", 0],
@@ -102,7 +142,31 @@ const currentGamepad = {
 
             // Update button states
             for (let i = 0; i < this.buttons.length; i++) {
+                let buttonChangedState = false;
+
+                // Check for a button press or release
+                if (this.buttons[i] !== activeGamepad.buttons[i].pressed) {
+                    console.log(this.buttonMappings.get(i) + " changed from " + this.buttons[i] + " to " + activeGamepad.buttons[i].pressed);
+
+                    // If changing to true, else changing to false
+                    if (activeGamepad.buttons[i].pressed) {
+                        this.buttonPressedStates.set(this.buttonMappings.get(i), activeGamepad.buttons[i].pressed);
+                        this.buttonReleasedStates.set(this.buttonMappings.get(i), false);
+                    } else {
+                        this.buttonPressedStates.set(this.buttonMappings.get(i), false);
+                        this.buttonReleasedStates.set(this.buttonMappings.get(i), activeGamepad.buttons[i].pressed);
+                    }
+
+                    buttonChangedState = true;
+                }
+
+                if (!buttonChangedState) {
+                    this.buttonPressedStates.set(this.buttonMappings.get(i), false);
+                    this.buttonReleasedStates.set(this.buttonMappings.get(i), false);
+                }
+
                 this.buttons[i] = activeGamepad.buttons[i].pressed;
+
                 this.buttonStates.set(
                     this.buttonMappings.get(i),
                     this.buttons[i]
@@ -118,8 +182,16 @@ const currentGamepad = {
         }
     },
 
-    isPressed(button) {
+    isHeld(button) {
         return this.buttonStates.get(button);
+    },
+
+    isPressed(button) {
+        return this.buttonPressedStates.get(button);
+    },
+    
+    isReleased(button) {
+        return this.buttonReleasedStates.get(button);
     },
 
     getLeftXAxis() {

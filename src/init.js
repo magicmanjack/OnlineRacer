@@ -51,9 +51,9 @@ function loadMenu() {
             this.textureIndex = 0;
         }
 
-        if (currentGamepad.isPressed("A")) {
-            b1.whenClicked();
-        }
+        // if (currentGamepad.isHeld("A")) {
+        //     b1.whenClicked();
+        // }
     }
     UILayer.push(b1);
 

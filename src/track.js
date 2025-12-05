@@ -184,7 +184,7 @@ function loadTrack1() {
         // Input handling
         if (!controlsDisabled) {
             // Acceleration
-            if (input.up || currentGamepad.isPressed("RT")) {
+            if (input.up || currentGamepad.isHeld("RT")) {
                 if (input.up) {
                     car.velocityXZ += acceleration;
                 } else {
@@ -194,7 +194,7 @@ function loadTrack1() {
             }
 
             // Deceleration
-            if (input.down || currentGamepad.isPressed("LT")) {
+            if (input.down || currentGamepad.isHeld("LT")) {
                 if (input.down) {
                     car.velocityXZ -= BREAK_FRICTION;
                 } else {
@@ -207,7 +207,7 @@ function loadTrack1() {
                 }
             }
 
-            if (input.drift || currentGamepad.isPressed("X")) {
+            if (input.drift || currentGamepad.isHeld("X")) {
                 car.velocityXZ -= DRIFT_FRICTION;
             }
 
@@ -233,7 +233,7 @@ function loadTrack1() {
                         if (carRoll > MAX_CAR_ROLL) {
                             carRoll = MAX_CAR_ROLL;
                         }
-                        if (currentGamepad.isPressed("X")) {
+                        if (currentGamepad.isHeld("X")) {
                             carYaw -= CAR_YAW_ANGULAR_ACC;
                             if (carYaw < -MAX_CAR_YAW) {
                                 carYaw = -MAX_CAR_YAW;
@@ -257,7 +257,7 @@ function loadTrack1() {
                         if (carRoll < -MAX_CAR_ROLL) {
                             carRoll = -MAX_CAR_ROLL;
                         }
-                        if (currentGamepad.isPressed("X")) {
+                        if (currentGamepad.isHeld("X")) {
                             carYaw += CAR_YAW_ANGULAR_ACC;
                             if (carYaw > MAX_CAR_YAW) {
                                 carYaw = MAX_CAR_YAW;
@@ -266,7 +266,7 @@ function loadTrack1() {
                     }
                 }
                 // Digital Movement
-                else if (input.left || currentGamepad.isPressed("DPad-Left")) {
+                else if (input.left || currentGamepad.isHeld("DPad-Left")) {
                     const r = input.drift
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
@@ -290,7 +290,7 @@ function loadTrack1() {
                     }
                 } else if (
                     input.right ||
-                    currentGamepad.isPressed("DPad-Right")
+                    currentGamepad.isHeld("DPad-Right")
                 ) {
                     const r = input.drift
                         ? rotateSpeed * DRIFT_TURN_FACTOR
