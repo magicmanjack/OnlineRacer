@@ -132,6 +132,11 @@ const currentGamepad = {
 
         const activeGamepad = gamepadsState[this.index];
 
+        if (activeGamepad === null) {
+            console.warn("The browser you are using does not support the Gamepad API. Gamepad support may not function correctly.");
+            return;
+        }
+
         if (activeGamepad && activeGamepad.timestamp !== this.timestamp) {
             this.timestamp = activeGamepad.timestamp;
 
@@ -142,11 +147,15 @@ const currentGamepad = {
 
             // Update button states
             for (let i = 0; i < this.buttons.length; i++) {
+                if (activeGamepad.buttons[i] === undefined) {
+                    continue;
+                }
+
                 let buttonChangedState = false;
 
                 // Check for a button press or release
                 if (this.buttons[i] !== activeGamepad.buttons[i].pressed) {
-                    console.log(this.buttonMappings.get(i) + " changed from " + this.buttons[i] + " to " + activeGamepad.buttons[i].pressed);
+                    // console.log(this.buttonMappings.get(i) + " changed from " + this.buttons[i] + " to " + activeGamepad.buttons[i].pressed);
 
                     // If changing to true, else changing to false
                     if (activeGamepad.buttons[i].pressed) {

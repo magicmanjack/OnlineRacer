@@ -174,6 +174,6 @@ function loadLobby() {
 
 document.addEventListener("click", function () {
     audio.audioContext.resume().then(() => {
-        console.log("Playback resumed successfully");
+        // console.log("Playback resumed successfully");
     });
 });
