@@ -6,6 +6,12 @@ body {
     font-family: Arial, sans-serif;
 }
 
+.jersey-15-regular {
+    font-family: "Jersey 15", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
 #gameContainer {
     position: relative;
     width: 100vw;
@@ -23,7 +29,8 @@ body {
     top: 2vh;
     left: 20px;
     color: white;
-    font-size: 10vh;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 12vh;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     margin-bottom: 10px;
@@ -51,9 +58,10 @@ body {
 #lap-counter {
     position: absolute;
     top: 2vh;
-    right: 20px;
+    right: 50px;
     color: white;
-    font-size: 10vh;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 12vh;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
@@ -65,7 +73,8 @@ body {
     bottom: 2vh;
     left: 20px;
     color: white;
-    font-size: 5vh;
+    font-family: "Jersey 15", sans-serif;
+    font-size: 7vh;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }

@@ -28,9 +28,19 @@ https://opengameart.org/content/let-the-games-begin-0
 https://www.zapsplat.com/author/zapsplat/
 
 ## sfx_boost
-"boost_end.wav" from https://opengameart.org/content/racing-speed-boost-sound
+"boost_end.wav" from https://opengameart.org/content/racing-speed-boost-sound (slowed down by approximately 25%)
 
 Created by Iwan Gabovitch (qubodup@gmail.com)
 
 ## sfx_obstacle_crash
 https://opengameart.org/content/crash-collision
+
+## sfx_next_lap_reached
+"Jingle_Win_Synth_03.wav" from https://opengameart.org/content/electric-sound-effects-library 
+
+From the Electric Sound Effects Library created by Little Robot Sound Factory (www.littlerobotsoundfactory.com)
+
+## sfx_race_finished
+"Jingle_Win_Synth_00.wav" from https://opengameart.org/content/electric-sound-effects-library 
+
+From the Electric Sound Effects Library created by Little Robot Sound Factory (www.littlerobotsoundfactory.com)

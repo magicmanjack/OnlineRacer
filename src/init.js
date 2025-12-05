@@ -51,9 +51,9 @@ function loadMenu() {
             this.textureIndex = 0;
         }
 
-        if (currentGamepad.isPressed("A")) {
-            b1.whenClicked();
-        }
+        // if (currentGamepad.isHeld("A")) {
+        //     b1.whenClicked();
+        // }
     }
     UILayer.push(b1);
 
@@ -171,3 +171,9 @@ function loadLobby() {
     UILayer.push(lobbyPlayerPanel);
 }
 
+
+document.addEventListener("click", function () {
+    audio.audioContext.resume().then(() => {
+        // console.log("Playback resumed successfully");
+    });
+});
