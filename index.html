@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OnlineRacer</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -17,24 +20,13 @@
             <div id="speedometer">
                 <div id="speed-bar"></div>
             </div>
-            <div id="volume-slider">
-                Volume
-                <input type="range" id="volume" min="0" max="2" value="1" step="0.01" />
-            </div>
+
+        </div>
+        <div id="volume-slider">
+            Volume
+            <input type="range" id="volume" min="0" max="1" value="0.3" step="0.01" />
         </div>
     </div>
-
-    <audio id="music_race01" src="sounds/music_race01.ogg" loop></audio>
-    <audio id="music_race02" src="sounds/music_race02.ogg" loop></audio>
-    <audio id="music_race03" src="sounds/music_race03.ogg" loop></audio>
-    <audio id="music_race04" src="sounds/music_race04.mp3" loop></audio>
-    <audio id="music_race05" src="sounds/music_race05.wav" loop></audio>
-    <audio id="music_race06" src="sounds/music_race06.ogg" loop></audio>
-    <audio id="sfx_red_light" src="sounds/sfx_red_light.mp3"></audio>
-    <audio id="sfx_orange_light" src="sounds/sfx_orange_light.mp3"></audio>
-    <audio id="sfx_green_light" src="sounds/sfx_green_light.mp3"></audio>
-    <audio id="sfx_boost" src="sounds/sfx_boost.wav"></audio>
-    <audio id="sfx_obstacle_crash" src="sounds/sfx_obstacle_crash.ogg"></audio>
     
     <script>
         // Set canvas size to fill entire screen
@@ -92,6 +84,20 @@
     <script type="text/javascript" src="src/track.js"></script>
     <script type="text/javascript" src="src/init.js"></script>
     <script type="text/javascript" src="src/main.js"></script>
+
+    <audio id="music_race01" src="sounds/music_race01.ogg" loop></audio>
+    <audio id="music_race02" src="sounds/music_race02.ogg" loop></audio>
+    <audio id="music_race03" src="sounds/music_race03.ogg" loop></audio>
+    <audio id="music_race04" src="sounds/music_race04.mp3" loop></audio>
+    <audio id="music_race05" src="sounds/music_race05.wav" loop></audio>
+    <audio id="music_race06" src="sounds/music_race06.ogg" loop></audio>
+    <audio id="sfx_red_light" src="sounds/sfx_red_light.mp3"></audio>
+    <audio id="sfx_orange_light" src="sounds/sfx_orange_light.mp3"></audio>
+    <audio id="sfx_green_light" src="sounds/sfx_green_light.mp3"></audio>
+    <audio id="sfx_boost" src="sounds/sfx_boost.mp3"></audio>
+    <audio id="sfx_obstacle_crash" src="sounds/sfx_obstacle_crash.mp3"></audio>
+    <audio id="sfx_next_lap_reached" src="sounds/sfx_next_lap_reached.wav"></audio>
+    <audio id="sfx_race_finished" src="sounds/sfx_race_finished.wav"></audio>
 </body>
 
 </html>

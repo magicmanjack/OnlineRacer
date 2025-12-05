@@ -259,6 +259,11 @@ function initRaceNetworking() {
                     //Signal for 'next race' button to show
                     
                     nextRaceButton = new UIPanel(4, -6, 8, 2, ["textures/default.png"]);
+                    nextRaceButton.update = () => {
+                        if (Client.state === "waiting" && currentGamepad.isPressed("A")) {
+                            nextRaceButton.whenClicked();
+                        }
+                    }
                     nextRaceButton.whenClicked = () => {
                         Client.webSocket.send(JSON.stringify({
                             type:"relay_all",
