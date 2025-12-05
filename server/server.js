@@ -1,3 +1,5 @@
+import mime from "mime";
+
 const availableIds = [1, 2, 3, 4];
 let numConnected = 0;
 
@@ -13,20 +15,39 @@ Deno.serve({
     //port: 80,
     port: 5174,
     async handler(request) {
-        if(request.headers.get("upgrade") !== "websocket") {
+        if (request.headers.get("upgrade") !== "websocket") {
             //Normal http request
             const url = new URL(request.url);
             const filePath = decodeURIComponent(url.pathname);
-            if(filePath === "/") {
+            if (filePath === "/") {
                 //return index.html
-                const file = await Deno.open("./index.html", {read:true});
+                const file = await Deno.open("./index.html", { read: true });
                 return new Response(file.readable);
             } else {
-                const file = await Deno.open(`.${filePath}`, {read:true});
-                return new Response(file.readable);
+                const fileExtension = filePath.split(".").pop();
+
+                // Using the file extension, determine the correct MIME type
+                let mimeType = null;
+                try {
+                    mimeType = mime.getType(fileExtension);
+                } catch (error) {
+                    console.warn("Couldn't load mime library");
+                }
+
+                const file = await Deno.open(`.${filePath}`, { read: true });
+                return new Response(
+                    file.readable,
+                    mimeType
+                        ? {
+                              headers: {
+                                  "content-type": mimeType,
+                              },
+                          }
+                        : null
+                );
             }
         }
-        const {socket, response} = Deno.upgradeWebSocket(request);
+        const { socket, response } = Deno.upgradeWebSocket(request);
 
         socket.onopen = onConnectionOpen;
 
@@ -36,14 +57,14 @@ Deno.serve({
         socket.onerror = (error) => console.error("ERROR:", error);
 
         return response;
-    }
-})
+    },
+});
 
 function getLobbyIds() {
     /* returns a list of all the player Ids in the lobby. */
     const ids = [];
 
-    for(let i = 0; i < lobby.length; i ++) {
+    for (let i = 0; i < lobby.length; i++) {
         ids.push(lobby[i].id);
     }
 
@@ -52,8 +73,8 @@ function getLobbyIds() {
 
 function getIdFromSocket(socket) {
     /* returns the player id linked to the socket.*/
-    for(let i = 0; i < lobby.length; i++) {
-        if(lobby[i].socket == socket) {
+    for (let i = 0; i < lobby.length; i++) {
+        if (lobby[i].socket == socket) {
             return lobby[i].id;
         }
     }
@@ -61,8 +82,8 @@ function getIdFromSocket(socket) {
 
 function getSocketFromId(id) {
     /* returns the socket linked to the player id */
-    for(let i = 0; i < lobby.length; i++) {
-        if(lobby[i].id == id) {
+    for (let i = 0; i < lobby.length; i++) {
+        if (lobby[i].id == id) {
             return lobby[i].socket;
         }
     }
@@ -70,8 +91,8 @@ function getSocketFromId(id) {
 
 function getSocketIndex(socket) {
     /* returns the index of the socket in the lobby */
-    for(let i = 0; i < lobby.length; i++) {
-        if(lobby[i].socket == socket) {
+    for (let i = 0; i < lobby.length; i++) {
+        if (lobby[i].socket == socket) {
             return i;
         }
     }
@@ -80,11 +101,11 @@ function getSocketIndex(socket) {
 function getCarStates() {
     //returns an array of {id, transform} for lobby players car.
     const carStates = [];
-    for(let i = 0; i < lobby.length; i++) {
-        if(cars[lobby[i].id]) {
+    for (let i = 0; i < lobby.length; i++) {
+        if (cars[lobby[i].id]) {
             carStates.push({
-                id:lobby[i].id,
-                transform: cars[i]
+                id: lobby[i].id,
+                transform: cars[i],
             });
         }
     }
@@ -93,8 +114,8 @@ function getCarStates() {
 
 function returnId(id) {
     /* returns the id such that the order of ids is maintained */
-    for(let i = 0; i < availableIds.length; i++) {
-        if(availableIds[i] > id) {
+    for (let i = 0; i < availableIds.length; i++) {
+        if (availableIds[i] > id) {
             //insert before the greater element.
             availableIds.splice(i, 0, id);
             return;
@@ -104,47 +125,50 @@ function returnId(id) {
 
 function sendAll(msg) {
     //Sends a message to all lobby players.
-    for(let i = 0; i < lobby.length; i++) {
+    for (let i = 0; i < lobby.length; i++) {
         lobby[i].socket.send(JSON.stringify(msg));
     }
 }
 
 function sendAllOthers(msg, socketToIgnore) {
     //Sends a message to all lobby players except to socketToIgnore.
-    for(let i = 0; i < lobby.length; i++) {
-        if(lobby[i].socket != socketToIgnore) {
+    for (let i = 0; i < lobby.length; i++) {
+        if (lobby[i].socket != socketToIgnore) {
             lobby[i].socket.send(JSON.stringify(msg));
         }
     }
 }
 
-
-
 function onConnectionOpen(event) {
     numConnected++;
     console.log(`PLAYER CONNECTED. TOTAL PLAYERS ${numConnected}`);
-    
+
     const nextAvailableId = availableIds.shift();
-    
-    this.send(JSON.stringify({
-        type:"set_id",
-        id: nextAvailableId
-    }));
 
-    this.send(JSON.stringify({
-        type:"lobby_state",
-        ids:getLobbyIds()
-    }));
+    this.send(
+        JSON.stringify({
+            type: "set_id",
+            id: nextAvailableId,
+        })
+    );
 
-    for(let i = 0; i < lobby.length; i++) {
-        lobby[i].socket.send(JSON.stringify({
-            type:"lobby_update_player_connected",
-            id: nextAvailableId
-        }));
+    this.send(
+        JSON.stringify({
+            type: "lobby_state",
+            ids: getLobbyIds(),
+        })
+    );
+
+    for (let i = 0; i < lobby.length; i++) {
+        lobby[i].socket.send(
+            JSON.stringify({
+                type: "lobby_update_player_connected",
+                id: nextAvailableId,
+            })
+        );
     }
 
-    lobby.push({id: nextAvailableId,
-                socket:this});
+    lobby.push({ id: nextAvailableId, socket: this });
 }
 
 function onConnectionClose(event) {
@@ -152,17 +176,19 @@ function onConnectionClose(event) {
     console.log(`PLAYER DISCONNECTED. TOTAL PLAYERS ${numConnected}`);
 
     const playerId = getIdFromSocket(this);
-    lobby.splice(getSocketIndex(this), 1);// remove from lobby
+    lobby.splice(getSocketIndex(this), 1); // remove from lobby
 
     returnId(playerId); // Return ID back to available ids.
 
     //Let other players know.
-    
-    for(let i = 0; i < lobby.length; i++) {
-        lobby[i].socket.send(JSON.stringify({
-            type:"lobby_update_player_disconnected",
-            id:playerId
-        }));
+
+    for (let i = 0; i < lobby.length; i++) {
+        lobby[i].socket.send(
+            JSON.stringify({
+                type: "lobby_update_player_disconnected",
+                id: playerId,
+            })
+        );
     }
 }
 
@@ -173,18 +199,17 @@ function onPlayerMessage(event) {
     */
     const msg = JSON.parse(event.data);
 
-    if(logging) {
+    if (logging) {
         console.log(`msg:\n${event.data}`);
     }
-    switch(msg.type) {
-        
+    switch (msg.type) {
         case "add_car": {
             const outMsg = {
-                type:"add_car",
-                id:msg.id,
-                transform:msg.transform,
-            }
-            if(msg.destinationId) {
+                type: "add_car",
+                id: msg.id,
+                transform: msg.transform,
+            };
+            if (msg.destinationId) {
                 //If destination Id provided then send to specific destination.
                 const dest = getSocketFromId(msg.destinationId);
                 dest.send(JSON.stringify(outMsg));
@@ -214,12 +239,13 @@ function onPlayerMessage(event) {
             break;
 
         case "get_lobby_size":
-            this.send(JSON.stringify({
-                type:"lobby_size",
-                size: lobby.length
-            }));
+            this.send(
+                JSON.stringify({
+                    type: "lobby_size",
+                    size: lobby.length,
+                })
+            );
             break;
-        
 
         case "relay_all":
             /*
@@ -231,7 +257,7 @@ function onPlayerMessage(event) {
                     relay: msg_object_to_relay
                 }
             */
-            
+
             sendAll(msg.relay);
             break;
 
@@ -248,7 +274,5 @@ function onPlayerMessage(event) {
             */
 
             sendAllOthers(msg.relay, this);
-            
     }
 }
-

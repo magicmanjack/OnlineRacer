@@ -1,0 +1,23 @@
+{
+  "name": "onlineracer",
+  "version": "1.0.0",
+  "description": "An online multiplayer racing game. Uses webGL and javascript. The Server side is using Deno.",
+  "homepage": "https://github.com/62firelight/OnlineRacer#readme",
+  "bugs": {
+    "url": "https://github.com/62firelight/OnlineRacer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/62firelight/OnlineRacer.git"
+  },
+  "license": "ISC",
+  "author": "Jack Bredenbeck, Tristan Kitto",
+  "type": "commonjs",
+  "main": "server/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mime": "^4.1.0"
+  }
+}
