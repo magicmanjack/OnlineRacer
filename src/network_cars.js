@@ -50,7 +50,6 @@ function initRaceNetworking() {
             
             case "add_car": {
                 //attach player node to scene root.
-                console.log("Add car");
                 let p = new Car();
                 p.node.translation = msg.transform.translation;
                 p.node.rotation = msg.transform.rotation;

@@ -15,10 +15,38 @@ function loadMenu() {
     car.translation = [0, -25, -80];
     car.scale = [5, 5, 5];
     car.update = () => {
-        car.rotate(0, 0.025, 0);
+        
     }
     //car.translation
-    car.addMesh(["models/car.obj", "models/car.mtl"]);
+    car.addMesh(["models/car.fbx"]);
+    
+    //First layer booster
+    car.update = () => {
+        car.rotate(0, 0.025, 0);
+        const booster1 = car.getChildByMesh("booster_1");
+        
+        if(booster1) {
+            const a = 0.05;
+            const f = 8;
+            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+
+            const scale = vibration + 1;
+            
+            booster1.scale = [scale, scale, scale];
+        }
+        //Second layer booster
+        const booster2 = car.getChildByMesh("booster_2");
+        if(booster2) {
+            const a = 0.05;
+            const f = 8;
+            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+
+            const scale = vibration + 1;
+            booster2.scale = [scale, scale, scale];
+        }
+    }
+        
+
 
     const backdrop = new SceneNode();
     backdrop.addMesh(["models/backdrop.fbx"]);
