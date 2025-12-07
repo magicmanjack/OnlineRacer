@@ -120,7 +120,7 @@ function initRaceNetworking() {
                                     const obstacleMesh = c.getChildren("mesh")[0].mesh;
 
                                     obstacleShard.mesh = obstacleMesh.reuse();
-                                    obstacleShard.scaleBy(2, 2, 2);
+                                    obstacleShard.scaleBy(0.5, 0.5, 0.5);
                                     obstacleShard.translation = [...p.node.translation];
                                     obstacleShard.rotation = [...c.rotation];
                                     sceneGraph.root.addChild(obstacleShard);

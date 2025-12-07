@@ -480,7 +480,7 @@ function loadTrack1() {
                             const obstacleMesh = p.getChildren("mesh")[0].mesh;
 
                             obstacleShard.mesh = obstacleMesh.reuse();
-                            obstacleShard.scaleBy(20, 20, 20);
+                            obstacleShard.scaleBy(0.5, 0.5, 0.5);
                             obstacleShard.translation = [
                                 ...car.node.translation,
                             ];
