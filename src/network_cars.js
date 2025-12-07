@@ -62,7 +62,15 @@ function initRaceNetworking() {
 
                 const carModel = new SceneNode();
                 //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
-                carModel.addMesh(["models/car.fbx"]);
+                carModel.addMesh(["models/car.fbx"]).then(() => {
+                    //Changes car texture based on player ID.
+                    if(msg.id > 1) {
+                        loadTextureAsync(`textures/car_player_${msg.id}.png`).then((texture) => {
+                            carModel.getChild("Cube").mesh.texture = texture;
+                        });
+                    }
+                
+                });
                 carModel.name = "carModel";
                 p.node.addChild(carModel);
 
