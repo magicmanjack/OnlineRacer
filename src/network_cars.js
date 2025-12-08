@@ -110,9 +110,9 @@ function initRaceNetworking() {
                     if (p.node.collisionPlane.collided) {
 
                         const collisions = p.node.collisionPlane.collisions;
-                        collisions.forEach((collider) => {
-                            const t = collider.parent.tag;
-                            const c = collider.parent;
+                        collisions.forEach((collision) => {
+                            const t = collision.sceneNode.tag;
+                            const c = collision.sceneNode;
 
                             if (t == "obstacle") {
                                 for (let i = 0; i < 4; i++) {

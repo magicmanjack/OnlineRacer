@@ -451,8 +451,8 @@ function loadTrack1() {
             const collisions = car.node.collisionPlane.collisions;
 
             for (let i = 0; i < collisions.length; i++) {
-                const t = collisions[i].parent.tag;
-                const p = collisions[i].parent;
+                const t = collisions[i].sceneNode.tag;
+                const p = collisions[i].sceneNode;
                 if (debug) {
                     console.log(t);
                 }

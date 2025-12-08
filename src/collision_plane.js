@@ -16,6 +16,8 @@ class CollisionPlane {
 
     collisions;
     collided;
+    collisionMTV;
+    bufferMTV;
 
     parent;
 
@@ -36,7 +38,8 @@ class CollisionPlane {
         this.viewLocation = gl.getUniformLocation(CollisionPlane.lineShader, "u_view");
         this.projectionLocation = gl.getUniformLocation(CollisionPlane.lineShader, "u_projection");
         this.positionAttribute = gl.getAttribLocation(CollisionPlane.lineShader, "a_position");
-    
+        this.colorToggleLocation = gl.getUniformLocation(CollisionPlane.lineShader, "u_toggle");
+        
         if(collider === undefined) {
             //Load defaults.
             loadModelFile(["models/square_collider.obj"]).then((model) => {this.loadVertices(model.meshes[0])}).then(() => {
@@ -53,6 +56,7 @@ class CollisionPlane {
         this.scale = [1, 1, 1];
         
         this.collisions = [];
+        this.collisionMTV = [2, 0, 0];
 
         SceneNode.collidables.push(this);
     }  
@@ -71,7 +75,7 @@ class CollisionPlane {
         }
 
         this.positionBuffer = gl.createBuffer();
-        
+
         this.ext.bindVertexArrayOES(this.vao);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
@@ -167,15 +171,43 @@ class CollisionPlane {
                 proj1.min <= proj2.max);
         }
 
+        const getOverlap = (proj1, proj2) => {
+            //Returns the overlap of the two projections.
+            if(proj1.max > proj2.max) {
+                // proj1 is on right and proj2 on left
+                return proj2.max - proj1.min;
+            } else {
+                // proj2 is on right and proj1 on left
+                return -1* (proj1.max - proj2.min);
+            }
+        
+
+        }
+
+        let smallestOverlap = Number.POSITIVE_INFINITY;
+        let smallestOverlapAxis = null;
+
         for(let i = 0; i < axes.length; i++) {
             const axis = axes[i];
             const proj = projectVerts(axis, verts);
             const otherProj = projectVerts(axis, otherVerts);
             
             if(!overlaps(proj, otherProj)) {
+                this.collisionMTV = [0, 0, 0];
                 return false;
             }
+
+            //Does overlap
+            if(Math.abs(getOverlap(proj, otherProj)) < Math.abs(smallestOverlap)) {
+                smallestOverlap = getOverlap(proj, otherProj);
+                smallestOverlapAxis = axis;
+            }
+
         }
+        
+        //Calculate MTV
+        
+        this.collisionMTV = vec.scale(smallestOverlap, [smallestOverlapAxis[0], 0, smallestOverlapAxis[1]]);
         
         return true;
 
@@ -197,7 +229,10 @@ class CollisionPlane {
                 if(this.loaded && other.loaded) {
                     
                     if(this.collides(other)) {
-                        this.collisions.push(other);
+                        this.collisions.push({
+                            sceneNode: other.parent,
+                            MTV: this.collisionMTV
+                        });
                         this.collided = true;
                     }    
                 }
@@ -208,12 +243,36 @@ class CollisionPlane {
     render(cam) {
         if(this.loaded) {
             gl.useProgram(CollisionPlane.lineShader);
+            gl.uniform1i(this.colorToggleLocation, this.collided ? 1 : 0);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));
             gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
 
             this.ext.bindVertexArrayOES(this.vao);
             gl.drawArrays(gl.LINE_LOOP, 0, this.vertices.length / 3);
+            this.ext.bindVertexArrayOES(null);
+
+            if(this.collided) {
+                //Draw MTV
+                this.collisions.forEach((collision) => {
+                    if(!this.bufferMTV) {
+                        this.bufferMTV = gl.createBuffer();
+                    }
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferMTV);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, ...collision.MTV]), gl.STATIC_DRAW);
+
+                    const size = 3;
+                    const type = gl.FLOAT;
+                    const normalized = false;
+                    const stride = 0;
+                    const offset = 0;
+
+                    gl.enableVertexAttribArray(this.positionAttribute);
+                    gl.vertexAttribPointer(this.positionAttribute, size, type, normalized, stride, offset);
+                    gl.drawArrays(gl.LINE_LOOP, 0, 2)
+                })
+                
+            }
         }
     }
 }
