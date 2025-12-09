@@ -379,7 +379,7 @@ function loadTrack1() {
         //Camera movement calculations.
         let rotationDiff = carRotationY - cameraRotationY;
         let cameraRotationStep = rotationDiff * cameraLagFactor;
-        Camera.main.rotate(0, cameraRotationStep, 0);
+        Camera.main.rotateRelative(0, cameraRotationStep, 0);
         cameraDisp = vec.subtract(
             Camera.main.translation,
             car.node.translation
@@ -458,16 +458,13 @@ function loadTrack1() {
                 }
                 if (t == "wall") {
                     
-                    // //A collision resulted. Add negative of delta pos to undo.
-                    // let carInv = vec.scale(-1, carDelta);
-                    // let camInv = vec.scale(-1, camDelta);
-                    // car.velocityXZ = 0;
-                    // car.node.translate(carInv[0], carYVelocity, carInv[2]);
-                    // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
-                    
-                    let MTV = collisions[i].MTV;
-                    car.node.translate(MTV[0], MTV[1], MTV[2]);
-                    Camera.main.translate(MTV[0], MTV[1], MTV[2]);     
+                    //A collision resulted. Add negative of delta pos to undo.
+                    let carInv = vec.scale(-1, carDelta);
+                    let camInv = vec.scale(-1, camDelta);
+                    car.velocityXZ = 0;
+                    car.node.translate(carInv[0], carYVelocity, carInv[2]);
+                    Camera.main.translate(camInv[0], camInv[1], camInv[2]);
+                     
                     
                     
                    

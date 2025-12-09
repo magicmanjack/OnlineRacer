@@ -277,14 +277,17 @@ class CollisionPlane {
             this.ext.bindVertexArrayOES(null);
 
             if(this.collided) {
+                gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(mat.identity()));
                 //Draw MTV
                 this.collisions.forEach((collision) => {
+
                     gl.uniform1i(this.colorToggleLocation, 1); //Toggles red color
                     if(!this.debugDrawBuffer) {
                         this.debugDrawBuffer = gl.createBuffer();
                     }
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.debugDrawBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, ...collision.MTV]), gl.STATIC_DRAW);
+                    const t = mat.getTranslationVector(this.model);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...t, collision.MTV[0] + t[0],collision.MTV[1] + t[1], collision.MTV[2] + t[2]]), gl.STATIC_DRAW);
 
                     const size = 3;
                     const type = gl.FLOAT;
@@ -301,7 +304,7 @@ class CollisionPlane {
                         this.debugDrawBuffer = gl.createBuffer();
                     }
                     
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, ...collision.normal]), gl.STATIC_DRAW);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...t, collision.normal[0] + t[0],collision.normal[1] + t[1], collision.normal[2] + t[2]]), gl.STATIC_DRAW);
 
                     gl.enableVertexAttribArray(this.positionAttribute);
                     gl.vertexAttribPointer(this.positionAttribute, size, type, normalized, stride, offset);

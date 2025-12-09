@@ -25,6 +25,7 @@ function loadCollisionTest() {
     c.translation = [0, 5, 0];
     c.scale = [1.5, 1.5, 1.5];
     player.addCollisionPlane(c);
+    player.name = "player";
 
     player.update = () => {
         Camera.main.translation = vec.add(player.translation, [0, 30, 0]);
