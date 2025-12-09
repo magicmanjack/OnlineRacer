@@ -13,6 +13,7 @@ function loadCollisionTest() {
     const object = new SceneNode();
     object.addMesh(["models/cube.obj"]);
     object.translation = [-2, 1, 2];
+    object.rotation = [0, Math.PI/4,0];
     const objectCollider = new CollisionPlane();
     objectCollider.translation = [0, 1.5, 0];
 

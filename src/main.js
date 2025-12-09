@@ -61,7 +61,9 @@ function update() {
 
             input.processTimeframeEvents(frameTimeStamp);
 
-            sceneGraph.updateScene();
+            if(sceneGraph.ready()) {
+                sceneGraph.updateScene();
+            }
 
             UILayer.forEach((e) => {
                 e.checkMouseHover();

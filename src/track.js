@@ -457,12 +457,20 @@ function loadTrack1() {
                     console.log(t);
                 }
                 if (t == "wall") {
-                    //A collision resulted. Add negative of delta pos to undo.
-                    let carInv = vec.scale(-1, carDelta);
-                    let camInv = vec.scale(-1, camDelta);
-                    car.velocityXZ = 0;
-                    car.node.translate(carInv[0], carYVelocity, carInv[2]);
-                    Camera.main.translate(camInv[0], camInv[1], camInv[2]);
+                    
+                    // //A collision resulted. Add negative of delta pos to undo.
+                    // let carInv = vec.scale(-1, carDelta);
+                    // let camInv = vec.scale(-1, camDelta);
+                    // car.velocityXZ = 0;
+                    // car.node.translate(carInv[0], carYVelocity, carInv[2]);
+                    // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
+                    
+                    let MTV = collisions[i].MTV;
+                    car.node.translate(MTV[0], MTV[1], MTV[2]);
+                    Camera.main.translate(MTV[0], MTV[1], MTV[2]);     
+                    
+                    
+                   
                 } else if (t == "ramp") {
                     //collision with ramp
                     carYVelocity += (1 / 25) * Math.abs(car.velocityXZ);

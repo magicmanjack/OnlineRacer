@@ -17,7 +17,8 @@ class CollisionPlane {
     collisions;
     collided;
     collisionMTV;
-    bufferMTV;
+    collisionNormal;
+    debugDrawBuffer;
 
     parent;
 
@@ -56,7 +57,8 @@ class CollisionPlane {
         this.scale = [1, 1, 1];
         
         this.collisions = [];
-        this.collisionMTV = [2, 0, 0];
+        this.collisionMTV = [0, 0, 0];
+        this.collisionNormal = [0, 0, 0];
 
         SceneNode.collidables.push(this);
     }  
@@ -104,7 +106,8 @@ class CollisionPlane {
             return out;
         }
 
-        const axes = []; // axis should be normals of each edge.
+        const thisAxes = []; // axis should be normals of each edge.
+        const otherAxes = [];
         
         const verts = transformVerts(this.model, this.vertices);
         const otherVerts = transformVerts(other.model, other.vertices);
@@ -125,7 +128,7 @@ class CollisionPlane {
             const edge = vec.subtract(p1, p2);
             const norm = vec.normalize(vec.perp(edge));
             
-            axes.push(norm);
+            thisAxes.push(norm);
         }
 
         for(let i = 0; i < otherVerts.length; i++) {
@@ -140,7 +143,7 @@ class CollisionPlane {
             const edge = vec.subtract(p1, p2);
             const norm = vec.normalize(vec.perp(edge));
 
-            axes.push(norm); 
+            otherAxes.push(norm); 
         }
 
         /* Check for seperating axes */
@@ -187,8 +190,28 @@ class CollisionPlane {
         let smallestOverlap = Number.POSITIVE_INFINITY;
         let smallestOverlapAxis = null;
 
-        for(let i = 0; i < axes.length; i++) {
-            const axis = axes[i];
+        for(let i = 0; i < otherAxes.length; i++) {
+            const axis = otherAxes[i];
+            const proj = projectVerts(axis, verts);
+            const otherProj = projectVerts(axis, otherVerts);
+            
+            if(!overlaps(proj, otherProj)) {
+                this.collisionMTV = [0, 0, 0];
+                return false;
+            }
+
+            //Does overlap
+            if(Math.abs(getOverlap(proj, otherProj)) < Math.abs(smallestOverlap)) {
+                smallestOverlap = getOverlap(proj, otherProj);
+                smallestOverlapAxis = axis;
+            }
+
+        }
+
+        this.collisionNormal = vec.scale(smallestOverlap, [smallestOverlapAxis[0], 0, smallestOverlapAxis[1]]);
+
+        for(let i = 0; i < thisAxes.length; i++) {
+            const axis = thisAxes[i];
             const proj = projectVerts(axis, verts);
             const otherProj = projectVerts(axis, otherVerts);
             
@@ -231,7 +254,8 @@ class CollisionPlane {
                     if(this.collides(other)) {
                         this.collisions.push({
                             sceneNode: other.parent,
-                            MTV: this.collisionMTV
+                            MTV: this.collisionMTV,
+                            normal: this.collisionNormal
                         });
                         this.collided = true;
                     }    
@@ -255,10 +279,11 @@ class CollisionPlane {
             if(this.collided) {
                 //Draw MTV
                 this.collisions.forEach((collision) => {
-                    if(!this.bufferMTV) {
-                        this.bufferMTV = gl.createBuffer();
+                    gl.uniform1i(this.colorToggleLocation, 1); //Toggles red color
+                    if(!this.debugDrawBuffer) {
+                        this.debugDrawBuffer = gl.createBuffer();
                     }
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferMTV);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.debugDrawBuffer);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, ...collision.MTV]), gl.STATIC_DRAW);
 
                     const size = 3;
@@ -270,6 +295,19 @@ class CollisionPlane {
                     gl.enableVertexAttribArray(this.positionAttribute);
                     gl.vertexAttribPointer(this.positionAttribute, size, type, normalized, stride, offset);
                     gl.drawArrays(gl.LINE_LOOP, 0, 2)
+
+                    gl.uniform1i(this.colorToggleLocation, 0); //Toggles green color
+                    if(!this.debugDrawBuffer) {
+                        this.debugDrawBuffer = gl.createBuffer();
+                    }
+                    
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, ...collision.normal]), gl.STATIC_DRAW);
+
+                    gl.enableVertexAttribArray(this.positionAttribute);
+                    gl.vertexAttribPointer(this.positionAttribute, size, type, normalized, stride, offset);
+                    gl.drawArrays(gl.LINE_LOOP, 0, 2)
+
+                    
                 })
                 
             }
