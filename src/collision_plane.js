@@ -208,7 +208,7 @@ class CollisionPlane {
 
         }
 
-        this.collisionNormal = vec.scale(smallestOverlap, [smallestOverlapAxis[0], 0, smallestOverlapAxis[1]]);
+        this.collisionNormal = vec.scale(smallestOverlap>0?1:-1, [smallestOverlapAxis[0], 0, smallestOverlapAxis[1]]);
 
         for(let i = 0; i < thisAxes.length; i++) {
             const axis = thisAxes[i];
