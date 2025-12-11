@@ -338,5 +338,24 @@ const sceneGraph = {
         the number of meshes to load.*/
         //console.log(`${SceneNode.numLoadedMeshes}/${SceneNode.numMeshes}`);
         return SceneNode.numMeshes == SceneNode.numLoadedMeshes;
+    },
+    preCalcMatrices: function(node=this.root) {
+        /* Calculates all the rotation matrices in the sceneGraph which
+        should be done prior to the first update. Otherwise the matrices will
+        only get calculated only once it is a nodes turn to update. */
+        let local = node.calculateLocal(node);
+        let parentWorld = node.parent ? node.parent.world : mat.identity(); // returns identity if parent is root.
+
+        node.world = mat.multiply(parentWorld, local);
+
+        if (node.mesh) {
+            node.mesh.model = node.world;
+        }
+
+        if (node.collisionPlane) {
+            node.collisionPlane.model = mat.multiply(node.world, node.calculateLocal(node.collisionPlane));
+        }
+
+        node.children.forEach((child) => { this.preCalcMatrices(child)});
     }
 };

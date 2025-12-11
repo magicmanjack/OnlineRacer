@@ -64,7 +64,7 @@ class CollisionPlane {
     }  
 
     loadVertices = (mesh) => {
-    
+        
         // Loads vertices from mesh.faces and mesh.vertices
         for(let i = 0; i < mesh.faces.length; i++) {
            //For each face
@@ -93,6 +93,7 @@ class CollisionPlane {
     }
 
     collides(other) {
+        
         // uses the SAT to test for collision against the other object.
 
         const transformVerts = (m, v) => {
@@ -252,6 +253,7 @@ class CollisionPlane {
                 if(this.loaded && other.loaded) {
                     
                     if(this.collides(other)) {
+                        
                         this.collisions.push({
                             sceneNode: other.parent,
                             MTV: this.collisionMTV,
