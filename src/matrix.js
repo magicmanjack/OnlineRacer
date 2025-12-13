@@ -350,6 +350,18 @@ const vec = {
         }
         return out;
     },
+    cross: function(a, b) {
+        //The cross product of vectors a and b
+        if (a.length != b.length && a.length != 3) {
+            console.log("Can only do the cross product on 3D vectors.");
+            return;
+        }
+        return [
+            a[1]*b[2]-a[2]*b[1],
+            a[2]*b[0]-a[0]*b[2],
+            a[0]*b[1]-a[1]*b[0]
+        ]
+    },
     rotate: function (v, rx, ry, rz) {
         // Rotates a 3D vector v by rx, ry, rz radians
         if (v.length !== 3) {
@@ -360,5 +372,15 @@ const vec = {
         const rot = mat3x3.rotate(rx, ry, rz);
         // Multiply rotation matrix by vector
         return mat3x3.multiplyVec(rot, v);
+    },
+    angle: function(a, b) {
+        // Returns the angle between vectors A and B
+        if (a.length !== 3 || b.length !== 3) {
+            console.log("Can only operate this function on 3D vectors.");
+            return;
+        }
+        // A dot B = |A||B|cos(theta) which means theta = cos-1(A dot B / (|A||B|))
+        return Math.acos(vec.dot(a, b) / (vec.magnitude(a)*vec.magnitude(b)));        
+
     }
 };

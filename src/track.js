@@ -80,8 +80,6 @@ function loadTrack1() {
 
     car = new Car();
 
-    let carDirection = vec.rotate([0, 0, -1], 0, 0, 0);
-
     let carYVelocity = 0;
     let rotateSpeed = 0;
 
@@ -203,8 +201,8 @@ function loadTrack1() {
                         BREAK_FRICTION * currentGamepad.getLeftTriggerValue();
                 }
 
-                if (car.velocityXZ < -4) {
-                    car.velocityXZ = -4;
+                if (car.velocityXZ < MAX_REVERSE_VEL) {
+                    car.velocityXZ = MAX_REVERSE_VEL;
                 }
             }
 
@@ -218,15 +216,8 @@ function loadTrack1() {
                 // Analog Movement
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
-                    car.node.rotate(0, rotateSpeed * absLeftXAxis, 0);
+                    
                     carRotationY += rotateSpeed * absLeftXAxis;
-
-                    carDirection = vec.rotate(
-                        carDirection,
-                        0,
-                        rotateSpeed * absLeftXAxis,
-                        0
-                    );
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -242,15 +233,8 @@ function loadTrack1() {
                         }
                     }
                 } else if (currentGamepad.getLeftXAxis() > 0.15) {
-                    car.node.rotate(0, -rotateSpeed * absLeftXAxis, 0);
+                    
                     carRotationY -= rotateSpeed * absLeftXAxis;
-
-                    carDirection = vec.rotate(
-                        carDirection,
-                        0,
-                        -rotateSpeed * absLeftXAxis,
-                        0
-                    );
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -271,9 +255,8 @@ function loadTrack1() {
                     const r = input.drift
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
-                    car.node.rotate(0, r, 0);
+                    
                     carRotationY += r; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
-                    carDirection = vec.rotate(carDirection, 0, r, 0);
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -296,9 +279,8 @@ function loadTrack1() {
                     const r = input.drift
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
-                    car.node.rotate(0, -r, 0);
+                    
                     carRotationY -= r; //* currentGamepad.getLeftXAxis(); // disabled since this breaks the camera
-                    carDirection = vec.rotate(carDirection, 0, -r, 0);
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -425,17 +407,13 @@ function loadTrack1() {
                 MAX_ROTATE_SPEED * rotateSpeedFunction(car.velocityXZ);
         }
 
-        let newcarDirection = vec.scale(car.velocityXZ, carDirection);
+        
         carYVelocity = carYVelocity + GRAVITY;
 
         // Translation of the car in the new direction.
-        const carDelta = [newcarDirection[0], carYVelocity, newcarDirection[2]];
-        car.node.translate(carDelta[0], carDelta[1], carDelta[2]);
-        const camDelta = [
-            newcarDirection[0],
-            newcarDirection[1],
-            newcarDirection[2],
-        ];
+        const carDelta = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
+        car.node.translate(carDelta[0], carYVelocity, carDelta[2]);
+        const camDelta = carDelta;
         Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
         if (car.node.translation[1] < groundLevel) {
@@ -469,8 +447,30 @@ function loadTrack1() {
                     //New collision code
                     
                     let MTV = collisions[i].MTV;
+                    let norm = collisions[i].normal;
+                    let carVelVector = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
+                    let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
+
+                    if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
+                        //Only for angles smaller than 45 and speeds great enough
+                        let cross = vec.cross(carVelVector, norm);
                     
-                    car.velocityXZ = 0;
+                        if(cross[1] > 0) {
+                            carRotationY += deflectAngle;
+                        } else if(cross[1] < 0) {
+                            carRotationY -= deflectAngle;
+                        }
+
+                        car.velocityXZ -= WALL_FRICTION;
+                        if(car.velocityXZ < MAX_REVERSE_VEL) {
+                            car.velocityXZ = MAX_REVERSE_VEL;
+                        }
+
+                    } else {
+                        //Lose all velocity because colliding with wall head on
+                        car.velocityXZ = 0;
+                    }
+                    
                     car.node.translate(MTV[0], MTV[1], MTV[2]);
                     Camera.main.translate(MTV[0], MTV[1], MTV[2]);
 
@@ -502,11 +502,7 @@ function loadTrack1() {
                             obstacleShard.rotation = [...p.rotation];
                             sceneGraph.root.addChild(obstacleShard);
 
-                            let carDirNorm = vec.normalize([
-                                carDirection[0],
-                                0,
-                                carDirection[2],
-                            ]);
+                            let carDirNorm = vec.normalize(vec.rotate([0, 0, -1*car.velocityXZ], 0, -1*carRotationY, 0));
                             if (car.velocityXZ < 0) {
                                 carDirNorm = -carDirNorm;
                             }
@@ -580,7 +576,7 @@ function loadTrack1() {
                         car.originalUpdate = car.node.update;
                         car.node.update = function () {
                             if (car.spinFramesLeft > 0) {
-                                car.node.rotate(0, rotationStep, 0);
+                                carRotationY += rotationStep;
                                 // Slow down the car drastically while spinning
                                 car.velocityXZ *= 0.95;
                                 car.spinFramesLeft--;
@@ -687,6 +683,9 @@ function loadTrack1() {
                 boostTimer = 0;
             }
         }
+
+        // Apply car rotation to actual sceneNode
+        car.node.rotation = [0, carRotationY + Math.PI, 0];
 
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
