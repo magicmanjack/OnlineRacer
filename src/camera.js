@@ -7,8 +7,10 @@ class Camera {
         origin bottom left.
     */
 
-    static main = new Camera([0, 0, 15], [0, 0, 0]);
     //track1 load position [0, 10, 15], [0, 0, 0]
+
+    static cameras = [new Camera([0, 0, 15], [0, 0, 0])]; // Can switch between different cameras by setting main to them.
+    static main = Camera.cameras[0];
 
     constructor(translation, rotation) {
         this.translation = translation;
@@ -16,7 +18,7 @@ class Camera {
         this.displayWidth = 25;
         this.displayHeight = 25;
         this.zNear = 25;
-        this.zFar = 2000;
+        this.zFar = 3500;
     }
 
     translate(tx, ty, tz) {

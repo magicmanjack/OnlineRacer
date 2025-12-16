@@ -56,3 +56,89 @@ function loadCollisionTest() {
     sceneGraph.root.addChild(player);
 
 }
+
+function loadHillTest() {
+    debug = true;
+    Camera.main.translation = [30, 20, 30];
+    Camera.main.rotation = [-Math.PI/8, Math.PI/4, 0];
+    const map = new SceneNode();
+    map.addMesh(['models/hilltest.fbx']);
+    map.scale = [2, 2, 2];
+    const normals = new GroundNormals("textures/hill_test_normals.png", map, 51.2);
+
+    const player = new SceneNode();
+    player.addMesh(['models/cube.obj']);
+    player.translation = [0, 10, 20];
+    let yVel = 0;
+    let groundLevel = 1;
+    player.update = () => {
+        
+        const norm = normals.getNormalAt(player.translation[0], player.translation[2]);
+        
+        const grav = 0.1;
+        const stepLength = 0.5;
+        
+        if(input.up) {
+
+            let zd = -stepLength;
+            let yd = 0;
+            
+            if(norm[1] != 1) {
+                //ground gradient not flat
+                
+                const a = vec.angle(norm, [0, 0, -1]);
+                if(a < Math.PI/2) {
+                    //Going down hill
+                    zd =  -stepLength * Math.cos(Math.PI/2 - a);
+                    yd =  -stepLength * Math.sin(Math.PI/2 - a);
+                    
+                } else {
+                    //going up
+
+                    zd =  -stepLength * Math.cos(a - Math.PI/2);
+                    yd =  stepLength * Math.sin(a - Math.PI/2);
+                }
+
+                groundLevel += yd;
+            }
+            
+            player.translate(0, yd, zd);
+        }
+        if(input.down) {
+            
+            let zd = stepLength;
+            let yd = 0;
+            
+            if(norm[1] != 1) {
+                //ground gradient not flat
+                
+                const a = vec.angle(norm, [0, 0, 1]);
+                if(a < Math.PI/2) {
+                    //Going down hill
+                    zd =  stepLength * Math.cos(Math.PI/2 - a);
+                    yd =  -stepLength * Math.sin(Math.PI/2 - a);
+                    
+                } else {
+                    //going up
+
+                    zd =  stepLength * Math.cos(a - Math.PI/2);
+                    yd =  stepLength * Math.sin(a - Math.PI/2);
+                }
+
+                groundLevel += yd;
+            }
+            
+            player.translate(0, yd, zd);
+        }
+
+        yVel -= grav;
+        player.translate(0, yVel, 0);
+        if(player.translation[1] < groundLevel) {
+            player.translation[1] = groundLevel;
+            yVel = 0;
+        }
+    }
+
+    sceneGraph.root.addChild(map);
+    sceneGraph.root.addChild(player);
+}
