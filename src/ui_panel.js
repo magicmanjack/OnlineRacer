@@ -51,7 +51,7 @@ class UIPanel {
         this.y = y;
         this.w = w;
         this.h = h;
-
+        
         if(!UIPanel.shader) {
             //Make sure the ui shader program is ready.
             UIPanel.shader = createProgram("shaders/ui.vert", "shaders/ui.frag");
@@ -61,7 +61,8 @@ class UIPanel {
             vertices defined in the order of ll, rl, lu, ru,
         */
         const z = -30.0;
-
+        this.z = z;
+        
         this.vertices = [
             x - w / 2, y - h / 2, z,
             x + w / 2, y - h / 2, z,
@@ -123,6 +124,45 @@ class UIPanel {
 
     }
 
+    recalculateVertices() {
+        /*
+            Recalculates the vertices of the panel and loads them into an OpenGL array buffer.
+        */
+        const x = this.x;
+        const y = this.y;
+        const z = this.z; 
+        const w = this.w;
+        const h = this.h;
+
+        
+
+        this.vertices = [
+            x - w / 2, y - h / 2, z,
+            x + w / 2, y - h / 2, z,
+            x - w / 2, y + h / 2, z,
+            x + w / 2, y + h / 2, z
+        ];
+
+        
+        // Load into buffer
+
+        this.ext.bindVertexArrayOES(this.vao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+
+        const size = 3;
+        const type = gl.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        const offset = 0;
+
+        gl.enableVertexAttribArray(this.positionAttribute);
+        gl.vertexAttribPointer(this.positionAttribute, size, type, normalize, stride, offset);
+        
+        this.ext.bindVertexArrayOES(null);
+    }
+
     checkMouseHover() {
         /*
             Returns true if the mouse pointer is hovering over the panel.
@@ -163,6 +203,7 @@ class UIPanel {
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
+            
         }  
     }
 

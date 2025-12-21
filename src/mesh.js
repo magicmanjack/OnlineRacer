@@ -66,6 +66,7 @@ class Mesh {
 
         
         this.vertices = this.vertices.concat(mesh.vertices);
+        
         this.textureCoords = mesh.texturecoords[0];
 
         for (let j = 0; j < mesh.faces.length; j++) {

@@ -145,7 +145,12 @@ function loadHillTest() {
 
 function loadHillTest2() {
 
-    let groundNormals;
+    let heightMapDisplay = new UIPanel(8, 1, 10, 10, ["textures/hill_test_height_2.png"]);
+    let playerMarker = new UIPanel(5, 1, 0.5, 0.5, ["textures/default.png"]);
+    UILayer.push(playerMarker);
+    UILayer.push(heightMapDisplay);
+
+    let groundHeights;
     let allClientsLoaded = true;
     toggleHUD = true;
 
@@ -501,40 +506,22 @@ function loadHillTest2() {
 
         // Translation of the car in the new direction.
         const carDelta = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
-        //gradients
-        norm = groundNormals.getNormalAt(car.node.translation[0], car.node.translation[2]);
-        
-        if(Math.abs(car.velocityXZ) > 0) {
-            if(norm[1] != 1) {
-                //ground gradient not flat
-                const horizontalStep = Math.abs(car.velocityXZ);
-                
-                const a = vec.angle(norm, carDelta);
-                if(a < Math.PI/2) {
-                    //Going down hill
-                    yd =  -horizontalStep * Math.sin(Math.PI/2 - a);
-                    
-                } else {
-                    //going up
-
-                    yd =  horizontalStep * Math.sin(a - Math.PI/2);
-                }
-
-                groundLevel += yd;
-            }
-        }
-        
-        
-
 
         car.node.translate(carDelta[0], carYVelocity, carDelta[2]);
         const camDelta = carDelta;
-        const camYDisp = 40;
+        const camYDisp = 30;
         Camera.main.translate(camDelta[0], ((car.node.translation[1] + camYDisp) - Camera.main.translation[1])/10, camDelta[2]);
-
-        if (car.node.translation[1] < groundLevel) {
+        
+        playerMarker.x = 8 + (car.node.translation[0] / 1000) * 5;
+        playerMarker.y = 1 + -(car.node.translation[2] / 1000) *5;
+        playerMarker.recalculateVertices();
+        //console.log(groundLevel);
+        
+        groundLevel = groundHeights.getHeightAt(car.node.translation[0], car.node.translation[2]);
+        
+        if (car.node.translation[1] - 10 < groundLevel) {
             //If car phases through ground
-            car.node.translation[1] = groundLevel;
+            car.node.translation[1] = groundLevel + 10;
             carYVelocity = 0;
         }
 
@@ -890,18 +877,17 @@ function loadHillTest2() {
         //Start line assumed to be oriented so that it is pointing in the -z direction.
         const spawnSeperation = 40;
         car.node.translation = vec.add(
-            [startLine.translation[0] + 50, 0, startLine.translation[2]],
+            [startLine.translation[0] - 500, 0, startLine.translation[2]],
             [-3 * spawnSeperation + spawnSeperation * 0, groundLevel, 0]
         );
 
-        Camera.main.translation = vec.add(car.node.translation, CAMERA_REL_CAR);
-
+        Camera.main.translation = vec.add(car.node.translation, [0, 10, 100]);
+        //Camera.main.rotation = [-Math.PI/2, 0, 0];
+        groundHeights = new GroundHeights("textures/hill_test_height_2.png", ground.getChild("Plane"), 1080/2);
         sceneGraph.preCalcMatrices(ground);
     });
     
-    ground.translate(0, -5, -50);
-
-    groundNormals = new GroundNormals("textures/hill_test_normals_2.png", ground, 0.512);
+    ground.translate(0, 0, 0);
 
     sceneGraph.root.addChild(car.node);
     sceneGraph.root.addChild(ground); 
