@@ -67,7 +67,7 @@ class GroundHeights {
         }
     }
 
-    getHeightAt(x, z) {
+    getHeightAt(worldX, worldZ) {
         /* Returns the height value of the parent at coordinate (x, z) */
         /* Currently does not deal with parents that have been rotated */
 
@@ -79,17 +79,35 @@ class GroundHeights {
         const sy = scale[1];
         const sz = scale[2];
 
-        let relX = (x - translation[0]) / sx * this.relativeScale + this.origin[0];
-        let relZ = (z - translation[2]) / sz * this.relativeScale + this.origin[1];
-        //console.log(`${relX} ${relZ}`);
+        let x = (worldX - translation[0]) / sx * this.relativeScale + this.origin[0];
+        let y = (worldZ - translation[2]) / sz * this.relativeScale + this.origin[1];
+        //console.log(`${x} ${y}`);
         
-        if(relX < 0 || relX >= this.img.width || relZ < 0 || relZ >= this.img.height) {
+        if(x < 0 || x >= this.img.width || y < 0 || y >= this.img.height) {
             
             return 0;
         } else {
-            const pixelData = this.ctx.getImageData(relX, relZ, 1, 1).data;
-            
-            return  sy * (this.minHeight + (this.maxHeight - this.minHeight) * (pixelData[0]/255));
+
+            //Calculate 4 pixel neighbourhood and bilinearly interpolate value
+            const x0 = Math.floor(x);
+            const y0 = Math.floor(y);
+            const x1 = Math.ceil(x);
+            const y1 = Math.ceil(y);
+
+            const pixelData = this.ctx.getImageData(x0, y0, 2, 2).data;
+
+            const p00 = pixelData[0];
+            const p10 = pixelData[4];
+            const p01 = pixelData[8];
+            const p11 = pixelData[12];
+
+            //Interpolation in the x direction
+            const ix0 = (x1 - x)/(x1 - x0)*p00 + (x-x0)/(x1-x0)*p10;
+            const ix1 = (x1 - x)/(x1 - x0)*p01 + (x-x0)/(x1-x0)*p11;
+
+            const ixy = (y1 - y)/(y1-y0)*ix0 + (y - y0)/(y1-y0)*ix1;
+
+            return  sy * (this.minHeight + (this.maxHeight - this.minHeight) * (ixy / 255));
         }
     }
 }

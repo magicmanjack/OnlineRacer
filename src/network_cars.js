@@ -57,8 +57,9 @@ function initRaceNetworking() {
                 
                 sceneGraph.root.addChild(p.node);
                 p.node.tag = "car";
-                p.node.addCollisionPlane(new CollisionPlane());
-                p.node.collisionPlane.scale = [2, 1, 3];
+                const collider = new CollisionPlane();
+                p.node.addCollisionPlane(collider);
+                collider.scale = [2, 1, 3];
 
                 const carModel = new SceneNode();
                 //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
@@ -107,49 +108,53 @@ function initRaceNetworking() {
                         booster2.scale = [scale, scale, scale];
                     }
                     p.node.collisionStep();
-                    if (p.node.collisionPlane.collided) {
 
-                        const collisions = p.node.collisionPlane.collisions;
-                        collisions.forEach((collision) => {
-                            const t = collision.sceneNode.tag;
-                            const c = collision.sceneNode;
+                    p.node.colliders.forEach((c) => {
+                        if (c.collided) {
 
-                            if (t == "obstacle") {
-                                for (let i = 0; i < 4; i++) {
-                                    const obstacleShard = new SceneNode();
-                                    const obstacleMesh = c.getChildren("mesh")[0].mesh;
+                            const collisions = c.collisions;
+                            collisions.forEach((collision) => {
+                                const t = collision.sceneNode.tag;
+                                const c = collision.sceneNode;
 
-                                    obstacleShard.mesh = obstacleMesh.reuse();
-                                    obstacleShard.scaleBy(0.5, 0.5, 0.5);
-                                    obstacleShard.translation = [...p.node.translation];
-                                    obstacleShard.rotation = [...c.rotation];
-                                    sceneGraph.root.addChild(obstacleShard);
-                                    let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
-                                    let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
-                                    let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
-                                    let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
-                                    let speed = 5 + Math.random() * 2;
-                                    let velocityVec = [
-                                        Math.cos(angle) * speed + Math.random() * 2,
-                                        2 + Math.random() * 2 + Math.random() * 2,
-                                        Math.sin(angle) * speed + Math.random() * 2
-                                    ];
+                                if (t == "obstacle") {
+                                    for (let i = 0; i < 4; i++) {
+                                        const obstacleShard = new SceneNode();
+                                        const obstacleMesh = c.getChildren("mesh")[0].mesh;
 
-                                    let frames = 40;
-                                    obstacleShard.update = function () {
-                                        this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
-                                        velocityVec[1] -= 0.3;
-                                        frames--;
-                                        if (frames <= 0) {
-                                            this.remove();
-                                        }
-                                    };
+                                        obstacleShard.mesh = obstacleMesh.reuse();
+                                        obstacleShard.scaleBy(0.5, 0.5, 0.5);
+                                        obstacleShard.translation = [...p.node.translation];
+                                        obstacleShard.rotation = [...c.rotation];
+                                        sceneGraph.root.addChild(obstacleShard);
+                                        let netCarDir = vec.rotate([0, 0, -1], c.rotation[0], c.rotation[1], c.rotation[2]);
+                                        let carDirNorm = vec.normalize([netCarDir[0], 0, netCarDir[2]]);
+                                        let baseAngle = Math.atan2(carDirNorm[2], carDirNorm[0]);
+                                        let angle = baseAngle + ((i - 1.5) * Math.PI / 4) + Math.random() * (Math.PI / 8);
+                                        let speed = 5 + Math.random() * 2;
+                                        let velocityVec = [
+                                            Math.cos(angle) * speed + Math.random() * 2,
+                                            2 + Math.random() * 2 + Math.random() * 2,
+                                            Math.sin(angle) * speed + Math.random() * 2
+                                        ];
 
+                                        let frames = 40;
+                                        obstacleShard.update = function () {
+                                            this.translate(velocityVec[0], velocityVec[1], velocityVec[2]);
+                                            velocityVec[1] -= 0.3;
+                                            frames--;
+                                            if (frames <= 0) {
+                                                this.remove();
+                                            }
+                                        };
+
+                                    }
+                                    c.remove();
                                 }
-                                c.remove();
-                            }
-                        });
-                    }
+                            });
+                        }
+                    });
+                    
                 };
 
                 networkCars.set(msg.id, p);

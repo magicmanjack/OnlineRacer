@@ -17,22 +17,6 @@ Need to process object movement before calculating model matrix.
 
 class SceneNode {
 
-
-    parent;
-    children;
-
-    name;
-    tag = "default";
-
-    translation;
-    rotation;
-    scale;
-    world;
-
-    mesh;
-    collisionPlane;
-    update;
-
     // Used to keep track of the mesh loading progress on track load time.
     static numMeshes = 0;
     static numLoadedMeshes = 0;
@@ -49,6 +33,9 @@ class SceneNode {
         this.scale = [1, 1, 1];
         this.world = mat.identity();
         this.mesh = null;
+        this.tag = "default";
+        
+        this.colliders = [];
     }
 
     translate(tx, ty, tz) {
@@ -134,10 +121,11 @@ class SceneNode {
                         /*
                             child is a collider and must be handled accordingly.
                         */
-                        parent.sceneNode.addCollisionPlane(new CollisionPlane(model.meshes[child.node.meshes[0]]));
-                        parent.sceneNode.collisionPlane.translation = mat.getTranslationVector(child.node.transformation);
-                        parent.sceneNode.collisionPlane.scale = mat.getScaleVector(child.node.transformation);
-                        parent.sceneNode.collisionPlane.rotation = mat.getRotationVector(child.node.transformation);
+                        const c = new CollisionPlane(model.meshes[child.node.meshes[0]]);
+                        parent.sceneNode.addCollisionPlane(c);
+                        c.translation = mat.getTranslationVector(child.node.transformation);
+                        c.scale = mat.getScaleVector(child.node.transformation);
+                        c.rotation = mat.getRotationVector(child.node.transformation);
                         continue;
                     }
                     nodeQueue.push(child);
@@ -188,7 +176,7 @@ class SceneNode {
 
     addCollisionPlane(collisionPlane) {
         collisionPlane.parent = this;
-        this.collisionPlane = collisionPlane;
+        this.colliders.push(collisionPlane);
     }
 
     collisionStep() {
@@ -197,14 +185,15 @@ class SceneNode {
             This is meant to be called after all movements are done,
             and then after the call, collision can be checked.
         */
-
-        if (this.collisionPlane) {
+        this.colliders.forEach((c => {
+            
             let local = this.calculateLocal(this);
             let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
             let world = mat.multiply(parentWorld, local);
-            this.collisionPlane.model = mat.multiply(world, this.calculateLocal(this.collisionPlane));
-            this.collisionPlane.checkCollisions(SceneNode.collidables);
-        }
+            c.model = mat.multiply(world, this.calculateLocal(c));
+            c.checkCollisions(SceneNode.collidables);
+        
+        }));
 
     }
 
@@ -223,9 +212,9 @@ class SceneNode {
             this.mesh.model = this.world;
         }
 
-        if (this.collisionPlane) {
-            this.collisionPlane.model = mat.multiply(this.world, this.calculateLocal(this.collisionPlane));
-        }
+        this.colliders.forEach((c) => {
+            c.model = mat.multiply(this.world, this.calculateLocal(c));
+        });
 
         this.children.forEach((child) => { child.updateChildren() });
 
@@ -233,11 +222,17 @@ class SceneNode {
 
     remove() {
         this.parent.removeChild(this);
-        for (let i = 0; i <= SceneNode.collidables.length; i++) {
-            if (SceneNode.collidables[i] === this.collisionPlane) {
-                SceneNode.collidables.splice(i, 1);
-            }
-        }
+        this.colliders.forEach((c) => {
+            for (let i = 0; i <= SceneNode.collidables.length; i++) {
+
+                if (SceneNode.collidables[i] === c) {
+                    SceneNode.collidables.splice(i, 1);
+                    i--; // To prevent skipping over the next element as the array gets smaller
+                }
+
+            }        
+        });
+        
     }
 
     removeChild(child) {
@@ -305,8 +300,11 @@ class SceneNode {
 
     render() {
 
-        if (debug && this.collisionPlane) {
-            this.collisionPlane.render(Camera.main);
+        if (debug) {
+            this.colliders.forEach((c) => {
+                c.render(Camera.main);
+            });
+            
         }
         if (this.mesh) {
             this.mesh.render(Camera.main);
@@ -352,9 +350,9 @@ const sceneGraph = {
             node.mesh.model = node.world;
         }
 
-        if (node.collisionPlane) {
-            node.collisionPlane.model = mat.multiply(node.world, node.calculateLocal(node.collisionPlane));
-        }
+        node.colliders.forEach((c) => {
+            c.model = mat.multiply(node.world, node.calculateLocal(c));
+        });
 
         node.children.forEach((child) => { this.preCalcMatrices(child)});
     }

@@ -145,7 +145,7 @@ function loadHillTest() {
 
 function loadHillTest2() {
 
-    let heightMapDisplay = new UIPanel(8, 1, 10, 10, ["textures/hill_test_height_2.png"]);
+    let heightMapDisplay = new UIPanel(8, 1, 10, 7.68, ["textures/brands_hatch_heights.png"]);
     let playerMarker = new UIPanel(5, 1, 0.5, 0.5, ["textures/default.png"]);
     UILayer.push(playerMarker);
     UILayer.push(heightMapDisplay);
@@ -512,8 +512,8 @@ function loadHillTest2() {
         const camYDisp = 30;
         Camera.main.translate(camDelta[0], ((car.node.translation[1] + camYDisp) - Camera.main.translation[1])/10, camDelta[2]);
         
-        playerMarker.x = 8 + (car.node.translation[0] / 1000) * 5;
-        playerMarker.y = 1 + -(car.node.translation[2] / 1000) *5;
+        playerMarker.x = 8 + (car.node.translation[0] / 50000) * 5;
+        playerMarker.y = 1 + -(car.node.translation[2] / 50000) * 5;
         playerMarker.recalculateVertices();
         //console.log(groundLevel);
         
@@ -529,216 +529,219 @@ function loadHillTest2() {
 
         let currentStartLineCollision = false;
 
-        if (car.node.collisionPlane.collided) {
-            const collisions = car.node.collisionPlane.collisions;
+        car.node.colliders.forEach((c) => {
+            if (c.collided) {
+                const collisions = c.collisions;
 
-            for (let i = 0; i < collisions.length; i++) {
-                const t = collisions[i].sceneNode.tag;
-                const p = collisions[i].sceneNode;
-                if (debug) {
-                    console.log(t);
-                }
-                if (t == "wall") {
-                    
-                    // //A collision resulted. Add negative of delta pos to undo.
-                    // let carInv = vec.scale(-1, carDelta);
-                    // let camInv = vec.scale(-1, camDelta);
-                    // car.velocityXZ = 0;
-                    // car.node.translate(carInv[0], carYVelocity, carInv[2]);
-                    // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
-
-                    //New collision code
-                    
-                    let MTV = collisions[i].MTV;
-                    let norm = collisions[i].normal;
-                    let carVelVector = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
-                    let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
-
-                    if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
-                        //Only for angles smaller than 45 and speeds great enough
-                        let cross = vec.cross(carVelVector, norm);
-                    
-                        if(cross[1] > 0) {
-                            carRotationY += deflectAngle;
-                        } else if(cross[1] < 0) {
-                            carRotationY -= deflectAngle;
-                        }
-
-                        car.velocityXZ -= WALL_FRICTION;
-                        if(car.velocityXZ < MAX_REVERSE_VEL) {
-                            car.velocityXZ = MAX_REVERSE_VEL;
-                        }
-
-                    } else {
-                        //Lose all velocity because colliding with wall head on
-                        car.velocityXZ = 0;
+                for (let i = 0; i < collisions.length; i++) {
+                    const t = collisions[i].sceneNode.tag;
+                    const p = collisions[i].sceneNode;
+                    if (debug) {
+                        console.log(t);
                     }
-                    
-                    car.node.translate(MTV[0], MTV[1], MTV[2]);
-                    Camera.main.translate(MTV[0], MTV[1], MTV[2]);
+                    if (t == "wall") {
+                        
+                        // //A collision resulted. Add negative of delta pos to undo.
+                        // let carInv = vec.scale(-1, carDelta);
+                        // let camInv = vec.scale(-1, camDelta);
+                        // car.velocityXZ = 0;
+                        // car.node.translate(carInv[0], carYVelocity, carInv[2]);
+                        // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
 
-                     
-                    
-                    
-                   
-                } else if (t == "ramp") {
-                    //collision with ramp
-                    carYVelocity += (1 / 25) * Math.abs(car.velocityXZ);
-                } else if (t == "boost") {
-                    boostTimer = 1;
-                    boostSfxEle.play();
-                } else if (t == "start") {
-                    currentStartLineCollision = true;
-                } else if (t == "obstacle" || t == "car") {
-                    if (t == "obstacle") {
-                        obstacleCrashSfxEle.play();
-                        for (let i = 0; i < 4; i++) {
-                            const obstacleShard = new SceneNode();
+                        //New collision code
+                        
+                        let MTV = collisions[i].MTV;
+                        let norm = collisions[i].normal;
+                        let carVelVector = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
+                        let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
 
-                            const obstacleMesh = p.getChildren("mesh")[0].mesh;
-
-                            obstacleShard.mesh = obstacleMesh.reuse();
-                            obstacleShard.scaleBy(0.5, 0.5, 0.5);
-                            obstacleShard.translation = [
-                                ...car.node.translation,
-                            ];
-                            obstacleShard.rotation = [...p.rotation];
-                            sceneGraph.root.addChild(obstacleShard);
-
-                            let carDirNorm = vec.normalize(vec.rotate([0, 0, -1*car.velocityXZ], 0, -1*carRotationY, 0));
-                            if (car.velocityXZ < 0) {
-                                carDirNorm = -carDirNorm;
+                        if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
+                            //Only for angles smaller than 45 and speeds great enough
+                            let cross = vec.cross(carVelVector, norm);
+                        
+                            if(cross[1] > 0) {
+                                carRotationY += deflectAngle;
+                            } else if(cross[1] < 0) {
+                                carRotationY -= deflectAngle;
                             }
-                            let baseAngle = Math.atan2(
-                                carDirNorm[2],
-                                carDirNorm[0]
-                            );
-                            let maxAngleOffset = Math.PI / 4;
-                            let angle =
-                                baseAngle +
-                                ((i - 1.5) * maxAngleOffset) / 2 +
-                                (Math.random() - 0.5) * maxAngleOffset;
-                            let speed = 5 + Math.random() * 2;
 
-                            let velocityVec = [
-                                Math.cos(angle) * speed +
-                                    carDirNorm[0] *
-                                        Math.abs(car.velocityXZ) *
-                                        0.8,
-                                2 + Math.random() * 3,
-                                Math.sin(angle) * speed +
-                                    carDirNorm[2] *
-                                        Math.abs(car.velocityXZ) *
-                                        0.8,
-                            ];
+                            car.velocityXZ -= WALL_FRICTION;
+                            if(car.velocityXZ < MAX_REVERSE_VEL) {
+                                car.velocityXZ = MAX_REVERSE_VEL;
+                            }
 
-                            let frames = 40;
-                            obstacleShard.update = function () {
-                                this.translate(
-                                    velocityVec[0],
-                                    velocityVec[1],
-                                    velocityVec[2]
-                                );
-                                velocityVec[1] -= 0.3;
-                                frames--;
-                                if (frames <= 0) {
-                                    this.remove();
+                        } else {
+                            //Lose all velocity because colliding with wall head on
+                            car.velocityXZ = 0;
+                        }
+                        
+                        car.node.translate(MTV[0], MTV[1], MTV[2]);
+                        Camera.main.translate(MTV[0], MTV[1], MTV[2]);
+
+                        
+                        
+                        
+                    
+                    } else if (t == "ramp") {
+                        //collision with ramp
+                        carYVelocity += (1 / 25) * Math.abs(car.velocityXZ);
+                    } else if (t == "boost") {
+                        boostTimer = 1;
+                        boostSfxEle.play();
+                    } else if (t == "start") {
+                        currentStartLineCollision = true;
+                    } else if (t == "obstacle" || t == "car") {
+                        if (t == "obstacle") {
+                            obstacleCrashSfxEle.play();
+                            for (let i = 0; i < 4; i++) {
+                                const obstacleShard = new SceneNode();
+
+                                const obstacleMesh = p.getChildren("mesh")[0].mesh;
+
+                                obstacleShard.mesh = obstacleMesh.reuse();
+                                obstacleShard.scaleBy(0.5, 0.5, 0.5);
+                                obstacleShard.translation = [
+                                    ...car.node.translation,
+                                ];
+                                obstacleShard.rotation = [...p.rotation];
+                                sceneGraph.root.addChild(obstacleShard);
+
+                                let carDirNorm = vec.normalize(vec.rotate([0, 0, -1*car.velocityXZ], 0, -1*carRotationY, 0));
+                                if (car.velocityXZ < 0) {
+                                    carDirNorm = -carDirNorm;
                                 }
+                                let baseAngle = Math.atan2(
+                                    carDirNorm[2],
+                                    carDirNorm[0]
+                                );
+                                let maxAngleOffset = Math.PI / 4;
+                                let angle =
+                                    baseAngle +
+                                    ((i - 1.5) * maxAngleOffset) / 2 +
+                                    (Math.random() - 0.5) * maxAngleOffset;
+                                let speed = 5 + Math.random() * 2;
+
+                                let velocityVec = [
+                                    Math.cos(angle) * speed +
+                                        carDirNorm[0] *
+                                            Math.abs(car.velocityXZ) *
+                                            0.8,
+                                    2 + Math.random() * 3,
+                                    Math.sin(angle) * speed +
+                                        carDirNorm[2] *
+                                            Math.abs(car.velocityXZ) *
+                                            0.8,
+                                ];
+
+                                let frames = 40;
+                                obstacleShard.update = function () {
+                                    this.translate(
+                                        velocityVec[0],
+                                        velocityVec[1],
+                                        velocityVec[2]
+                                    );
+                                    velocityVec[1] -= 0.3;
+                                    frames--;
+                                    if (frames <= 0) {
+                                        this.remove();
+                                    }
+                                };
+                            }
+                            p.remove();
+                        }
+                        if (car.velocityXZ <= 8.5 && t == "car") {
+                            // potential logic for rebounding off of collided cars
+                            // if (t == "car") {
+                            //     let carInv = vec.scale(-1, carDelta);
+                            //     let camInv = vec.scale(-1, camDelta);
+                            //     let scale = 5;
+                            //     car.velocityXZ = - 1 / 10 * car.velocityXZ;
+                            //     car.node.translate(scale * carInv[0], carYVelocity, scale * carInv[2]);
+                            //     camera.translate(scale * camInv[0], camInv[1], scale * camInv[2]);
+                            // }
+                            break;
+                        }
+                        controlsDisabled = true;
+                        let speed = Math.abs(car.velocityXZ);
+                        // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
+                        let rotationFrames = Math.min(
+                            60,
+                            Math.round((30 * 15) / speed)
+                        );
+                        let direction = Math.random();
+                        let rotationStep = (4 * Math.PI) / rotationFrames;
+                        if (direction < 0.5) {
+                            rotationStep = -1 * rotationStep;
+                        }
+
+                        if (!car.spinning) {
+                            car.spinning = true;
+                            car.spinFramesLeft = rotationFrames;
+                            car.originalUpdate = car.node.update;
+                            car.node.update = function () {
+                                if (car.spinFramesLeft > 0) {
+                                    carRotationY += rotationStep;
+                                    // Slow down the car drastically while spinning
+                                    car.velocityXZ *= 0.95;
+                                    car.spinFramesLeft--;
+                                    if (car.spinFramesLeft == 0) {
+                                        car.velocityXZ = 0;
+                                    }
+                                } else {
+                                    car.spinning = false;
+                                    // Restore the original update function after spinning
+                                    car.node.update = car.originalUpdate;
+                                    if (!gameFinished) {
+                                        controlsDisabled = false;
+                                    }
+                                }
+                                car.originalUpdate && car.originalUpdate.call(this);
                             };
                         }
-                        p.remove();
-                    }
-                    if (car.velocityXZ <= 8.5 && t == "car") {
-                        // potential logic for rebounding off of collided cars
-                        // if (t == "car") {
-                        //     let carInv = vec.scale(-1, carDelta);
-                        //     let camInv = vec.scale(-1, camDelta);
-                        //     let scale = 5;
-                        //     car.velocityXZ = - 1 / 10 * car.velocityXZ;
-                        //     car.node.translate(scale * carInv[0], carYVelocity, scale * carInv[2]);
-                        //     camera.translate(scale * camInv[0], camInv[1], scale * camInv[2]);
-                        // }
-                        break;
-                    }
-                    controlsDisabled = true;
-                    let speed = Math.abs(car.velocityXZ);
-                    // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
-                    let rotationFrames = Math.min(
-                        60,
-                        Math.round((30 * 15) / speed)
-                    );
-                    let direction = Math.random();
-                    let rotationStep = (4 * Math.PI) / rotationFrames;
-                    if (direction < 0.5) {
-                        rotationStep = -1 * rotationStep;
-                    }
-
-                    if (!car.spinning) {
-                        car.spinning = true;
-                        car.spinFramesLeft = rotationFrames;
-                        car.originalUpdate = car.node.update;
-                        car.node.update = function () {
-                            if (car.spinFramesLeft > 0) {
-                                carRotationY += rotationStep;
-                                // Slow down the car drastically while spinning
-                                car.velocityXZ *= 0.95;
-                                car.spinFramesLeft--;
-                                if (car.spinFramesLeft == 0) {
-                                    car.velocityXZ = 0;
-                                }
-                            } else {
-                                car.spinning = false;
-                                // Restore the original update function after spinning
-                                car.node.update = car.originalUpdate;
-                                if (!gameFinished) {
-                                    controlsDisabled = false;
-                                }
-                            }
-                            car.originalUpdate && car.originalUpdate.call(this);
-                        };
-                    }
-                } else if (
-                    t == "magnet" &&
-                    car.node.translation[1] < groundLevel + 1
-                ) {
-                    terminalVelocity = MAGNET_TERMINAL_VEL;
-                    if (Math.abs(car.velocityXZ) > 2) {
-                        acceleration = ACCELERATION / 2;
-                    } else {
-                        acceleration = ACCELERATION; // to prevent the car from getting stuck
-                    }
-                } else if (t == "checkpoint") {
-                    const checkpointName = p.name;
-                    let checkpointNumber = getCheckpointNumber(checkpointName);
-                    if (!checkpointStack.includes(checkpointName)) {
-                        if (
-                            checkpointStack.length == 0 &&
-                            checkpointNumber == 1
-                        ) {
-                            checkpointStack.push(checkpointName);
-                        } else if (
-                            checkpointStack.length != 0 &&
-                            checkpointNumber ==
-                                getCheckpointNumber(
-                                    checkpointStack[checkpointStack.length - 1]
-                                ) +
-                                    1
-                        ) {
-                            checkpointStack.push(checkpointName);
-                        }
                     } else if (
-                        checkpointStack.includes(
-                            "checkpoint.00" + (checkpointNumber + 1)
-                        )
+                        t == "magnet" &&
+                        car.node.translation[1] < groundLevel + 1
                     ) {
-                        checkpointStack.pop();
+                        terminalVelocity = MAGNET_TERMINAL_VEL;
+                        if (Math.abs(car.velocityXZ) > 2) {
+                            acceleration = ACCELERATION / 2;
+                        } else {
+                            acceleration = ACCELERATION; // to prevent the car from getting stuck
+                        }
+                    } else if (t == "checkpoint") {
+                        const checkpointName = p.name;
+                        let checkpointNumber = getCheckpointNumber(checkpointName);
+                        if (!checkpointStack.includes(checkpointName)) {
+                            if (
+                                checkpointStack.length == 0 &&
+                                checkpointNumber == 1
+                            ) {
+                                checkpointStack.push(checkpointName);
+                            } else if (
+                                checkpointStack.length != 0 &&
+                                checkpointNumber ==
+                                    getCheckpointNumber(
+                                        checkpointStack[checkpointStack.length - 1]
+                                    ) +
+                                        1
+                            ) {
+                                checkpointStack.push(checkpointName);
+                            }
+                        } else if (
+                            checkpointStack.includes(
+                                "checkpoint.00" + (checkpointNumber + 1)
+                            )
+                        ) {
+                            checkpointStack.pop();
+                        }
                     }
                 }
+            } else {
+                terminalVelocity = TERMINAL_VEL;
+                acceleration = ACCELERATION;
             }
-        } else {
-            terminalVelocity = TERMINAL_VEL;
-            acceleration = ACCELERATION;
-        }
+
+        });
 
         // Handle start line collision only on transition from not colliding to colliding
         if (currentStartLineCollision && !lastStartLineCollision) {
@@ -815,12 +818,13 @@ function loadHillTest2() {
     carModel.name = "carModel";
     car.node.addChild(carModel);
 
-    car.node.addCollisionPlane(new CollisionPlane());
-    car.node.collisionPlane.scale = [2, 1, 3];
+    const c = new CollisionPlane();
+    car.node.addCollisionPlane(c);
+    c.scale = [2, 1, 3];
 
     ground = new SceneNode();
     
-    ground.addMesh(["models/hilltest_2.fbx"]).then(() => {
+    ground.addMesh(["models/track02.fbx"]).then(() => {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
@@ -869,26 +873,30 @@ function loadHillTest2() {
         });
 
         car.node.scaleBy(3, 3, 3);
-        car.node.rotate(0, Math.PI + startLine.rotation[1], 0);
+        car.node.rotate(0, Math.PI, 0);
 
-        Camera.main.rotate(CAMERA_DOWN_TILT, startLine.rotation[1], 0);
+        Camera.main.rotate(CAMERA_DOWN_TILT, 0, 0);
 
         //Car spawn point. Position needs to be linked to Client.id
         //Start line assumed to be oriented so that it is pointing in the -z direction.
         const spawnSeperation = 40;
+
+        sceneGraph.preCalcMatrices(startLine);
+        const startLinePos = mat.getTranslationVector(startLine.world);
+
         car.node.translation = vec.add(
-            [startLine.translation[0] - 500, 0, startLine.translation[2]],
+            [startLinePos[0], 0, startLinePos[2]],
             [-3 * spawnSeperation + spawnSeperation * 0, groundLevel, 0]
         );
 
         Camera.main.translation = vec.add(car.node.translation, [0, 10, 100]);
         //Camera.main.rotation = [-Math.PI/2, 0, 0];
-        groundHeights = new GroundHeights("textures/hill_test_height_2.png", ground.getChild("Plane"), 1080/2);
+        groundHeights = new GroundHeights("textures/brands_hatch_heights.png", ground.getChild("ground"), 11360/2);
         sceneGraph.preCalcMatrices(ground);
     });
     
     ground.translate(0, 0, 0);
-
+    
     sceneGraph.root.addChild(car.node);
     sceneGraph.root.addChild(ground); 
     

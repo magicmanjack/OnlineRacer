@@ -149,6 +149,10 @@ class Mesh {
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+
+            if(debug) {
+                
+            }
         }
 
     }
