@@ -891,7 +891,7 @@ function loadHillTest2() {
 
         Camera.main.translation = vec.add(car.node.translation, [0, 10, 100]);
         //Camera.main.rotation = [-Math.PI/2, 0, 0];
-        groundHeights = new GroundHeights("textures/brands_hatch_heights.png", ground.getChild("ground"), 11360/2);
+        groundHeights = new GroundHeights("textures/brands_hatch_heights_low.png", "textures/brands_hatch_heights_high.png", ground.getChild("ground"), 1420*2/2);
         sceneGraph.preCalcMatrices(ground);
     });
     

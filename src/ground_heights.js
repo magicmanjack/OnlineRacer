@@ -3,35 +3,63 @@ class GroundHeights {
     /* Creates and object that stores height (y) information about an object.
         This information can be used to create hills by setting the cars groundHeight
         value to this value. */
-    constructor(pathToHeightMap, parent, relativeScale, origin=undefined) {
+    constructor(pathToHeightMapLow, pathToHeightMapHigh, parent, relativeScale, origin=undefined) {
         /* Height map is loaded in as an image.
         Parent should contain the mesh that the height map is referring to.
         */
-
-        this.img = new Image();
-        this.img.src = pathToHeightMap;
         
-        SceneNode.numMeshes++;
+        this.img_low = new Image();
+        this.img_low.src = pathToHeightMapLow;
+        this.img_high = new Image();
+        this.img_high.src = pathToHeightMapHigh;
 
-        this.afterLoad = new Promise((resolve, reject) => {
-            this.img.onload = () => {
+        
+        SceneNode.numMeshes+=2;
+
+        this.lowLoaded = new Promise((resolve, reject) => {
+            this.img_low.onload = () => {
                 SceneNode.numLoadedMeshes++;
                 const canv = document.createElement('canvas');
-                canv.width = this.img.width;
-                canv.height = this.img.height;
+                canv.width = this.img_low.width;
+                canv.height = this.img_low.height;
 
-                this.ctx = canv.getContext('2d');
-                this.ctx.drawImage(this.img, 0, 0);
-                
-                
-                this.calibrateToParent();
-                
+                this.ctxLow = canv.getContext('2d');
+                this.ctxLow.drawImage(this.img_low, 0, 0);
                 resolve();
             }
-            this.img.onerror = () => {
-                reject(new Error(`There was a problem loading the height map '${pathToNormalMap}'`))
+
+
+            this.img_low.onerror = () => {
+                reject(new Error(`There was a problem loading the height map '${pathToHeightMapLow}'`))
             }
         });
+
+        this.highLoaded = new Promise((resolve, reject) => {
+            this.img_high.onload = () => {
+                SceneNode.numLoadedMeshes++;
+                const canv = document.createElement('canvas');
+                canv.width = this.img_high.width;
+                canv.height = this.img_high.height;
+
+                this.ctxHigh = canv.getContext('2d');
+                this.ctxHigh.drawImage(this.img_high, 0, 0);
+                resolve();
+            }
+
+            this.img_high.onerror = () => {
+                reject(new Error(`There was a problem loading the height map '${pathToHeightMapHigh}'`))
+            }
+        });
+
+        this.afterLoad = Promise.all([this.lowLoaded, this.highLoaded]).then(() => {
+
+                this.calibrateToParent();
+                this.constructHeightMap();
+                if(this.img_low.width != this.img_high.width || this.img_low.height != this.img_high.height) {
+                    return Promise.reject(new Error(`The provided height map images must have the same dimensions.'`));
+                }
+        });
+
 
         this.relativeScale = relativeScale;
         this.origin = origin;
@@ -43,7 +71,7 @@ class GroundHeights {
         map to the min/max height values of the parents mesh */
         const m = this.parent.mesh;
         if(!this.origin) {
-            this.origin = [this.img.width / 2, this.img.height/2];
+            this.origin = [this.img_low.width / 2, this.img_low.height/2];
         }
         if(m) {
             // Loop through vertices array an obtain triples (x, y, z)
@@ -67,6 +95,31 @@ class GroundHeights {
         }
     }
 
+    constructHeightMap() {
+        /*
+            Combines low and high portions of the height map 
+            together into a single height map stored as a 2D array.
+         */
+        this.heightMap = [];
+        for(let ix = 0; ix < this.img_low.width; ix++) {
+            this.heightMap.push([]);
+            for(let iy = 0; iy < this.img_low.height; iy++) {
+                //Combine low and high into one single value
+                const pixelLow = this.ctxLow.getImageData(ix, iy, 1, 1).data[0];
+                const pixelHigh = this.ctxHigh.getImageData(ix, iy, 1, 1).data[0];
+
+                //Need to left shift high chunk and combine
+
+                const combined = ((pixelHigh << 8) | pixelLow) / /* and normalize*/ (2**16 - 1);
+
+                this.heightMap[ix].push(combined);
+            }
+        }
+
+        
+
+    }
+
     getHeightAt(worldX, worldZ) {
         /* Returns the height value of the parent at coordinate (x, z) */
         /* Currently does not deal with parents that have been rotated */
@@ -83,8 +136,7 @@ class GroundHeights {
         let y = (worldZ - translation[2]) / sz * this.relativeScale + this.origin[1];
         //console.log(`${x} ${y}`);
         
-        if(x < 0 || x >= this.img.width || y < 0 || y >= this.img.height) {
-            
+        if(x < 0 || x >= this.heightMap.length || y < 0 || y >= this.heightMap[0].length) {
             return 0;
         } else {
 
@@ -94,12 +146,13 @@ class GroundHeights {
             const x1 = Math.ceil(x);
             const y1 = Math.ceil(y);
 
-            const pixelData = this.ctx.getImageData(x0, y0, 2, 2).data;
+            
+            const h = this.heightMap;
 
-            const p00 = pixelData[0];
-            const p10 = pixelData[4];
-            const p01 = pixelData[8];
-            const p11 = pixelData[12];
+            const p00 = h[x0][y0];
+            const p10 = h[x1][y0];
+            const p01 = h[x0][y1];
+            const p11 = h[x1][y1];
 
             //Interpolation in the x direction
             const ix0 = (x1 - x)/(x1 - x0)*p00 + (x-x0)/(x1-x0)*p10;
@@ -107,7 +160,7 @@ class GroundHeights {
 
             const ixy = (y1 - y)/(y1-y0)*ix0 + (y - y0)/(y1-y0)*ix1;
 
-            return  sy * (this.minHeight + (this.maxHeight - this.minHeight) * (ixy / 255));
+            return  sy * (this.minHeight + (this.maxHeight - this.minHeight) * (ixy));
         }
     }
 }
