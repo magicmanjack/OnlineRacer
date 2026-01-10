@@ -148,7 +148,7 @@ function loadLobby() {
         }
 
         if(m.type == "initiate_load_track_1") {
-            sceneGraph.load(loadTrack1);
+            loadTrack(0);
         }
         /*
         if(m.type == "lobby_update_player_connected") {

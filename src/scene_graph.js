@@ -321,15 +321,13 @@ const sceneGraph = {
     renderScene: function () {
         this.root.render();
     },
-    load: function(loadCallback) {
+    reset: function() {
         /*Clears the scene heirarchy and UI and then calls back
         the provided callback function*/
         UILayer = [];
         this.root = new SceneNode();
         SceneNode.numMeshes = 0;
         SceneNode.numLoadedMeshes = 0;
-
-        loadCallback();
     },
     ready: function() {
         /* Returns true if the number of meshes loaded matches

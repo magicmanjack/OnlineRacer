@@ -290,7 +290,7 @@ function initRaceNetworking() {
                 }
                 break;
             case "loading_next_track":
-                sceneGraph.load(loadTrack1);
+                loadTrack(0);
                 leaderboard.reset();
                 break;
                 

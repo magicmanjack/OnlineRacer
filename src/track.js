@@ -1,3 +1,8 @@
+const TRACKS = [
+    "models/maps/track1.fbx",
+    "models/maps/track_brands_hatch.fbx"
+]
+
 let toggleHUD = false;
 
 const CAMERA_REL_CAR = [0, 50 * 0.8, 110 * 0.8];
@@ -57,7 +62,8 @@ const audio = {
     },
 };
 
-function loadTrack1() {
+function loadTrack(trackIndex) {
+    sceneGraph.reset();
     toggleHUD = true;
 
     let car;
@@ -720,7 +726,7 @@ function loadTrack1() {
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.addMesh(["models/maps/track1.fbx"]).then(() => {
+    ground.addMesh([TRACKS[trackIndex]]).then(() => {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
