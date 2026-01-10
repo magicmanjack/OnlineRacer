@@ -492,7 +492,16 @@ function loadTrack(trackIndex) {
                     
                     } else if (t == "ramp") {
                         //collision with ramp
-                        carYVelocity += (1 / 25) * Math.abs(car.velocityXZ);
+                        if(carYVelocity <= 0) {
+                            let jumpAcc = (1/5) * Math.abs(car.velocityXZ);
+
+                            if(jumpAcc > CAR_MAX_JUMP_VEL) {
+                                jumpAcc = CAR_MAX_JUMP_VEL;
+                            }
+                            carYVelocity += jumpAcc;
+
+                        }
+                        
                     } else if (t == "boost") {
                         boostTimer = 1;
                         boostSfxEle.play();
