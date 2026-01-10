@@ -18,9 +18,9 @@ function loadMenu() {
         
     }
     //car.translation
-    car.addMesh(["models/car.fbx"]);
+    car.addMesh(["models/car/car.fbx"]);
     
-    //First layer booster
+    //1st layer booster
     car.update = () => {
         car.rotate(0, 0.025, 0);
         const booster1 = car.getChildByMesh("booster_1");
@@ -49,12 +49,12 @@ function loadMenu() {
 
 
     const backdrop = new SceneNode();
-    backdrop.addMesh(["models/backdrop.fbx"]);
+    backdrop.addMesh(["models/menu/backdrop.fbx"]);
     backdrop.translation = [0, -35, -80]
     backdrop.scale = [0.2, 0.2, 0.2];
 
     const background = new SceneNode();
-    background.addMesh(["models/menubackground.fbx"]);
+    background.addMesh(["models/menu/menubackground.fbx"]);
     background.translation = [0, -20, -80];
     background.scale = [2, 2, 2];
     background.update = () => {
@@ -62,7 +62,7 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    const b1 = new UIPanel(0, 0, 16, 4, ["textures/connect_button_0.png", "textures/connect_button_1.png"]);
+    const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
     b1.whenClicked = function() {
 
         Client.onOpen = (e) => {
@@ -92,7 +92,7 @@ function loadMenu() {
 
 function connectingScreen() {
     UILayer = [];
-    UILayer.push(new UIPanel(0, 0, 3*4, 3, ["textures/connecting.png"]));
+    UILayer.push(new UIPanel(0, 0, 3*4, 3, ["textures/menu/connecting.png"]));
 }
 
 function loadLobby() {
@@ -108,7 +108,7 @@ function loadLobby() {
         if(m.type == "set_id") {
             const id = m.id;
             const stripHeight = 5;
-            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`, 'textures/you.png']);
+            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
             let frameCounter = 0;
             playerStrip.update = function() {
                 frameCounter++;
@@ -126,7 +126,7 @@ function loadLobby() {
         if(m.type == "lobby_state") {
             m.ids.forEach((id) => {
                     const stripHeight = 5;
-                    const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`]);
+                    const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`]);
                     idToUIPanel.set(id, playerStrip);
                     UILayer.unshift(playerStrip);
             });
@@ -137,7 +137,7 @@ function loadLobby() {
         if(m.type == "lobby_update_player_connected") {
             const id = m.id;
             const stripHeight = 5;
-            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/player_${id}.png`, 'textures/you.png']);
+            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
             idToUIPanel.set(id, playerStrip);
             UILayer.unshift(playerStrip);
         }
@@ -171,8 +171,8 @@ function loadLobby() {
         */
     };
 
-    const lobbyPlayerPanel = new UIPanel(0, 2, 20, 20, ["textures/lobby_players_panel.png"]);
-    const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/begin_button_0.png", "textures/begin_button_1.png"]);
+    const lobbyPlayerPanel = new UIPanel(0, 2, 20, 20, ["textures/menu/lobby_players_panel.png"]);
+    const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_0.png", "textures/menu/begin_button_1.png"]);
     beginButton.update = function() {
         if(this.mouseHovering) {
             this.textureIndex = 1;

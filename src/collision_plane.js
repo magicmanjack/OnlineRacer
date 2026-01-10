@@ -43,7 +43,7 @@ class CollisionPlane {
         
         if(collider === undefined) {
             //Load defaults.
-            loadModelFile(["models/square_collider.obj"]).then((model) => {this.loadVertices(model.meshes[0])}).then(() => {
+            loadModelFile(["models/colliders/square_collider.obj"]).then((model) => {this.loadVertices(model.meshes[0])}).then(() => {
                 this.loaded = true;
             });
         } else {

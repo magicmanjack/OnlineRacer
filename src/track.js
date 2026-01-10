@@ -703,10 +703,10 @@ function loadTrack1() {
 
     const carModel = new SceneNode();
     //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
-    carModel.addMesh(["models/car.fbx"]).then(() => {
+    carModel.addMesh(["models/car/car.fbx"]).then(() => {
         //Changes car texture based on player ID.
         if(Client.id > 1) {
-            loadTextureAsync(`textures/car_player_${Client.id}.png`).then((texture) => {
+            loadTextureAsync(`textures/car/car_player_${Client.id}.png`).then((texture) => {
                 carModel.getChild("Cube").mesh.texture = texture;
             });
         }
@@ -720,7 +720,7 @@ function loadTrack1() {
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.addMesh(["models/track01_new.fbx"]).then(() => {
+    ground.addMesh(["models/maps/track1.fbx"]).then(() => {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
@@ -794,10 +794,10 @@ function loadTrack1() {
 
     // Traffic light code
     const light = new UIPanel(10, 5, 5, 10, [
-        "textures/light_off.png",
-        "textures/light_red.png",
-        "textures/light_orange.png",
-        "textures/light_green.png",
+        "textures/race/light_off.png",
+        "textures/race/light_red.png",
+        "textures/race/light_orange.png",
+        "textures/race/light_green.png",
     ]);
 
     const raceMusicChoices = [
