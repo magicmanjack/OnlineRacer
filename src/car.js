@@ -16,7 +16,7 @@ const CAR_HOVER_AMPLITUDE = 0.2;
 //The maximum displacement amplitude of the car in the vertical direction when hovering.
 const CAR_HOVER_FREQUENCY = 0.5; // How many oscillations per second.
 
-const TERMINAL_VEL = 30;
+const TERMINAL_VEL = 35;
 const BOOST_TERMINAL_VEL = TERMINAL_VEL * 1.5;
 const MAX_REVERSE_VEL = -4;
 
