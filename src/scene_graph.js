@@ -328,6 +328,7 @@ const sceneGraph = {
         this.root = new SceneNode();
         SceneNode.numMeshes = 0;
         SceneNode.numLoadedMeshes = 0;
+        SceneNode.collidables = [];
     },
     ready: function() {
         /* Returns true if the number of meshes loaded matches

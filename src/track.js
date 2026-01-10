@@ -440,7 +440,12 @@ function loadTrack(trackIndex) {
                     const t = collisions[i].sceneNode.tag;
                     const p = collisions[i].sceneNode;
                     if (debug) {
-                        console.log(t);
+                        
+                        if(p.name) {
+                            console.log("type: " + t + " name: " + p.name);
+                        } else {
+                            console.log("type: " + t);
+                        }
                     }
                     if (t == "wall") {
                         
@@ -775,8 +780,9 @@ function loadTrack(trackIndex) {
         });
 
         car.node.scaleBy(3, 3, 3);
-        car.node.rotate(0, Math.PI + startLine.rotation[1], 0);
+        carRotationY = startLine.rotation[1];
 
+        cameraRotationY = startLine.rotation[1];
         Camera.main.rotate(CAMERA_DOWN_TILT, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
@@ -787,7 +793,7 @@ function loadTrack(trackIndex) {
             [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
         );
 
-        Camera.main.translation = vec.add(car.node.translation, CAMERA_REL_CAR);
+        Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
         sceneGraph.preCalcMatrices(ground);
     });
