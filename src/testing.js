@@ -78,12 +78,12 @@ function loadParticleTest() {
     generator.maxParticles = 500;
 
     generator.particleInit = function(p) {
-        p.velocity = [Math.random() * 0.5 - 0.25, 0, Math.random() * 0.5 - 0.25];
+        p.velocity = [Math.random() * 0.5 - 0.25, Math.random() * 0.5 - 0.25, 0];
         p.size = [1.5, 1.5];
         p.ttl = 15;
     }
     generator.particleUpdate = function(p) {
-        p.velocity = vec.add(p.velocity, [0, -0.1, 0]);
+        p.velocity = vec.add(p.velocity, [0, 0, -0.1]);
         p.position = vec.add(p.position, p.velocity);
         p.size = vec.scale(0.93, p.size);
        

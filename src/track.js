@@ -116,6 +116,8 @@ function loadTrack(trackIndex) {
     let lapCount = 1;
     let gameFinished = false;
 
+    let g1, g2; // The left and right particle generators for the car.
+
     audio.reset();
 
     // Timer display functions
@@ -316,6 +318,20 @@ function loadTrack(trackIndex) {
         }
 
         //Car animations
+        
+
+        //Car spark animations
+        if(carRoll > MAX_CAR_ROLL / 2 && input.drift && car.node.translation[1] == groundLevel) {
+            g1.enable = true;
+        } else {
+            g1.enable = false;
+        }
+
+        if(carRoll < -1 * MAX_CAR_ROLL / 2 && input.drift && car.node.translation[1] == groundLevel) {
+            g2.enable = true;
+        } else {
+            g2.enable = false;
+        }
         car.node.getChild("carModel").rotation = [0, 0, -carRoll];
         car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
 
@@ -730,6 +746,37 @@ function loadTrack(trackIndex) {
                 carModel.getChild("Cube").mesh.texture = texture;
             });
         }
+            //Add spark particle generators to wings
+        g1 = new ParticleGenerator("/textures/default.png");
+        g2 = new ParticleGenerator("/textures/default.png");
+        g1.maxParticles = 100;
+        g2.maxParticles = 100;
+        g1.emitAmount = 3;
+        g2.emitAmount = 3;
+        g1.enable = false;
+        g2.enable = false;
+        let gInit = (p) => {
+            //Move opposite car direction
+            //Car dir
+            
+            const carDir = vec.rotate([0, 0, Math.min(car.velocityXZ, 4)], 0, carRotationY, 0);
+            const strength = 2.5;
+            const randInfluence = [Math.random()*strength - strength/2, Math.random()*strength - strength/2, Math.random()*strength - strength/2];
+            p.velocity = vec.add(vec.scale(1, carDir), randInfluence);
+            p.position = [...randInfluence];
+            p.ttl = 60;
+        }
+        let gUpdate = (p) => {
+            p.position = vec.add(p.position, p.velocity);
+            p.size = vec.scale(0.95, p.size);
+        }
+        g1.particleInit = gInit;
+        g1.particleUpdate = gUpdate;
+        g2.particleInit = gInit;
+        g2.particleUpdate = gUpdate;
+        carModel.getChild("wing_left").addParticleGenerator(g1);
+
+        carModel.getChild("wing_right").addParticleGenerator(g2);
        
     });
     carModel.name = "carModel";

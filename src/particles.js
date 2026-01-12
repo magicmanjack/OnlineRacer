@@ -9,7 +9,7 @@ class ParticleGenerator {
     constructor(textureFileName) {
         this.emitAmount = 10;
         this.maxParticles = 100;
-        
+        this.enable = true;
 
         this.particles = [];
 
@@ -79,27 +79,31 @@ class ParticleGenerator {
     }
 
     update() {
-        if(this.parent) {this.position = this.parent.translation;}
+        if(this.parent) {
+            this.position = mat.getTranslationVector(this.parent.world);
+        }
         
         //Generate new particles, update current particles, and kill off old ones
 
 
         //Remove old particles if over max
-        if(this.particles.length + this.emitAmount > this.maxParticles) {
-            const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
-            this.particles.splice(0, nRemove); 
-        }
-        for(let i = 0; i < this.emitAmount; i++) {
-            const p = {
-                position: [0, 0, 0],
-                velocity: [0, 0, 0],
-                size: [1,1],
-                ttl:30
-            };
-            if(this.particleInit && typeof this.particleInit == "function") {
-                this.particleInit(p)
+        if(this.enable) {
+            if(this.particles.length + this.emitAmount > this.maxParticles) {
+                const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
+                this.particles.splice(0, nRemove); 
             }
-            this.particles.push(p);
+            for(let i = 0; i < this.emitAmount; i++) {
+                const p = {
+                    position: [0, 0, 0],
+                    velocity: [0, 0, 0],
+                    size: [1,1],
+                    ttl:-1
+                };
+                if(this.particleInit && typeof this.particleInit == "function") {
+                    this.particleInit(p)
+                }
+                this.particles.push(p);
+            }
         }
 
         for(let i = 0; i < this.particles.length; i++) {
@@ -115,7 +119,7 @@ class ParticleGenerator {
             }
 
             //update
-         
+        
             if(this.particleUpdate && typeof this.particleUpdate == "function") {
                 this.particleUpdate(p);
             }
@@ -125,7 +129,7 @@ class ParticleGenerator {
     }
 
     render(cam) {
-        if(this.loaded) {
+        if(this.loaded && this.particles.length >0) {
             gl.useProgram(this.shader);
             
             gl.uniformMatrix4fv(this.projectionUniform, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
