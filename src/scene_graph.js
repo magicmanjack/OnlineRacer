@@ -174,6 +174,11 @@ class SceneNode {
         });
     }
 
+    addParticleGenerator(p) {
+        p.parent = this;
+        this.particleGenerator = p;
+    }
+
     addCollisionPlane(collisionPlane) {
         collisionPlane.parent = this;
         this.colliders.push(collisionPlane);
@@ -211,10 +216,15 @@ class SceneNode {
         if (this.mesh) {
             this.mesh.model = this.world;
         }
+        
 
         this.colliders.forEach((c) => {
             c.model = mat.multiply(this.world, this.calculateLocal(c));
         });
+
+        if(this.particleGenerator) {
+            this.particleGenerator.update();
+        }
 
         this.children.forEach((child) => { child.updateChildren() });
 
@@ -309,6 +319,11 @@ class SceneNode {
         if (this.mesh) {
             this.mesh.render(Camera.main);
         }
+
+        if(this.particleGenerator) {
+            this.particleGenerator.render(Camera.main);
+        }
+
         this.children.forEach((child) => { child.render() });
     }
 }

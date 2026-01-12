@@ -287,11 +287,11 @@ const vec = {
         defines vector operations.
     */
     scale: function (a, v) {
-        if (v.length != 3) {
-            console.log("Improper vector scaling: can only have 3x1");
-            return;
+        let out = [...v]
+        for(let i = 0; i < v.length; i++) {
+            out[i] = a * out[i];
         }
-        return [a * v[0], a * v[1], a * v[2]];
+        return out;
     },
     add: function (a, b) {
         if (a.length != b.length) {

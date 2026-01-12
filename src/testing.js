@@ -57,6 +57,77 @@ function loadCollisionTest() {
 
 }
 
+let peek;
+let peekCar;
+
+function loadParticleTest() {
+    debug = true;
+    sceneGraph.reset();
+    Camera.main.translation = [0, 0, 25];
+    Camera.main.rotation = [0, 0, 0];
+    
+    const player = new SceneNode();
+    peekCar = player;
+    //player.addMesh(["models/car/car.fbx"]);
+    player.translation = [0, 0, 0];
+
+    player.name = "player";
+
+    const generator = new ParticleGenerator("textures/default.png");
+
+    generator.maxParticles = 500;
+
+    generator.particleInit = function(p) {
+        p.velocity = [Math.random() * 0.5 - 0.25, 0, Math.random() * 0.5 - 0.25];
+        p.size = [1.5, 1.5];
+        p.ttl = 15;
+    }
+    generator.particleUpdate = function(p) {
+        p.velocity = vec.add(p.velocity, [0, -0.1, 0]);
+        p.position = vec.add(p.position, p.velocity);
+        p.size = vec.scale(0.93, p.size);
+       
+    }
+    peek = generator;
+
+    player.addParticleGenerator(generator);
+
+    let speed = 0.5;
+    player.update = () => {
+        player.translate(speed, 0, 0);
+        player.rotate(0.1, 0.1, 0.1);
+        if(player.translation[0] + speed > 20 || player.translation[0] + speed < -20) {
+            speed = -1 * speed;
+        }
+        
+        if(input.up) {
+            Camera.main.translate(0, 0, -0.6);
+        }
+
+        if(input.down) {
+            Camera.main.translate(0, 0, 0.6);
+        }
+
+        if(input.left) {
+            Camera.main.translate(-0.6, 0, 0);
+        }
+
+
+        if(input.right) {
+            Camera.main.translate(0.6, 0, 0);
+        }
+
+        if(input.drift) {
+            Camera.main.rotate(0,-0.1, 0);
+        }
+
+        player.collisionStep();
+        
+    }
+    sceneGraph.root.addChild(player);
+
+}
+
 function loadHillTest() {
     debug = true;
     Camera.main.translation = [30, 20, 30];
