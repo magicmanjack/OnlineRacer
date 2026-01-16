@@ -758,12 +758,15 @@ function loadTrack(trackIndex) {
         let gInit = (p) => {
             //Move opposite car direction
             //Car dir
+            //TODO: get rid of spacing between spawn
+            const sparkVel = 3.0;
+            const randStrength = 1.0;
+            const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
+            const carDir = vec.rotate([0, 0, -1 * car.velocityXZ + sparkVel], 0, carRotationY, 0);
             
-            const carDir = vec.rotate([0, 0, Math.min(car.velocityXZ, 4)], 0, carRotationY, 0);
-            const strength = 2.5;
-            const randInfluence = [Math.random()*strength - strength/2, Math.random()*strength - strength/2, Math.random()*strength - strength/2];
-            p.velocity = vec.add(vec.scale(1, carDir), randInfluence);
-            p.position = [...randInfluence];
+            p.velocity = vec.add(carDir, randInfluence);
+            
+            p.size = [1.5, 1.5];
             p.ttl = 60;
         }
         let gUpdate = (p) => {

@@ -20,12 +20,11 @@ class ParticleGenerator {
         this.projectionUniform = gl.getUniformLocation(this.shader, "u_projection");
         this.vertexAttribute = gl.getAttribLocation(this.shader, "a_position");
         this.textureCoordAttribute = gl.getAttribLocation(this.shader, "a_texcoord");
-        this.positionUniform = gl.getUniformLocation(this.shader, "u_emitter_world_pos");
         this.offsetUniform = gl.getUniformLocation(this.shader, "u_offset");
         this.sizeUniform = gl.getUniformLocation(this.shader, "u_size");
         
 
-        this.position = [0.0, 0.0, 0.0];
+        this.emitterPosition = [0.0, 0.0, 0.0];
 
         this.vertices = [
             -0.5, -0.5, 0.0,
@@ -80,31 +79,11 @@ class ParticleGenerator {
 
     update() {
         if(this.parent) {
-            this.position = mat.getTranslationVector(this.parent.world);
+            this.emitterPosition = mat.getTranslationVector(this.parent.world);
         }
         
         //Generate new particles, update current particles, and kill off old ones
 
-
-        //Remove old particles if over max
-        if(this.enable) {
-            if(this.particles.length + this.emitAmount > this.maxParticles) {
-                const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
-                this.particles.splice(0, nRemove); 
-            }
-            for(let i = 0; i < this.emitAmount; i++) {
-                const p = {
-                    position: [0, 0, 0],
-                    velocity: [0, 0, 0],
-                    size: [1,1],
-                    ttl:-1
-                };
-                if(this.particleInit && typeof this.particleInit == "function") {
-                    this.particleInit(p)
-                }
-                this.particles.push(p);
-            }
-        }
 
         for(let i = 0; i < this.particles.length; i++) {
             const p = this.particles[i];
@@ -126,6 +105,26 @@ class ParticleGenerator {
             
         }
 
+        //Remove old particles if over max
+        if(this.enable) {
+            if(this.particles.length + this.emitAmount > this.maxParticles) {
+                const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
+                this.particles.splice(0, nRemove); 
+            }
+            for(let i = 0; i < this.emitAmount; i++) {
+                const p = {
+                    position: this.emitterPosition,
+                    velocity: [0, 0, 0],
+                    size: [1,1],
+                    ttl:-1
+                };
+                if(this.particleInit && typeof this.particleInit == "function") {
+                    this.particleInit(p)
+                }
+                this.particles.push(p);
+            }
+        }
+
     }
 
     render(cam) {
@@ -134,7 +133,6 @@ class ParticleGenerator {
             
             gl.uniformMatrix4fv(this.projectionUniform, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
             gl.uniformMatrix4fv(this.viewUniform, false, mat.transpose(cam.createView()));
-            gl.uniform3fv(this.positionUniform, new Float32Array(this.position));
 
             ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
