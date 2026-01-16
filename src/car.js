@@ -35,7 +35,7 @@ const MAGNET_FRICTION = POST_TERMINAL_FRICTION * 2;
 const BREAK_FRICTION = 0.9;
 
 const DRIFT_FRICTION = 0.15;
-const DRIFT_TURN_FACTOR = 1.1;
+const DRIFT_TURN_FACTOR = 1.4;
 
 const WALL_FRICTION = 2.1;
 const MIN_DEFLECT_VEL = 8; // The min velocity of the car in order for it to deflect off a wall.

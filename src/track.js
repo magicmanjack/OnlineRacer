@@ -116,6 +116,8 @@ function loadTrack(trackIndex) {
     let lapCount = 1;
     let gameFinished = false;
 
+    let drifting = false;
+
     let g1, g2; // The left and right particle generators for the car.
 
     audio.reset();
@@ -215,7 +217,10 @@ function loadTrack(trackIndex) {
             }
 
             if (input.drift || currentGamepad.isHeld("X")) {
+                drifting = true;
                 car.velocityXZ -= DRIFT_FRICTION;
+            } else {
+                drifting = false;
             }
 
             // Car Movement
@@ -224,8 +229,13 @@ function loadTrack(trackIndex) {
                 // Analog Movement
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
+
+                    const r = drifting
+                        ? rotateSpeed * DRIFT_TURN_FACTOR
+                        : rotateSpeed;
                     
-                    carRotationY += rotateSpeed * absLeftXAxis;
+                    
+                    carRotationY += r * absLeftXAxis;
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -241,8 +251,13 @@ function loadTrack(trackIndex) {
                         }
                     }
                 } else if (currentGamepad.getLeftXAxis() > 0.15) {
+
+                    const r = drifting
+                        ? rotateSpeed * DRIFT_TURN_FACTOR
+                        : rotateSpeed;
                     
-                    carRotationY -= rotateSpeed * absLeftXAxis;
+                    
+                    carRotationY -= r * absLeftXAxis;
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -260,7 +275,7 @@ function loadTrack(trackIndex) {
                 }
                 // Digital Movement
                 else if (input.left || currentGamepad.isHeld("DPad-Left")) {
-                    const r = input.drift
+                    const r = drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -284,7 +299,7 @@ function loadTrack(trackIndex) {
                     input.right ||
                     currentGamepad.isHeld("DPad-Right")
                 ) {
-                    const r = input.drift
+                    const r = drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -321,13 +336,13 @@ function loadTrack(trackIndex) {
         
 
         //Car spark animations
-        if(carRoll > MAX_CAR_ROLL / 2 && input.drift && car.node.translation[1] == groundLevel) {
+        if(carRoll > MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
             g1.enable = true;
         } else {
             g1.enable = false;
         }
 
-        if(carRoll < -1 * MAX_CAR_ROLL / 2 && input.drift && car.node.translation[1] == groundLevel) {
+        if(carRoll < -1 * MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
             g2.enable = true;
         } else {
             g2.enable = false;
@@ -760,7 +775,7 @@ function loadTrack(trackIndex) {
             //Car dir
             //TODO: get rid of spacing between spawn
             const sparkVel = 3.0;
-            const randStrength = 1.0;
+            const randStrength = 2.0;
             const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
             const carDir = vec.rotate([0, 0, -1 * car.velocityXZ + sparkVel], 0, carRotationY, 0);
             
