@@ -1,3 +1,8 @@
+const TRACKS = [
+    "models/maps/track1.fbx",
+    "models/maps/track_brands_hatch.fbx"
+]
+
 let toggleHUD = false;
 
 const CAMERA_REL_CAR = [0, 50 * 0.8, 110 * 0.8];
@@ -57,7 +62,8 @@ const audio = {
     },
 };
 
-function loadTrack1() {
+function loadTrack(trackIndex) {
+    sceneGraph.reset();
     toggleHUD = true;
 
     let car;
@@ -109,6 +115,10 @@ function loadTrack1() {
 
     let lapCount = 1;
     let gameFinished = false;
+
+    let drifting = false;
+
+    let g1, g2; // The left and right particle generators for the car.
 
     audio.reset();
 
@@ -207,7 +217,10 @@ function loadTrack1() {
             }
 
             if (input.drift || currentGamepad.isHeld("X")) {
+                drifting = true;
                 car.velocityXZ -= DRIFT_FRICTION;
+            } else {
+                drifting = false;
             }
 
             // Car Movement
@@ -216,8 +229,13 @@ function loadTrack1() {
                 // Analog Movement
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
+
+                    const r = drifting
+                        ? rotateSpeed * DRIFT_TURN_FACTOR
+                        : rotateSpeed;
                     
-                    carRotationY += rotateSpeed * absLeftXAxis;
+                    
+                    carRotationY += r * absLeftXAxis;
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -233,8 +251,13 @@ function loadTrack1() {
                         }
                     }
                 } else if (currentGamepad.getLeftXAxis() > 0.15) {
+
+                    const r = drifting
+                        ? rotateSpeed * DRIFT_TURN_FACTOR
+                        : rotateSpeed;
                     
-                    carRotationY -= rotateSpeed * absLeftXAxis;
+                    
+                    carRotationY -= r * absLeftXAxis;
 
                     //car animation logic
                     if (car.velocityXZ > 0) {
@@ -252,7 +275,7 @@ function loadTrack1() {
                 }
                 // Digital Movement
                 else if (input.left || currentGamepad.isHeld("DPad-Left")) {
-                    const r = input.drift
+                    const r = drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -276,7 +299,7 @@ function loadTrack1() {
                     input.right ||
                     currentGamepad.isHeld("DPad-Right")
                 ) {
-                    const r = input.drift
+                    const r = drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -310,6 +333,20 @@ function loadTrack1() {
         }
 
         //Car animations
+        
+
+        //Car spark animations
+        if(carRoll > MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
+            g1.enable = true;
+        } else {
+            g1.enable = false;
+        }
+
+        if(carRoll < -1 * MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
+            g2.enable = true;
+        } else {
+            g2.enable = false;
+        }
         car.node.getChild("carModel").rotation = [0, 0, -carRoll];
         car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
 
@@ -434,7 +471,12 @@ function loadTrack1() {
                     const t = collisions[i].sceneNode.tag;
                     const p = collisions[i].sceneNode;
                     if (debug) {
-                        console.log(t);
+                        
+                        if(p.name) {
+                            console.log("type: " + t + " name: " + p.name);
+                        } else {
+                            console.log("type: " + t);
+                        }
                     }
                     if (t == "wall") {
                         
@@ -481,7 +523,16 @@ function loadTrack1() {
                     
                     } else if (t == "ramp") {
                         //collision with ramp
-                        carYVelocity += (1 / 25) * Math.abs(car.velocityXZ);
+                        if(carYVelocity <= 0) {
+                            let jumpAcc = (1/5) * Math.abs(car.velocityXZ);
+
+                            if(jumpAcc > CAR_MAX_JUMP_VEL) {
+                                jumpAcc = CAR_MAX_JUMP_VEL;
+                            }
+                            carYVelocity += jumpAcc;
+
+                        }
+                        
                     } else if (t == "boost") {
                         boostTimer = 1;
                         boostSfxEle.play();
@@ -703,13 +754,47 @@ function loadTrack1() {
 
     const carModel = new SceneNode();
     //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
-    carModel.addMesh(["models/car.fbx"]).then(() => {
+    carModel.addMesh(["models/car/car.fbx"]).then(() => {
         //Changes car texture based on player ID.
         if(Client.id > 1) {
-            loadTextureAsync(`textures/car_player_${Client.id}.png`).then((texture) => {
+            loadTextureAsync(`textures/car/car_player_${Client.id}.png`).then((texture) => {
                 carModel.getChild("Cube").mesh.texture = texture;
             });
         }
+            //Add spark particle generators to wings
+        g1 = new ParticleGenerator("/textures/default.png");
+        g2 = new ParticleGenerator("/textures/default.png");
+        g1.maxParticles = 100;
+        g2.maxParticles = 100;
+        g1.emitAmount = 3;
+        g2.emitAmount = 3;
+        g1.enable = false;
+        g2.enable = false;
+        let gInit = (p) => {
+            //Move opposite car direction
+            //Car dir
+            //TODO: get rid of spacing between spawn
+            const sparkVel = 3.0;
+            const randStrength = 2.0;
+            const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
+            const carDir = vec.rotate([0, 0, -1 * car.velocityXZ + sparkVel], 0, carRotationY, 0);
+            
+            p.velocity = vec.add(carDir, randInfluence);
+            
+            p.size = [1.5, 1.5];
+            p.ttl = 60;
+        }
+        let gUpdate = (p) => {
+            p.position = vec.add(p.position, p.velocity);
+            p.size = vec.scale(0.95, p.size);
+        }
+        g1.particleInit = gInit;
+        g1.particleUpdate = gUpdate;
+        g2.particleInit = gInit;
+        g2.particleUpdate = gUpdate;
+        carModel.getChild("wing_left").addParticleGenerator(g1);
+
+        carModel.getChild("wing_right").addParticleGenerator(g2);
        
     });
     carModel.name = "carModel";
@@ -720,7 +805,7 @@ function loadTrack1() {
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    ground.addMesh(["models/track_resort.fbx"]).then(() => {
+    ground.addMesh([TRACKS[trackIndex]]).then(() => {
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
@@ -769,8 +854,9 @@ function loadTrack1() {
         });
 
         car.node.scaleBy(3, 3, 3);
-        car.node.rotate(0, Math.PI + startLine.rotation[1], 0);
+        carRotationY = startLine.rotation[1];
 
+        cameraRotationY = startLine.rotation[1];
         Camera.main.rotate(CAMERA_DOWN_TILT, startLine.rotation[1], 0);
 
         //Car spawn point. Position needs to be linked to Client.id
@@ -781,7 +867,7 @@ function loadTrack1() {
             [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
         );
 
-        Camera.main.translation = vec.add(car.node.translation, CAMERA_REL_CAR);
+        Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
         sceneGraph.preCalcMatrices(ground);
     });
@@ -794,10 +880,10 @@ function loadTrack1() {
 
     // Traffic light code
     const light = new UIPanel(10, 5, 5, 10, [
-        "textures/light_off.png",
-        "textures/light_red.png",
-        "textures/light_orange.png",
-        "textures/light_green.png",
+        "textures/race/light_off.png",
+        "textures/race/light_red.png",
+        "textures/race/light_orange.png",
+        "textures/race/light_green.png",
     ]);
 
     const raceMusicChoices = [

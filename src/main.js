@@ -5,8 +5,10 @@ const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
 let debug = false;
 
 let gl;
+let ext; // Extended functions for webGL (some needed features are not in the base webGL).
 
 if (glSetup()) {
+    ext = gl.getExtension("OES_vertex_array_object");
     init();
     requestAnimationFrame(render);
 }

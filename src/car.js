@@ -16,7 +16,7 @@ const CAR_HOVER_AMPLITUDE = 0.2;
 //The maximum displacement amplitude of the car in the vertical direction when hovering.
 const CAR_HOVER_FREQUENCY = 0.5; // How many oscillations per second.
 
-const TERMINAL_VEL = 30;
+const TERMINAL_VEL = 35;
 const BOOST_TERMINAL_VEL = TERMINAL_VEL * 1.5;
 const MAX_REVERSE_VEL = -4;
 
@@ -35,10 +35,12 @@ const MAGNET_FRICTION = POST_TERMINAL_FRICTION * 2;
 const BREAK_FRICTION = 0.9;
 
 const DRIFT_FRICTION = 0.15;
-const DRIFT_TURN_FACTOR = 1.1;
+const DRIFT_TURN_FACTOR = 1.4;
 
 const WALL_FRICTION = 2.1;
 const MIN_DEFLECT_VEL = 8; // The min velocity of the car in order for it to deflect off a wall.
+
+const CAR_MAX_JUMP_VEL = 3.3; // Caps the jump speed to prevent jump being too high.
 
 class Car {
     constructor() {

@@ -117,7 +117,7 @@ const leaderboard = {
         const lDim = this.leaderboardUIDimensions;
 
         if(!this.visible) {
-            const leaderboardBG = new UIPanel(lDim.x, lDim.y, lDim.w, lDim.h, ["textures/leaderboard.png"]);
+            const leaderboardBG = new UIPanel(lDim.x, lDim.y, lDim.w, lDim.h, ["textures/leaderboard/leaderboard.png"]);
             UILayer.push(leaderboardBG);
             this.visible = true;
         }
@@ -134,7 +134,7 @@ const leaderboard = {
                 const placingPanel = new UIPanel(lDim.x + dim.offsetX,
                     lDim.y + dim.offsetY + i * dim.scaleY * lDim.h * -1,
                     lDim.w * dim.scaleX, lDim.h * dim.scaleY,
-                    [`textures/leaderboard_player${this.placings[i].id}.png`]);
+                    [`textures/leaderboard/leaderboard_player${this.placings[i].id}.png`]);
                 this.placingsUI.push(placingPanel);
                 UILayer.unshift(placingPanel);
                 
@@ -142,7 +142,7 @@ const leaderboard = {
                     let prefixes = ['first', 'second', 'third'];
                     const placingIcon = new UIPanel(lDim.x + dim.offsetX + iDim.offsetX,
                     lDim.y + dim.offsetY + iDim.offsetY + i * dim.scaleY * lDim.h * -1,
-                    lDim.w * dim.scaleX * iDim.scaleX, lDim.h * dim.scaleY * iDim.scaleY, [`textures/${prefixes[i]}_place_icon.png`]);
+                    lDim.w * dim.scaleX * iDim.scaleX, lDim.h * dim.scaleY * iDim.scaleY, [`textures/leaderboard/${prefixes[i]}_place_icon.png`]);
                     UILayer.unshift(placingIcon);
                 }
             }
