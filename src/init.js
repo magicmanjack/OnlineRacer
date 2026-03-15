@@ -6,6 +6,7 @@ function init() {
 
 function loadMenu() {
     // Initialize camera with proper aspect ratio
+
     const canvas = document.getElementById('c');
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = 25;

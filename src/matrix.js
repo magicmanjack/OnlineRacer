@@ -41,17 +41,18 @@ const mat = {
         /*
             Multiplies any size square matrix m with a vector x.
         */
-        if (Math.sqrt(m.length) != x.length) {
+        const sqrt = Math.sqrt(m.length);
+        if (sqrt != x.length) {
             console.log("Must multiply only a square matrix with a vector such that the rows of the matrix match the columns of the vector.");
             return;
         }
 
         let result = [];
 
-        for (let row = 0; row < Math.sqrt(m.length); row++) {
+        for (let row = 0; row < sqrt; row++) {
             result.push(0);
-            for (let index = 0; index < Math.sqrt(m.length); index++) {
-                result[row] += m[row * 4 + index] * x[index];
+            for (let index = 0; index < sqrt; index++) {
+                result[row] += m[row * sqrt + index] * x[index];
             }
         }
         return result;
@@ -282,6 +283,15 @@ const mat3x3 = {
 
 };
 
+const vec3 = {
+    up: [0, 1, 0],
+    down: [0, -1, 0],
+    left: [-1, 0, 0],
+    right: [1, 0, 1],
+    forward: [0, 0, -1],
+    backward: [0, 0, 1]
+}
+
 const vec = {
     /*
         defines vector operations.
@@ -382,5 +392,5 @@ const vec = {
         // A dot B = |A||B|cos(theta) which means theta = cos-1(A dot B / (|A||B|))
         return Math.acos(vec.dot(a, b) / (vec.magnitude(a)*vec.magnitude(b)));        
 
-    }
+    },
 };

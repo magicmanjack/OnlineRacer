@@ -3,6 +3,10 @@ const TRACKS = [
     "models/maps/track_brands_hatch.fbx"
 ]
 
+const track = {
+    groundLevel: 5
+}
+
 let toggleHUD = false;
 
 const CAMERA_REL_CAR = [0, 50 * 0.8, 110 * 0.8];
@@ -101,8 +105,6 @@ function loadTrack(trackIndex) {
 
     let boostTimer = 0;
 
-    let groundLevel = 5;
-
     let startTimer = false;
     let startTime = 0;
     let finalTime = 0;
@@ -115,8 +117,6 @@ function loadTrack(trackIndex) {
 
     let lapCount = 1;
     let gameFinished = false;
-
-    let drifting = false;
 
     let g1, g2; // The left and right particle generators for the car.
 
@@ -217,10 +217,10 @@ function loadTrack(trackIndex) {
             }
 
             if (input.drift || currentGamepad.isHeld("X")) {
-                drifting = true;
+                car.drifting = true;
                 car.velocityXZ -= DRIFT_FRICTION;
             } else {
-                drifting = false;
+                car.drifting = false;
             }
 
             // Car Movement
@@ -230,7 +230,7 @@ function loadTrack(trackIndex) {
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
 
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -252,7 +252,7 @@ function loadTrack(trackIndex) {
                     }
                 } else if (currentGamepad.getLeftXAxis() > 0.15) {
 
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -275,7 +275,7 @@ function loadTrack(trackIndex) {
                 }
                 // Digital Movement
                 else if (input.left || currentGamepad.isHeld("DPad-Left")) {
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -299,7 +299,7 @@ function loadTrack(trackIndex) {
                     input.right ||
                     currentGamepad.isHeld("DPad-Right")
                 ) {
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -336,13 +336,13 @@ function loadTrack(trackIndex) {
         
 
         //Car spark animations
-        if(carRoll > MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
+        if(carRoll > MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] == track.groundLevel) {
             g1.enable = true;
         } else {
             g1.enable = false;
         }
 
-        if(carRoll < -1 * MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
+        if(carRoll < -1 * MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] == track.groundLevel) {
             g2.enable = true;
         } else {
             g2.enable = false;
@@ -453,9 +453,9 @@ function loadTrack(trackIndex) {
         const camDelta = carDelta;
         Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
-        if (car.node.translation[1] < groundLevel) {
+        if (car.node.translation[1] < track.groundLevel) {
             //If car phases through ground
-            car.node.translation[1] = groundLevel;
+            car.node.translation[1] = track.groundLevel;
             carYVelocity = 0;
         }
 
@@ -648,7 +648,7 @@ function loadTrack(trackIndex) {
                         }
                     } else if (
                         t == "magnet" &&
-                        car.node.translation[1] < groundLevel + 1
+                        car.node.translation[1] < track.groundLevel + 1
                     ) {
                         terminalVelocity = MAGNET_TERMINAL_VEL;
                         if (Math.abs(car.velocityXZ) > 2) {
@@ -744,7 +744,7 @@ function loadTrack(trackIndex) {
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
         const aspectRatio = canvas.width / canvas.height;
-        const zoomHeight = startHeight + car.velocityXZ * 0.5;
+        const zoomHeight = startHeight + car.velocityXZ * 0.8;
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
 
@@ -864,7 +864,7 @@ function loadTrack(trackIndex) {
         const spawnSeperation = 40;
         car.node.translation = vec.add(
             [startLine.translation[0], 0, startLine.translation[2]],
-            [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
+            [-3 * spawnSeperation + spawnSeperation * Client.id, track.groundLevel, 0]
         );
 
         Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
