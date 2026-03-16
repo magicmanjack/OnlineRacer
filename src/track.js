@@ -347,20 +347,45 @@ function loadTrack(trackIndex) {
         } else {
             g2.enable = false;
         }
+
+        //car chasis movement animations
         car.node.getChild("carModel").rotation = [0, 0, -carRoll];
         car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
 
         carRoll *= CAR_ROLL_REDUCE_FACTOR;
         carYaw *= CAR_YAW_REDUCE_FACTOR;
-        car.node.getChild("carModel").translation = [
-            0,
-            CAR_HOVER_AMPLITUDE *
-                Math.cos(
-                    (2 * Math.PI * CAR_HOVER_FREQUENCY * performance.now()) /
-                        1000
-                ),
-            0,
-        ];
+
+        function vibration() {
+            const f = 5;
+            const phaseDiff = 1;
+
+            const c1 = Math.cos(2*Math.PI * f * performance.now() / 1000) 
+            + Math.cos(2*Math.PI * f / 3 * performance.now() / 1000)
+            + Math.cos(2*Math.PI * f / 6 * performance.now() / 1000)
+
+            const c2 = Math.cos(phaseDiff + 2*Math.PI * f * performance.now() / 1000) 
+            + Math.cos(phaseDiff + 2*Math.PI * f / 3 * performance.now() / 1000)
+            + Math.cos(phaseDiff + 2*Math.PI * f / 6 * performance.now() / 1000)
+
+            const c3 = Math.cos(phaseDiff * 2 + 2*Math.PI * f * performance.now() / 1000) 
+            + Math.cos(phaseDiff*2 + 2*Math.PI * f / 3 * performance.now() / 1000)
+            + Math.cos(phaseDiff*2 + 2*Math.PI * f / 6 * performance.now() / 1000)
+            return [c1, c2, c3];
+        }
+
+        car.node.getChild("carModel").translation = vec.add(
+            [
+                0,
+                CAR_HOVER_AMPLITUDE *
+                    Math.cos(
+                        (2 * Math.PI * CAR_HOVER_FREQUENCY * performance.now()) /
+                            1000
+                    ),
+                0,
+            ],
+            vec.scale(car.velocityXZ / TERMINAL_VEL * 0.05, vibration())
+        );
+
         //Car boost animation
         //First layer booster
         const booster1 = car.node.getChildByMesh("booster_1");
