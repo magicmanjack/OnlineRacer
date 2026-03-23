@@ -336,13 +336,13 @@ function loadTrack(trackIndex) {
         
 
         //Car spark animations
-        if(carRoll > MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] == track.groundLevel) {
+        if(carRoll > MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] <= track.groundLevel) {
             g1.enable = true;
         } else {
             g1.enable = false;
         }
 
-        if(carRoll < -1 * MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] == track.groundLevel) {
+        if(carRoll < -1 * MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] <= track.groundLevel) {
             g2.enable = true;
         } else {
             g2.enable = false;
@@ -470,19 +470,39 @@ function loadTrack(trackIndex) {
         }
 
         
+        // Vertical accelerations
         carYVelocity = carYVelocity + GRAVITY;
+
+        //Spring mechanics for when the car tries to phase through the ground
+        const k = 0.07;
+        //Offset is to be applied so the equilibrium point is at the ground level.
+        const offset = -1*GRAVITY/k;
+        
+        if (car.node.translation[1] + carYVelocity < track.groundLevel + offset) {
+            //If car phases through ground
+            //car.node.translation[1] += track.groundLevel - car.node;
+            
+            let upAcc = (track.groundLevel + offset - car.node.translation[1]) * k;
+
+
+            carYVelocity+=upAcc;
+
+            const lossFactor = 0.90;
+            carYVelocity *= lossFactor; // To simulate energy lost by friction
+
+            if(Math.abs(carYVelocity) <= 0.001 && Math.abs(car.node.translation[1] - track.groundLevel) <= 0.001) {
+                carYVelocity = 0;
+                car.node.translation[1] = track.groundLevel;
+            }
+          
+         
+        }
 
         // Translation of the car in the new direction.
         const carDelta = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
         car.node.translate(carDelta[0], carYVelocity, carDelta[2]);
         const camDelta = carDelta;
         Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
-
-        if (car.node.translation[1] < track.groundLevel) {
-            //If car phases through ground
-            car.node.translation[1] = track.groundLevel;
-            carYVelocity = 0;
-        }
 
         car.node.collisionStep(); //Check for collisions
 
@@ -769,7 +789,7 @@ function loadTrack(trackIndex) {
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
         const aspectRatio = canvas.width / canvas.height;
-        const zoomHeight = startHeight + car.velocityXZ * 0.8;
+        const zoomHeight = startHeight + car.velocityXZ * 0.5;
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
 

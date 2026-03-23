@@ -24,7 +24,7 @@ const MAGNET_TERMINAL_VEL = TERMINAL_VEL / 6;
 
 const ACCELERATION = 0.8;
 
-const FRICTION = 0.2;
+const FRICTION = 0.08;
 const POST_TERMINAL_FRICTION = 0.9; 
 /*
     POST_TERMINAL_FRICTION is the friction that occurs if the velocity is greater than terminal,
