@@ -60,6 +60,25 @@ function loadCollisionTest() {
 let peek;
 let peekCar;
 
+function loadAxisAngleTest() {
+    sceneGraph.reset();
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+
+    const block = new SceneNode(); 
+    block.addMesh(["models/car/car.fbx"]);
+    block.update = () => {
+        if(input.up) {
+
+            block.rotateOnAxis([1, 0, 0], 0.1);
+        }
+        if(input.down) {
+            block.rotateOnAxis([1, 0, 0], -0.1);
+        }
+    }
+    sceneGraph.root.addChild(block);
+}
+
 function loadParticleTest() {
     debug = true;
     sceneGraph.reset();

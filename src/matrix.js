@@ -95,10 +95,34 @@ const mat = {
     },
 
     rotate: function (rx, ry, rz) {
-        //creates rotation matrix that rotates anticlockwise about x then y, then z.
-        //OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
+        /*
+        creates rotation matrix that rotates anticlockwise about x then y, then z (global axis),
+        or rotate around z, y, then x (local/intrinsic axis).
 
+         Note: OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
+        */
         return this.multiply(this.multiply(this.rotateZ(rz), this.rotateY(ry)), this.rotateX(rx));
+    },
+
+    rotateAround: function (axis, angle) {
+        /*
+            Returns a rotation matrix which represents a rotation around the specified axis by the provided angle.
+            Matrix is derived from https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+        */
+        const v = vec.normalize(axis);
+        const cs = Math.cos(angle);
+        const sn = Math.sin(angle);
+
+        const [x, y, z] = [0, 1, 2];
+
+        const R = [
+            v[x]*v[x]*(1 - cs) + cs, v[x]*v[y]*(1 - cs) - v[z]*sn, v[x]*v[z]*(1 - cs) + v[y]*sn, 0,
+            v[x]*v[y]*(1 - cs) + v[z]*sn, v[y]*v[y]*(1 - cs) + cs, v[y]*v[z]*(1 - cs) - v[x]*sn, 0, 
+            v[x]*v[z]*(1 - cs) - v[y]*sn, v[y]*v[z]*(1 - cs) + v[x]*sn, v[z]*v[z]*(1 - cs) + cs, 0,
+            0, 0, 0, 1
+        ];
+
+        return R;
     },
 
     transpose: function (m) {

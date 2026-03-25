@@ -73,6 +73,14 @@ class SceneNode {
 
     }
 
+    rotateOnAxis(axis, angle) {
+        /* rotates the scene node around the axis with the angle provided */
+        const newRot = mat.rotateAround(axis, angle);
+        const originalRot = mat.rotate(this.rotation[0], this.rotation[1], this.rotation[2]);
+
+        this.rotation = mat.getRotationVector(mat.multiply(newRot, originalRot));
+    }
+
     calculateLocal(o) {
         //Calculates the model matrix of this transformable object according to its translation and rotation.
         let rx = o.rotation[0];
@@ -337,8 +345,7 @@ const sceneGraph = {
         this.root.render();
     },
     reset: function() {
-        /*Clears the scene heirarchy and UI and then calls back
-        the provided callback function*/
+        /*Clears the scene heirarchy and UI*/
         UILayer = [];
         this.root = new SceneNode();
         SceneNode.numMeshes = 0;
