@@ -81,6 +81,21 @@ class SceneNode {
         this.rotation = mat.getRotationVector(mat.multiply(newRot, originalRot));
     }
 
+    rotateLocal(rx, ry, rz) {
+        /* Rotates on the objects local axes in its local coordinate system
+        as opposed to global axis rotation */
+        
+        //Calculation of new reference frame
+        const localX = vec.rotate(vec3.right, this.rotation[0], this.rotation[1], this.rotation[2]);
+        const localY = vec.rotate(vec3.up, this.rotation[0], this.rotation[1], this.rotation[2]);
+        const localZ = vec.rotate(vec3.backward, this.rotation[0], this.rotation[1], this.rotation[2]);
+
+        //Rotate around X, then Y, then Z
+        this.rotateOnAxis(localX, rx);
+        this.rotateOnAxis(localY, ry);
+        this.rotateOnAxis(localZ, rz);
+    }
+
     calculateLocal(o) {
         //Calculates the model matrix of this transformable object according to its translation and rotation.
         let rx = o.rotation[0];

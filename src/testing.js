@@ -70,10 +70,20 @@ function loadAxisAngleTest() {
     block.update = () => {
         if(input.up) {
 
-            block.rotateOnAxis([1, 0, 0], 0.1);
+            block.rotateOnAxis([0, 1, 0], 0.1);
         }
         if(input.down) {
             block.rotateOnAxis([1, 0, 0], -0.1);
+        }
+        
+        if(input.left) {
+            const localX = vec.rotate(vec3.backward, block.rotation[0], block.rotation[1], block.rotation[2])
+            
+            block.rotateLocal(0, 0, -0.1);
+        }
+        if(input.right) {
+            const localX = vec.rotate(vec3.backward, block.rotation[0], block.rotation[1], block.rotation[2])
+            block.rotateLocal(0, 0, 0.1);
         }
     }
     sceneGraph.root.addChild(block);
