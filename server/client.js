@@ -7,8 +7,8 @@ class Client {
     //static wsUri = "ws://192.168.1.237:5174";
 
     //Use if hosting locally on LAN
-    static wsUri = "ws://localhost:5174";
-    //static wsUri = "ws://192.168.50.54:8080";
+    //static wsUri = "ws://localhost:5174";
+    static wsUri = "ws://10.47.136.217:5174";
    
 
     //Use if hosting on link local

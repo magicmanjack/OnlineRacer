@@ -95,6 +95,7 @@ function loadTrack(trackIndex) {
 
     let carRoll = 0;
     let carYaw = 0;
+    let carPitch = 0;
 
     let carRotationY = 0;
 
@@ -189,6 +190,8 @@ function loadTrack(trackIndex) {
     const raceFinishedSfxEle = audio.loadAudio("sfx_race_finished");
 
     car.node.update = () => {
+
+        const carVelT1 = car.velocityXZ;
         
         // Input handling
         if (!controlsDisabled) {
@@ -347,13 +350,6 @@ function loadTrack(trackIndex) {
         } else {
             g2.enable = false;
         }
-
-        //car chasis movement animations
-        car.node.getChild("carModel").rotation = [0, 0, -carRoll];
-        car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
-
-        carRoll *= CAR_ROLL_REDUCE_FACTOR;
-        carYaw *= CAR_YAW_REDUCE_FACTOR;
 
         function vibration() {
             const f = 5;
@@ -782,6 +778,30 @@ function loadTrack(trackIndex) {
                 boostTimer = 0;
             }
         }
+
+        //car chasis movement animations
+
+        const acc = (car.velocityXZ - carVelT1);
+        
+        if(acc > 0 && carPitch <= MAX_CAR_PITCH) {
+            carPitch += 0.01;
+            if(carPitch >= MAX_CAR_PITCH) {
+                carPitch = MAX_CAR_PITCH;
+            }
+        } else if(Math.abs(acc) > 0) {
+            carPitch -= 0.01;
+            if(carPitch < 0) {
+                carPitch = 0;
+            }
+        }
+        const carModel = car.node.getChild("carModel");
+        carModel.rotation = [0, 0, 0]; //Reset rotation
+        carModel.rotateLocal(-carPitch, 0, 0);
+        carModel.rotate(0, -carYaw, 0);
+        carModel.rotateLocal(0, 0, -carRoll);
+
+        carRoll *= CAR_ROLL_REDUCE_FACTOR;
+        carYaw *= CAR_YAW_REDUCE_FACTOR;
 
         // Apply car rotation to actual sceneNode
         car.node.rotation = [0, carRotationY + Math.PI, 0];

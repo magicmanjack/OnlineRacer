@@ -8,6 +8,7 @@ const CAR_ROLL_REDUCE_FACTOR = 0.87; // The amount that the roll gets scaled by 
 const CAR_YAW_REDUCE_FACTOR = 0.87;
 const MAX_CAR_ROLL = 0.5;
 const MAX_CAR_YAW = 0.5;
+const MAX_CAR_PITCH = 0.1;
 
 /*
     carRoll is for the model animation when turning. The car will tilt.
