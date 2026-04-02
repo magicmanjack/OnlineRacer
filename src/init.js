@@ -113,7 +113,7 @@ function loadLobby() {
             let frameCounter = 0;
             playerStrip.update = function() {
                 frameCounter++;
-                const timePassed = frameCounter / UPDATES_PER_SECOND;
+                const timePassed = frameCounter / updatesPerSecond;
                 if(timePassed % 2 == 0) {
                     //Every even second
                     this.textureIndex = this.textureIndex ? 0 : 1;

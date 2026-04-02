@@ -120,6 +120,7 @@ function loadTrack(trackIndex) {
     let gameFinished = false;
 
     let g1, g2; // The left and right particle generators for the car.
+    let boosterEmitter; // The particle generator for the booster
 
     audio.reset();
 
@@ -349,6 +350,13 @@ function loadTrack(trackIndex) {
             g2.enable = true;
         } else {
             g2.enable = false;
+        }
+
+        //Car boost animations
+        if(boostTimer > 0) {
+            boosterEmitter.enable = true;
+        } else {
+            boosterEmitter.enable = false;
         }
 
         function vibration() {
@@ -829,12 +837,17 @@ function loadTrack(trackIndex) {
             //Add spark particle generators to wings
         g1 = new ParticleGenerator("/textures/default.png");
         g2 = new ParticleGenerator("/textures/default.png");
+        boosterEmitter = new ParticleGenerator("/textures/car/booster_2.png");
         g1.maxParticles = 100;
         g2.maxParticles = 100;
+        boosterEmitter.maxParticles = 100;
         g1.emitAmount = 3;
         g2.emitAmount = 3;
+        boosterEmitter.emitAmount = 3;
         g1.enable = false;
         g2.enable = false;
+        boosterEmitter.enable = true;
+        boosterEmitter.interpolate = true;
         let gInit = (p) => {
             //Move opposite car direction
             //Car dir
@@ -849,17 +862,34 @@ function loadTrack(trackIndex) {
             p.size = [1.5, 1.5];
             p.ttl = 60;
         }
+        let boosterInit = (p) => {
+            const randStrength = 1.0;
+            const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
+            p.size = vec.scale(Math.random() * randStrength * 0.3 + 0.7, [2.5, 2.5]);
+            p.ttl = 60;
+            p.velocity = vec.rotate([0, 0, -1 * car.velocityXZ / 1.5], 0, carRotationY, 0);
+            p.velocity = vec.add(p.velocity, randInfluence);
+        }
         let gUpdate = (p) => {
             p.position = vec.add(p.position, p.velocity);
             p.size = vec.scale(0.95, p.size);
+        }
+        let boosterUpdate = (p) => {
+            p.size = vec.scale(0.1, p.size);
+            p.position = vec.add(p.position, p.velocity);
         }
         g1.particleInit = gInit;
         g1.particleUpdate = gUpdate;
         g2.particleInit = gInit;
         g2.particleUpdate = gUpdate;
+        boosterEmitter.particleInit = boosterInit;
+        boosterEmitter.particleUpdate = boosterUpdate;
+
         carModel.getChild("wing_left").addParticleGenerator(g1);
 
         carModel.getChild("wing_right").addParticleGenerator(g2);
+
+        carModel.getChild("booster_emitter").addParticleGenerator(boosterEmitter);
        
     });
     carModel.name = "carModel";
@@ -974,7 +1004,7 @@ function loadTrack(trackIndex) {
     let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
     light.update = function () {
         const ti = this.textureIndex;
-        const timePassed = () => frameCounter / UPDATES_PER_SECOND;
+        const timePassed = () => frameCounter / updatesPerSecond;
 
         if (allClientsLoaded) {
             switch (ti) {

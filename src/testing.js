@@ -1,5 +1,55 @@
 /* Code that is used for testing functionality*/
 
+function loadParticleInterpolationTest() {
+    sceneGraph.reset();
+    debug = true;
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    setUpdatesPerSecond(1);
+    
+    const spawner = new SceneNode();
+    sceneGraph.root.addChild(spawner);
+
+    const g = new ParticleGenerator("textures/race/magnetpad.png");
+    spawner.addParticleGenerator(g);
+    g.enable = false;
+    g.particleInit = (p) => {
+        p.size = [0.1, 0.1];
+    }
+
+    for(let i = 0; i < 20; i++) {
+        for(let j = 0; j < 20; j++) {
+            spawner.translation = [i - 10, 0, j - 10];
+            sceneGraph.preCalcMatrices();
+            g.spawn();
+        }
+    }
+
+    /* After debug points working, test particle generator interpolation while the generator is moving at 1 ups */
+    const p0 = new SceneNode();
+    p0.addMesh(["models/car/car.fbx"]).then(() => {
+        p0.scale = [0.1, 0.1, 0.1];
+        p0.rotateLocal(0, Math.PI, 0);
+    });
+
+    p0.update = () => {
+        p0.translation = vec.add(p0.translation, vec.scale(2, vec3.forward));
+    }
+
+    const generator = new ParticleGenerator("textures/default.png");
+    generator.emitAmount = 1;
+    generator.maxParticles = 1000;
+    generator.interpolate = true;
+    generator.particleInit = (p) => {
+        p.size = [0.3, 0.3];
+    }
+    generator.particleUpdate = (p) => {
+
+    }
+    p0.addParticleGenerator(generator);
+    sceneGraph.root.addChild(p0);
+}
+
 function loadCollisionTest() {
     debug = true;
     Camera.main.translation = [0, 30, 0];
@@ -1032,7 +1082,7 @@ function loadHillTest2() {
     let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
     light.update = function () {
         const ti = this.textureIndex;
-        const timePassed = () => frameCounter / UPDATES_PER_SECOND;
+        const timePassed = () => frameCounter / updatesPerSecond;
 
         if (allClientsLoaded) {
             switch (ti) {

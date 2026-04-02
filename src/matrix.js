@@ -210,7 +210,7 @@ const mat = {
     },
     getTranslationVector : function(m) {
         /*
-            Gets translation vector out of 4x4 transformation matrix by looking at colomn 3.
+            Gets translation vector out of 4x4 transformation matrix by looking at column 4.
         */
         if(m.length != 16) {
             console.log("cannot get translation vector from a non 4x4 matrix");

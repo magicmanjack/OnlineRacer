@@ -10,6 +10,9 @@ class ParticleGenerator {
         this.emitAmount = 10;
         this.maxParticles = 100;
         this.enable = true;
+        this.interpolate = false; /* Whether or not the generator interpolates positions of 
+        particle spawns between the position of the last update and this update */
+        this.interpolationDelta = 0.4; // The gap between particle spawns if interpolate is set to true
 
         this.particles = [];
 
@@ -25,6 +28,7 @@ class ParticleGenerator {
         
 
         this.emitterPosition = [0.0, 0.0, 0.0];
+        this.emitterLastPosition = this.emitterPosition;
 
         this.vertices = [
             -0.5, -0.5, 0.0,
@@ -105,24 +109,100 @@ class ParticleGenerator {
             
         }
 
-        //Remove old particles if over max
+        //Remove old particles if over max. TODO fix to work with interpolation
         if(this.enable) {
-            if(this.particles.length + this.emitAmount > this.maxParticles) {
-                const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
-                this.particles.splice(0, nRemove); 
-            }
-            for(let i = 0; i < this.emitAmount; i++) {
-                const p = {
+
+            
+            if(this.interpolate) {
+                //Interpolated spawning (spawn along the path between emitterLastPosition and emitterPosition)
+                
+                
+                const p0 = {
                     position: this.emitterPosition,
                     velocity: [0, 0, 0],
-                    size: [1,1],
+                    size:[1, 1],
                     ttl:-1
-                };
-                if(this.particleInit && typeof this.particleInit == "function") {
-                    this.particleInit(p)
                 }
-                this.particles.push(p);
+
+                if(this.particleInit && typeof this.particleInit == "function") {
+                    this.particleInit(p0)
+                }
+
+                const p1 = this.particles.length == 0 ? p0 : this.particles[this.particles.length - 1];
+
+                const nSpawns = Math.max(Math.floor(vec.magnitude(vec.subtract(this.emitterLastPosition, this.emitterPosition)) / this.interpolationDelta) - 1, 1);
+                
+                if(this.particles.length + nSpawns > this.maxParticles) {
+                    const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
+                    this.particles.splice(0, nRemove); 
+                }
+
+                const deltaValues = {
+                    pos: vec.scale(1/nSpawns, vec.subtract(p1.position, p0.position)),
+                    vel: vec.scale(1/nSpawns, vec.subtract(p1.velocity, p0.velocity)),
+                    size: vec.scale(1/nSpawns, vec.subtract(p1.size, p0.size)),
+                    ttl: (p1.ttl - p0.ttl) * 1/nSpawns
+                } // The deltas between each interpolated point
+                
+                
+
+                //NOTICED BUG! MAKING JUMPS BY LENGTHS SUCH AS 20
+                
+                for(let i = nSpawns; i >= 0; i--) {
+                    
+                    const p = {
+                        position: vec.add(p0.position, vec.scale(i, deltaValues.pos)),
+                        velocity: vec.add(p0.velocity, vec.scale(i, deltaValues.vel)),
+                        size: vec.add(p0.size, vec.scale(i, deltaValues.size)),
+                        ttl: p0.ttl + deltaValues.ttl * i
+                    }
+                    
+                    this.particles.push(p);
+                
+                }
+            } else {
+                //Standard spawning
+                if(this.particles.length + this.emitAmount > this.maxParticles) {
+                    const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
+                    this.particles.splice(0, nRemove); 
+                }
+                for(let i = 0; i < this.emitAmount; i++) {
+                    const p = {
+                        position: this.emitterPosition,
+                        velocity: [0, 0, 0],
+                        size: [1,1],
+                        ttl:-1
+                    };
+                    if(this.particleInit && typeof this.particleInit == "function") {
+                        this.particleInit(p)
+                    }
+                    this.particles.push(p);
+                }
             }
+        }
+
+        this.emitterLastPosition = this.emitterPosition;
+
+    }
+
+    spawn(n = 1) {
+        /*For manually spawning particles */
+        //TODO: Cull old particles if hitting max limit
+
+        if(this.parent) {
+            this.emitterPosition = mat.getTranslationVector(this.parent.world);
+        }
+        for(let i = 0; i < n; i++) {
+            const p = {
+                position: this.emitterPosition,
+                velocity: [0, 0, 0],
+                size: [1,1],
+                ttl:-1
+            };
+            if(this.particleInit && typeof this.particleInit == "function") {
+                this.particleInit(p)
+            }
+            this.particles.push(p);
         }
 
     }

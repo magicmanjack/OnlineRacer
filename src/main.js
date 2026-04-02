@@ -1,7 +1,14 @@
 "use strict";
 
-const UPDATES_PER_SECOND = 30;
-const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
+const PREFERRED_UPDATES_PER_SECOND = 30;
+let updatesPerSecond = PREFERRED_UPDATES_PER_SECOND
+let msPerUpdate = 1000 / updatesPerSecond;
+
+function setUpdatesPerSecond(ups) {
+    updatesPerSecond = ups;
+    msPerUpdate = 1000 / updatesPerSecond;
+}
+
 let debug = false;
 
 let gl;
@@ -48,14 +55,14 @@ function update() {
     if (lastTime == undefined) {
         lastTime = timestamp;
     } else {
-        delta += (timestamp - lastTime) / MS_PER_UPDATE;
+        delta += (timestamp - lastTime) / msPerUpdate;
         lastTime = timestamp;
 
         while (delta >= 1) {
             //Process game updates
             //Calculate a timestamp for the frame number between the last update to now.
 
-            let frameTimeStamp = timestamp - ((delta - 1) * MS_PER_UPDATE);
+            let frameTimeStamp = timestamp - ((delta - 1) * msPerUpdate);
             // e.g if delta = 1 that means at the timestamp is this instant. 
             // If delta = 2, the first frame is at (now - 1 * MS_PER_UPDATE).
             // If delta = 1.5, the first frame occured (now - 0.5 * MS_PER_UPDATE) ago.
