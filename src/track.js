@@ -576,7 +576,7 @@ function loadTrack(trackIndex) {
                             car.node.translate(MTV[0], MTV[1], MTV[2]);
                             Camera.main.translate(MTV[0], MTV[1], MTV[2]);
 
-                            if(car.spinFramesLeft > 0) {
+                            if(car.spinFramesLeft > 0 && car.velocityXZ == 0) {
                                 //If car is spinning, cut the spinning short
                                 car.spinFramesLeft = 0;
                             }
@@ -929,6 +929,7 @@ function loadTrack(trackIndex) {
     const c = new CollisionPlane()
     car.node.addCollisionPlane(c);
     car.node.fineGrainedCollision = true;
+    
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();

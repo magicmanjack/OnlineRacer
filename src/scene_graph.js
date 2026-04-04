@@ -38,7 +38,7 @@ class SceneNode {
         
         this.colliders = [];
         this.fineGrainedCollision = false; // If enabled, collision detection is more accurate (more intensive)
-        this.fineGrainedCollisionInterval = 2.0;
+        this.fineGrainedCollisionInterval = 5.0;
     }
 
     translate(tx, ty, tz) {
