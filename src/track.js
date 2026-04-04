@@ -522,6 +522,7 @@ function loadTrack(trackIndex) {
         let currentStartLineCollision = false;
 
         car.node.colliders.forEach((c) => {
+            let handledMTV = false;
             if (c.collided) {
                 const collisions = c.collisions;
 
@@ -537,52 +538,53 @@ function loadTrack(trackIndex) {
                         }
                     }
                     if (t == "wall") {
-                        
-                        // //A collision resulted. Add negative of delta pos to undo.
-                        // let carInv = vec.scale(-1, carDelta);
-                        // let camInv = vec.scale(-1, camDelta);
-                        // car.velocityXZ = 0;
-                        // car.node.translate(carInv[0], carYVelocity, carInv[2]);
-                        // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
+                        if(/*!handledMTV*/true) {
+                            // //A collision resulted. Add negative of delta pos to undo.
+                            // let carInv = vec.scale(-1, carDelta);
+                            // let camInv = vec.scale(-1, camDelta);
+                            // car.velocityXZ = 0;
+                            // car.node.translate(carInv[0], carYVelocity, carInv[2]);
+                            // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
 
-                        //New collision code
-                        
-                        let MTV = collisions[i].MTV;
-                        let norm = collisions[i].normal;
-                        let carVelVector = car.velocityVec;
-                        let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
+                            //New collision code
+                            
+                            let MTV = collisions[i].MTV;
+                            let norm = collisions[i].normal;
+                            let carVelVector = car.velocityVec;
+                            let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
 
-                        if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
-                            //Only for angles smaller than 45 and speeds great enough
-                            let cross = vec.cross(carVelVector, norm);
-                        
-                            if(cross[1] > 0) {
-                                carRotationY += deflectAngle;
-                            } else if(cross[1] < 0) {
-                                carRotationY -= deflectAngle;
+                            if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
+                                //Only for angles smaller than 45 and speeds great enough
+                                let cross = vec.cross(carVelVector, norm);
+                            
+                                if(cross[1] > 0) {
+                                    carRotationY += deflectAngle;
+                                } else if(cross[1] < 0) {
+                                    carRotationY -= deflectAngle;
+                                }
+
+                                car.velocityXZ -= WALL_FRICTION;
+                                if(car.velocityXZ < MAX_REVERSE_VEL) {
+                                    car.velocityXZ = MAX_REVERSE_VEL;
+                                }
+
+                            } else {
+                                //Lose all velocity because colliding with wall head on
+                                car.velocityXZ = 0;
+                            }
+                            
+                            car.node.translate(MTV[0], MTV[1], MTV[2]);
+                            Camera.main.translate(MTV[0], MTV[1], MTV[2]);
+
+                            if(car.spinFramesLeft > 0) {
+                                //If car is spinning, cut the spinning short
+                                car.spinFramesLeft = 0;
                             }
 
-                            car.velocityXZ -= WALL_FRICTION;
-                            if(car.velocityXZ < MAX_REVERSE_VEL) {
-                                car.velocityXZ = MAX_REVERSE_VEL;
-                            }
+                            handledMTV = true;
 
-                        } else {
-                            //Lose all velocity because colliding with wall head on
-                            car.velocityXZ = 0;
-                        }
-                        
-                        car.node.translate(MTV[0], MTV[1], MTV[2]);
-                        Camera.main.translate(MTV[0], MTV[1], MTV[2]);
-
-                        if(car.spinFramesLeft > 0) {
-                            //If car is spinning, cut the spinning short
-                            car.spinFramesLeft = 0;
-                        }
-
-                        
-                        
-                        
+                        }        
+                               
                     
                     } else if (t == "ramp") {
                         //collision with ramp
@@ -926,6 +928,7 @@ function loadTrack(trackIndex) {
 
     const c = new CollisionPlane()
     car.node.addCollisionPlane(c);
+    car.node.fineGrainedCollision = true;
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
@@ -993,7 +996,7 @@ function loadTrack(trackIndex) {
 
         Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
-        sceneGraph.preCalcMatrices(ground);
+        sceneGraph.preCalcMatrices(sceneGraph.root);
     });
     
     ground.translate(0, -5, -50);

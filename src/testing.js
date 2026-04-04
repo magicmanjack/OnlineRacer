@@ -1,5 +1,47 @@
 /* Code that is used for testing functionality*/
 
+function highSpeedParticleTest() {
+    sceneGraph.reset();
+    debug = true;
+    setUpdatesPerSecond(1);
+    Camera.main.translation = [0, 30, -10];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    const player = new SceneNode();
+    player.addMesh(["models/car/car.fbx"]).then(() => {
+        player.rotate(0, Math.PI, 0);
+        player.scale = [0.1, 0.1, 0.1];
+        let vel = 0;
+        let timer = 0;
+        player.update = () => {
+            timer++;
+            const acc = 0.1;
+            if(timer <= 14) {vel += acc;}
+            
+            player.translation = vec.add(player.translation, vec.scale(vel, vec3.forward));
+            player.collisionStep();
+
+            player.colliders.forEach((c) => {
+                if(c.collided) {
+                    const MTV = c.collisions[0].MTV;
+                    player.translate(MTV[0], MTV[1], MTV[2]);
+                    vel = 0;
+                }
+            })
+        }
+        player.colliders[0].scale = [10, 10, 10];
+    });
+    player.addCollisionPlane(new CollisionPlane());
+    player.fineGrainedCollision = false;
+
+    const obj = new SceneNode();
+    obj.translation = [0, 0, -10];
+    obj.addCollisionPlane(new CollisionPlane());
+    
+
+    sceneGraph.root.addChild(obj);
+    sceneGraph.root.addChild(player);
+}
+
 function loadParticleInterpolationTest() {
     sceneGraph.reset();
     debug = true;
