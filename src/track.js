@@ -444,7 +444,7 @@ function loadTrack(trackIndex) {
 
         if (car.velocityXZ > 0) {
             //Car going fowards.
-            cameraLagFactor = 0.1; // Move this out
+            cameraLagFactor = 0.1;
             car.velocityXZ -= FRICTION;
             if (car.velocityXZ < 0) {
                 car.velocityXZ = 0;
@@ -503,9 +503,18 @@ function loadTrack(trackIndex) {
         }
 
         // Translation of the car in the new direction.
-        const carDelta = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
-        car.node.translate(carDelta[0], carYVelocity, carDelta[2]);
-        const camDelta = carDelta;
+        if(!car.spinning) {
+            car.velocityVec = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
+        } else {
+            // If spinning, do not change direction of velocity, just scale to match velocityXZ
+            if(vec.magnitude(car.velocityVec) != 0) {
+                const velNorm = vec.normalize(car.velocityVec);
+                car.velocityVec = vec.scale(car.velocityXZ, velNorm);
+            }
+        }
+
+        car.node.translate(car.velocityVec[0], carYVelocity, car.velocityVec[2]);
+        const camDelta = car.velocityVec;
         Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
         car.node.collisionStep(); //Check for collisions
@@ -540,7 +549,7 @@ function loadTrack(trackIndex) {
                         
                         let MTV = collisions[i].MTV;
                         let norm = collisions[i].normal;
-                        let carVelVector = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
+                        let carVelVector = car.velocityVec;
                         let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
 
                         if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
@@ -565,6 +574,11 @@ function loadTrack(trackIndex) {
                         
                         car.node.translate(MTV[0], MTV[1], MTV[2]);
                         Camera.main.translate(MTV[0], MTV[1], MTV[2]);
+
+                        if(car.spinFramesLeft > 0) {
+                            //If car is spinning, cut the spinning short
+                            car.spinFramesLeft = 0;
+                        }
 
                         
                         
@@ -661,12 +675,10 @@ function loadTrack(trackIndex) {
                         controlsDisabled = true;
                         let speed = Math.abs(car.velocityXZ);
                         // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
-                        let rotationFrames = Math.min(
-                            60,
-                            Math.round((30 * 15) / speed)
-                        );
+                        let rotationFrames = 2 * updatesPerSecond; // 2 seconds
                         let direction = Math.random();
                         let rotationStep = (4 * Math.PI) / rotationFrames;
+                        
                         if (direction < 0.5) {
                             rotationStep = -1 * rotationStep;
                         }
@@ -676,14 +688,22 @@ function loadTrack(trackIndex) {
                             car.spinFramesLeft = rotationFrames;
                             car.originalUpdate = car.node.update;
                             car.node.update = function () {
+                                if(car.velocityXZ == 0) {
+                                    car.spinFramesLeft = 0; //Stop spin if car stops.
+                                }
+
                                 if (car.spinFramesLeft > 0) {
+                                    //carRotationY += rotationStep;
+                                    //TODO figure out why not rotating
                                     carRotationY += rotationStep;
                                     // Slow down the car drastically while spinning
-                                    car.velocityXZ *= 0.95;
-                                    car.spinFramesLeft--;
-                                    if (car.spinFramesLeft == 0) {
+                                    
+                                    car.velocityXZ -= SPINOUT_FRICTION;
+                                    if(car.velocityXZ < 0) {
                                         car.velocityXZ = 0;
                                     }
+
+                                    car.spinFramesLeft--;
                                 } else {
                                     car.spinning = false;
                                     // Restore the original update function after spinning
@@ -867,8 +887,14 @@ function loadTrack(trackIndex) {
             const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
             p.size = vec.scale(Math.random() * randStrength * 0.3 + 0.7, [2.5, 2.5]);
             p.ttl = 60;
-            p.velocity = vec.rotate([0, 0, -1 * car.velocityXZ / 1.5], 0, carRotationY, 0);
+            p.velocity = vec.scale(1/1.5, car.velocityVec);
             p.velocity = vec.add(p.velocity, randInfluence);
+
+            if(car.spinning) {
+                
+                const pushback = vec.rotate(vec.scale(15.0, vec3.backward), 0, carRotationY, 0);
+                p.velocity = vec.add(p.velocity, pushback);
+            }
         }
         let gUpdate = (p) => {
             p.position = vec.add(p.position, p.velocity);
@@ -876,6 +902,9 @@ function loadTrack(trackIndex) {
         }
         let boosterUpdate = (p) => {
             p.size = vec.scale(0.1, p.size);
+            if(vec.magnitude(p.size) < 0.0001) {
+                p.ttl = 1;
+            }
             p.position = vec.add(p.position, p.velocity);
         }
         g1.particleInit = gInit;

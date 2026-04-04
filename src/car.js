@@ -41,12 +41,15 @@ const DRIFT_TURN_FACTOR = 1.4;
 const WALL_FRICTION = 2.1;
 const MIN_DEFLECT_VEL = 8; // The min velocity of the car in order for it to deflect off a wall.
 
+const SPINOUT_FRICTION = 1.1;
+
 const CAR_MAX_JUMP_VEL = 3.3; // Caps the jump speed to prevent jump being too high.
 
 class Car {
     constructor() {
         this.node = new SceneNode();
         this.velocityXZ = 0;
+        this.velocityVec = [0, 0, 0];
         this.drifting = false;
     }
 };
