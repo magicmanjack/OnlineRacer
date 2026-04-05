@@ -11,6 +11,13 @@ function setUpdatesPerSecond(ups) {
 
 let debug = false;
 
+const debugOptions = {
+    displayUpdatesPerSecond : false,
+    displayFramesPerSecond: false,
+    displayMeshInfo: false,
+    reportCollisionType: false
+}
+
 let gl;
 let ext; // Extended functions for webGL (some needed features are not in the base webGL).
 
@@ -50,12 +57,38 @@ function updateViewport() {
 let lastTime;
 let delta = 0;
 
+let timer = 0; // Used for true UPS calculations
+let countedUpdates = 0;
+let countedFrames = 0;
+
 function update() {
     let timestamp = performance.now();
     if (lastTime == undefined) {
         lastTime = timestamp;
     } else {
-        delta += (timestamp - lastTime) / msPerUpdate;
+        const deltaTime = (timestamp - lastTime)
+        delta += deltaTime / msPerUpdate;
+
+        //True updates per second calculations
+        if(debug && (debugOptions.displayUpdatesPerSecond || debugOptions.displayFramesPerSecond)) {
+            timer += deltaTime;
+            if(timer >= 1000) {
+
+                if(debugOptions.displayUpdatesPerSecond) {
+                    console.log(`UPS: ${Math.floor(countedUpdates / (timer/1000))}`);
+                    countedUpdates = 0;
+                }
+
+                if(debugOptions.displayFramesPerSecond) {
+                    console.log(`FPS: ${Math.floor(countedFrames) / (timer/1000)}`)
+                    countedFrames = 0;
+                }
+                
+                timer = 0;
+            }
+
+        }
+        
         lastTime = timestamp;
 
         while (delta >= 1) {
@@ -89,8 +122,13 @@ function update() {
             }
 
             delta--;
+            if(debugOptions.displayUpdatesPerSecond) {
+                countedUpdates++;
+            }
         }
-
+        if(debugOptions.displayFramesPerSecond) {
+            countedFrames++;
+        }
     }
 }
 

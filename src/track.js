@@ -529,7 +529,7 @@ function loadTrack(trackIndex) {
                 for (let i = 0; i < collisions.length; i++) {
                     const t = collisions[i].sceneNode.tag;
                     const p = collisions[i].sceneNode;
-                    if (debug) {
+                    if (debug && debugOptions.reportCollisionType) {
                         
                         if(p.name) {
                             console.log("type: " + t + " name: " + p.name);
