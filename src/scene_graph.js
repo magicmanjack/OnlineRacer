@@ -20,10 +20,8 @@ class SceneNode {
     // Used to keep track of the mesh loading progress on track load time.
     static numMeshes = 0;
     static numLoadedMeshes = 0;
-
-    static collidables = []; // Used as a store for all collidable objects in the scene
     
-
+    static collidables = []; // Used as a store for all collidable objects in the scene
 
     constructor() {
         this.parent = null; // Assumed to be root node until added as child node.
@@ -35,6 +33,7 @@ class SceneNode {
         this.world = mat.identity();
         this.mesh = null;
         this.tag = "default";
+        this.visible = true;
         
         this.colliders = [];
         this.fineGrainedCollision = false; // If enabled, collision detection is more accurate (more intensive)
@@ -125,7 +124,8 @@ class SceneNode {
             Returns promise that resolves when meshes are loaded.
         */
         SceneNode.numMeshes++;
-        return loadModelFile(fileNames).then((model) => {
+
+        const meshLoadedPromise = loadModelFile(fileNames).then((model) => {
             /*
                 Recursively search the node tree.
             */
@@ -198,6 +198,9 @@ class SceneNode {
             }
             SceneNode.numLoadedMeshes++;
         });
+        resourceLoadingPromises.push(meshLoadedPromise);
+        
+        return meshLoadedPromise;
     }
 
     addParticleGenerator(p) {
@@ -206,9 +209,30 @@ class SceneNode {
     }
 
     addCollisionPlane(collisionPlane) {
+        SceneNode.numMeshes++;
+
+        resourceLoadingPromises.push(collisionPlane.loadedPromise.then(() => {
+            SceneNode.numLoadedMeshes++;
+        }));
+
         collisionPlane.parent = this;
-        this.colliders.push(collisionPlane);
+        
+        if(this.markedStatic) {
+            staticCollidables.push(c);
+        } else {
+            this.colliders.push(collisionPlane);
+        }
+        
         collisionPlane.model = mat.multiply(this.world, this.calculateLocal(collisionPlane));
+    }
+
+    markAsStatic() {
+        this.markedStatic = true;
+        this.colliders.forEach((c) => {
+            //remove from collidables list and move to staticCollidables
+            SceneNode.collidables = SceneNode.collidables.filter(item => item !== c);
+            staticCollidables.push(c);
+        });
     }
 
     collisionStep() {
@@ -396,22 +420,24 @@ class SceneNode {
     }
 
     render() {
+        if(this.visible) {
 
-        if (debug) {
-            this.colliders.forEach((c) => {
-                c.render(Camera.main);
-            });
-            
-        }
-        if (this.mesh) {
-            this.mesh.render(Camera.main);
-        }
+            if (debug) {
+                this.colliders.forEach((c) => {
+                    c.render(Camera.main);
+                });
+                
+            }
+            if (this.mesh) {
+                this.mesh.render(Camera.main);
+            }
 
-        if(this.particleGenerator) {
-            this.particleGenerator.render(Camera.main);
-        }
+            if(this.particleGenerator) {
+                this.particleGenerator.render(Camera.main);
+            }
 
-        this.children.forEach((child) => { child.render() });
+            this.children.forEach((child) => { child.render() });
+        }
     }
 }
 
@@ -455,5 +481,5 @@ const sceneGraph = {
         });
 
         node.children.forEach((child) => { this.preCalcMatrices(child)});
-    }
+    },
 };

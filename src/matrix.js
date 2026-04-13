@@ -227,6 +227,21 @@ const mat = {
        const col = [m[0], m[4], m[8]];
        const mag = Math.sqrt(col[0] * col[0] + col[1] * col[1] + col[2] * col[2]);
        return [mag, mag, mag];
+    },
+    transformVerts: function (m, v) {
+        /*
+            Transforms a set of vertices by the matrix m
+         */
+        const out = [];
+        for(let i = 0; i < v.length; i+=3) {
+            const p = [v[i], v[i+1], v[i+2], 1];
+            const t = mat.multiplyVec(m, p);
+            for(let j = 0; j < 3; j++) {
+                //Push each transformed component of the vector to the out set.
+                out.push(t[j]);
+            }
+        }
+        return out;
     }
 
 };
