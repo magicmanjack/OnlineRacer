@@ -8,6 +8,7 @@ const CAR_ROLL_REDUCE_FACTOR = 0.87; // The amount that the roll gets scaled by 
 const CAR_YAW_REDUCE_FACTOR = 0.87;
 const MAX_CAR_ROLL = 0.5;
 const MAX_CAR_YAW = 0.5;
+const MAX_CAR_PITCH = 0.1;
 
 /*
     carRoll is for the model animation when turning. The car will tilt.
@@ -22,10 +23,10 @@ const MAX_REVERSE_VEL = -4;
 
 const MAGNET_TERMINAL_VEL = TERMINAL_VEL / 6;
 
-const ACCELERATION = 0.4;
+const ACCELERATION = 0.8;
 
-const FRICTION = 0.2;
-const POST_TERMINAL_FRICTION = 0.5; 
+const FRICTION = 0.08;
+const POST_TERMINAL_FRICTION = 0.9; 
 /*
     POST_TERMINAL_FRICTION is the friction that occurs if the velocity is greater than terminal,
     in order to bring it down to terminal velocity smoothly.
@@ -40,11 +41,15 @@ const DRIFT_TURN_FACTOR = 1.4;
 const WALL_FRICTION = 2.1;
 const MIN_DEFLECT_VEL = 8; // The min velocity of the car in order for it to deflect off a wall.
 
+const SPINOUT_FRICTION = 1.1;
+
 const CAR_MAX_JUMP_VEL = 3.3; // Caps the jump speed to prevent jump being too high.
 
 class Car {
     constructor() {
         this.node = new SceneNode();
         this.velocityXZ = 0;
+        this.velocityVec = [0, 0, 0];
+        this.drifting = false;
     }
 };

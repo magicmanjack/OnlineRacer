@@ -1,5 +1,175 @@
 /* Code that is used for testing functionality*/
 
+function spaceDivisionTest() {
+    /* Testing the collision system optimisations */
+    sceneGraph.reset();
+    debug = true;
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+
+    const spawner = new SceneNode();
+    sceneGraph.root.addChild(spawner);
+
+    const g = new ParticleGenerator("textures/race/magnetpad.png");
+    spawner.addParticleGenerator(g);
+    g.enable = false;
+    g.particleInit = (p) => {
+        p.size = [0.1, 0.1];
+    }
+
+    const w = 30;
+
+    for(let i = 0; i < w; i++) {
+        for(let j = 0; j < w; j++) {
+            spawner.translation = [i - w/2, 0, j - w/2];
+            sceneGraph.preCalcMatrices();
+            g.spawn();
+        }
+    }
+
+    for(let i = 0; i < 10; i++) {
+        const obj = new SceneNode();
+        obj.translation = [Math.random() * w - w/2, 0, Math.random() * w - w/2];
+        obj.rotation = [0, 2*Math.PI*Math.random(), 0];
+        obj.scale = [0.2, 0.2, 0.2];
+        obj.addMesh(["models/car/car.fbx"]);
+        let c;
+        obj.addCollisionPlane(c = new CollisionPlane());
+        c.scale = [10, 10, 10];
+        obj.markAsStatic();
+        obj.visible = false;
+        sceneGraph.root.addChild(obj);
+    }
+
+    const player = new SceneNode();
+    player.translation = [0, 0, 0];
+    player.addMesh(["models/car/car.fbx"]).then(() => {
+        player.scale = [0.1, 0.1, 0.1];
+    });
+    player.update = () => {
+        player.rotate(0, 0.1, 0);
+
+        staticCollidables.getCollidablesAt(player.translation).forEach((c) => {
+            c.parent.visible = true;
+        });
+        if(input.up) {
+            player.translate(0, 0, -0.1);
+        }
+
+        if(input.down) {
+            player.translate(0, 0, 0.1);
+        }
+
+        if(input.left) {
+            player.translate(-0.1, 0, 0);
+        }
+
+
+        if(input.right) {
+            player.translate(0.1, 0, 0);
+        }
+    }
+    sceneGraph.root.addChild(player);
+
+    getAllResourcesLoadedPromise().then(() => {
+        sceneGraph.preCalcMatrices();
+        staticCollidables.buildPartitions();
+    })
+    //TODO mark each node as static. Once all nodes are guarenteed loaded (and their colliders), call preCalcMatrices and then build partitions
+}
+
+function highSpeedParticleTest() {
+    sceneGraph.reset();
+    debug = true;
+    setUpdatesPerSecond(1);
+    Camera.main.translation = [0, 30, -10];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    const player = new SceneNode();
+    player.addMesh(["models/car/car.fbx"]).then(() => {
+        player.rotate(0, Math.PI, 0);
+        player.scale = [0.1, 0.1, 0.1];
+        let vel = 0;
+        let timer = 0;
+        player.update = () => {
+            timer++;
+            const acc = 0.1;
+            if(timer <= 14) {vel += acc;}
+            
+            player.translation = vec.add(player.translation, vec.scale(vel, vec3.forward));
+            player.collisionStep();
+
+            player.colliders.forEach((c) => {
+                if(c.collided) {
+                    const MTV = c.collisions[0].MTV;
+                    player.translate(MTV[0], MTV[1], MTV[2]);
+                    vel = 0;
+                }
+            })
+        }
+        player.colliders[0].scale = [10, 10, 10];
+    });
+    player.addCollisionPlane(new CollisionPlane());
+    player.fineGrainedCollision = false;
+
+    const obj = new SceneNode();
+    obj.translation = [0, 0, -10];
+    obj.addCollisionPlane(new CollisionPlane());
+    
+
+    sceneGraph.root.addChild(obj);
+    sceneGraph.root.addChild(player);
+}
+
+function loadParticleInterpolationTest() {
+    sceneGraph.reset();
+    debug = true;
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    setUpdatesPerSecond(1);
+    
+    const spawner = new SceneNode();
+    sceneGraph.root.addChild(spawner);
+
+    const g = new ParticleGenerator("textures/race/magnetpad.png");
+    spawner.addParticleGenerator(g);
+    g.enable = false;
+    g.particleInit = (p) => {
+        p.size = [0.1, 0.1];
+    }
+
+    for(let i = 0; i < 20; i++) {
+        for(let j = 0; j < 20; j++) {
+            spawner.translation = [i - 10, 0, j - 10];
+            sceneGraph.preCalcMatrices();
+            g.spawn();
+        }
+    }
+
+    /* After debug points working, test particle generator interpolation while the generator is moving at 1 ups */
+    const p0 = new SceneNode();
+    p0.addMesh(["models/car/car.fbx"]).then(() => {
+        p0.scale = [0.1, 0.1, 0.1];
+        p0.rotateLocal(0, Math.PI, 0);
+    });
+
+    p0.update = () => {
+        p0.translation = vec.add(p0.translation, vec.scale(2, vec3.forward));
+    }
+
+    const generator = new ParticleGenerator("textures/default.png");
+    generator.emitAmount = 1;
+    generator.maxParticles = 1000;
+    generator.interpolate = true;
+    generator.particleInit = (p) => {
+        p.size = [0.3, 0.3];
+    }
+    generator.particleUpdate = (p) => {
+
+    }
+    p0.addParticleGenerator(generator);
+    sceneGraph.root.addChild(p0);
+}
+
 function loadCollisionTest() {
     debug = true;
     Camera.main.translation = [0, 30, 0];
@@ -59,6 +229,35 @@ function loadCollisionTest() {
 
 let peek;
 let peekCar;
+
+function loadAxisAngleTest() {
+    sceneGraph.reset();
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+
+    const block = new SceneNode(); 
+    block.addMesh(["models/car/car.fbx"]);
+    block.update = () => {
+        if(input.up) {
+
+            block.rotateOnAxis([0, 1, 0], 0.1);
+        }
+        if(input.down) {
+            block.rotateOnAxis([1, 0, 0], -0.1);
+        }
+        
+        if(input.left) {
+            const localX = vec.rotate(vec3.backward, block.rotation[0], block.rotation[1], block.rotation[2])
+            
+            block.rotateLocal(0, 0, -0.1);
+        }
+        if(input.right) {
+            const localX = vec.rotate(vec3.backward, block.rotation[0], block.rotation[1], block.rotation[2])
+            block.rotateLocal(0, 0, 0.1);
+        }
+    }
+    sceneGraph.root.addChild(block);
+}
 
 function loadParticleTest() {
     debug = true;
@@ -1003,7 +1202,7 @@ function loadHillTest2() {
     let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
     light.update = function () {
         const ti = this.textureIndex;
-        const timePassed = () => frameCounter / UPDATES_PER_SECOND;
+        const timePassed = () => frameCounter / updatesPerSecond;
 
         if (allClientsLoaded) {
             switch (ti) {

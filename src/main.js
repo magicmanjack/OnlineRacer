@@ -1,8 +1,22 @@
 "use strict";
 
-const UPDATES_PER_SECOND = 30;
-const MS_PER_UPDATE = 1000 / UPDATES_PER_SECOND;
+const PREFERRED_UPDATES_PER_SECOND = 30;
+let updatesPerSecond = PREFERRED_UPDATES_PER_SECOND
+let msPerUpdate = 1000 / updatesPerSecond;
+
+function setUpdatesPerSecond(ups) {
+    updatesPerSecond = ups;
+    msPerUpdate = 1000 / updatesPerSecond;
+}
+
 let debug = false;
+
+const debugOptions = {
+    displayUpdatesPerSecond : false,
+    displayFramesPerSecond: false,
+    displayMeshInfo: false,
+    reportCollisionType: false
+}
 
 let gl;
 let ext; // Extended functions for webGL (some needed features are not in the base webGL).
@@ -43,19 +57,45 @@ function updateViewport() {
 let lastTime;
 let delta = 0;
 
+let timer = 0; // Used for true UPS calculations
+let countedUpdates = 0;
+let countedFrames = 0;
+
 function update() {
     let timestamp = performance.now();
     if (lastTime == undefined) {
         lastTime = timestamp;
     } else {
-        delta += (timestamp - lastTime) / MS_PER_UPDATE;
+        const deltaTime = (timestamp - lastTime)
+        delta += deltaTime / msPerUpdate;
+
+        //True updates per second calculations
+        if(debug && (debugOptions.displayUpdatesPerSecond || debugOptions.displayFramesPerSecond)) {
+            timer += deltaTime;
+            if(timer >= 1000) {
+
+                if(debugOptions.displayUpdatesPerSecond) {
+                    console.log(`UPS: ${Math.floor(countedUpdates / (timer/1000))}`);
+                    countedUpdates = 0;
+                }
+
+                if(debugOptions.displayFramesPerSecond) {
+                    console.log(`FPS: ${Math.floor(countedFrames) / (timer/1000)}`)
+                    countedFrames = 0;
+                }
+                
+                timer = 0;
+            }
+
+        }
+        
         lastTime = timestamp;
 
         while (delta >= 1) {
             //Process game updates
             //Calculate a timestamp for the frame number between the last update to now.
 
-            let frameTimeStamp = timestamp - ((delta - 1) * MS_PER_UPDATE);
+            let frameTimeStamp = timestamp - ((delta - 1) * msPerUpdate);
             // e.g if delta = 1 that means at the timestamp is this instant. 
             // If delta = 2, the first frame is at (now - 1 * MS_PER_UPDATE).
             // If delta = 1.5, the first frame occured (now - 0.5 * MS_PER_UPDATE) ago.
@@ -82,8 +122,13 @@ function update() {
             }
 
             delta--;
+            if(debugOptions.displayUpdatesPerSecond) {
+                countedUpdates++;
+            }
         }
-
+        if(debugOptions.displayFramesPerSecond) {
+            countedFrames++;
+        }
     }
 }
 

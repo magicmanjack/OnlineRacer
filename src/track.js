@@ -3,6 +3,10 @@ const TRACKS = [
     "models/maps/track_brands_hatch.fbx"
 ]
 
+const track = {
+    groundLevel: 5
+}
+
 let toggleHUD = false;
 
 const CAMERA_REL_CAR = [0, 50 * 0.8, 110 * 0.8];
@@ -91,6 +95,7 @@ function loadTrack(trackIndex) {
 
     let carRoll = 0;
     let carYaw = 0;
+    let carPitch = 0;
 
     let carRotationY = 0;
 
@@ -100,8 +105,6 @@ function loadTrack(trackIndex) {
     let acceleration = ACCELERATION;
 
     let boostTimer = 0;
-
-    let groundLevel = 5;
 
     let startTimer = false;
     let startTime = 0;
@@ -116,9 +119,8 @@ function loadTrack(trackIndex) {
     let lapCount = 1;
     let gameFinished = false;
 
-    let drifting = false;
-
     let g1, g2; // The left and right particle generators for the car.
+    let boosterEmitter; // The particle generator for the booster
 
     audio.reset();
 
@@ -189,6 +191,8 @@ function loadTrack(trackIndex) {
     const raceFinishedSfxEle = audio.loadAudio("sfx_race_finished");
 
     car.node.update = () => {
+
+        const carVelT1 = car.velocityXZ;
         
         // Input handling
         if (!controlsDisabled) {
@@ -217,10 +221,10 @@ function loadTrack(trackIndex) {
             }
 
             if (input.drift || currentGamepad.isHeld("X")) {
-                drifting = true;
+                car.drifting = true;
                 car.velocityXZ -= DRIFT_FRICTION;
             } else {
-                drifting = false;
+                car.drifting = false;
             }
 
             // Car Movement
@@ -230,7 +234,7 @@ function loadTrack(trackIndex) {
                 const absLeftXAxis = Math.abs(currentGamepad.getLeftXAxis());
                 if (currentGamepad.getLeftXAxis() < -0.15) {
 
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -252,7 +256,7 @@ function loadTrack(trackIndex) {
                     }
                 } else if (currentGamepad.getLeftXAxis() > 0.15) {
 
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -275,7 +279,7 @@ function loadTrack(trackIndex) {
                 }
                 // Digital Movement
                 else if (input.left || currentGamepad.isHeld("DPad-Left")) {
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -299,7 +303,7 @@ function loadTrack(trackIndex) {
                     input.right ||
                     currentGamepad.isHeld("DPad-Right")
                 ) {
-                    const r = drifting
+                    const r = car.drifting
                         ? rotateSpeed * DRIFT_TURN_FACTOR
                         : rotateSpeed;
                     
@@ -336,31 +340,56 @@ function loadTrack(trackIndex) {
         
 
         //Car spark animations
-        if(carRoll > MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
+        if(carRoll > MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] <= track.groundLevel) {
             g1.enable = true;
         } else {
             g1.enable = false;
         }
 
-        if(carRoll < -1 * MAX_CAR_ROLL / 2 && drifting && car.node.translation[1] == groundLevel) {
+        if(carRoll < -1 * MAX_CAR_ROLL / 2 && car.drifting && car.node.translation[1] <= track.groundLevel) {
             g2.enable = true;
         } else {
             g2.enable = false;
         }
-        car.node.getChild("carModel").rotation = [0, 0, -carRoll];
-        car.node.getChild("carModel").rotateRelative(0, -carYaw, 0);
 
-        carRoll *= CAR_ROLL_REDUCE_FACTOR;
-        carYaw *= CAR_YAW_REDUCE_FACTOR;
-        car.node.getChild("carModel").translation = [
-            0,
-            CAR_HOVER_AMPLITUDE *
-                Math.cos(
-                    (2 * Math.PI * CAR_HOVER_FREQUENCY * performance.now()) /
-                        1000
-                ),
-            0,
-        ];
+        //Car boost animations
+        if(boostTimer > 0) {
+            boosterEmitter.enable = true;
+        } else {
+            boosterEmitter.enable = false;
+        }
+
+        function vibration() {
+            const f = 5;
+            const phaseDiff = 1;
+
+            const c1 = Math.cos(2*Math.PI * f * performance.now() / 1000) 
+            + Math.cos(2*Math.PI * f / 3 * performance.now() / 1000)
+            + Math.cos(2*Math.PI * f / 6 * performance.now() / 1000)
+
+            const c2 = Math.cos(phaseDiff + 2*Math.PI * f * performance.now() / 1000) 
+            + Math.cos(phaseDiff + 2*Math.PI * f / 3 * performance.now() / 1000)
+            + Math.cos(phaseDiff + 2*Math.PI * f / 6 * performance.now() / 1000)
+
+            const c3 = Math.cos(phaseDiff * 2 + 2*Math.PI * f * performance.now() / 1000) 
+            + Math.cos(phaseDiff*2 + 2*Math.PI * f / 3 * performance.now() / 1000)
+            + Math.cos(phaseDiff*2 + 2*Math.PI * f / 6 * performance.now() / 1000)
+            return [c1, c2, c3];
+        }
+
+        car.node.getChild("carModel").translation = vec.add(
+            [
+                0,
+                CAR_HOVER_AMPLITUDE *
+                    Math.cos(
+                        (2 * Math.PI * CAR_HOVER_FREQUENCY * performance.now()) /
+                            1000
+                    ),
+                0,
+            ],
+            vec.scale(car.velocityXZ / TERMINAL_VEL * 0.05, vibration())
+        );
+
         //Car boost animation
         //First layer booster
         const booster1 = car.node.getChildByMesh("booster_1");
@@ -415,7 +444,7 @@ function loadTrack(trackIndex) {
 
         if (car.velocityXZ > 0) {
             //Car going fowards.
-            cameraLagFactor = 0.1; // Move this out
+            cameraLagFactor = 0.1;
             car.velocityXZ -= FRICTION;
             if (car.velocityXZ < 0) {
                 car.velocityXZ = 0;
@@ -445,32 +474,62 @@ function loadTrack(trackIndex) {
         }
 
         
+        // Vertical accelerations
         carYVelocity = carYVelocity + GRAVITY;
 
-        // Translation of the car in the new direction.
-        const carDelta = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
-        car.node.translate(carDelta[0], carYVelocity, carDelta[2]);
-        const camDelta = carDelta;
-        Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
-
-        if (car.node.translation[1] < groundLevel) {
+        //Spring mechanics for when the car tries to phase through the ground
+        const k = 0.07;
+        //Offset is to be applied so the equilibrium point is at the ground level.
+        const offset = -1*GRAVITY/k;
+        
+        if (car.node.translation[1] + carYVelocity < track.groundLevel + offset) {
             //If car phases through ground
-            car.node.translation[1] = groundLevel;
-            carYVelocity = 0;
+            //car.node.translation[1] += track.groundLevel - car.node;
+            
+            let upAcc = (track.groundLevel + offset - car.node.translation[1]) * k;
+
+
+            carYVelocity+=upAcc;
+
+            const lossFactor = 0.90;
+            carYVelocity *= lossFactor; // To simulate energy lost by friction
+
+            if(Math.abs(carYVelocity) <= 0.001 && Math.abs(car.node.translation[1] - track.groundLevel) <= 0.001) {
+                carYVelocity = 0;
+                car.node.translation[1] = track.groundLevel;
+            }
+          
+         
         }
+
+        // Translation of the car in the new direction.
+        if(!car.spinning) {
+            car.velocityVec = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
+        } else {
+            // If spinning, do not change direction of velocity, just scale to match velocityXZ
+            if(vec.magnitude(car.velocityVec) != 0) {
+                const velNorm = vec.normalize(car.velocityVec);
+                car.velocityVec = vec.scale(car.velocityXZ, velNorm);
+            }
+        }
+
+        car.node.translate(car.velocityVec[0], carYVelocity, car.velocityVec[2]);
+        const camDelta = car.velocityVec;
+        Camera.main.translate(camDelta[0], camDelta[1], camDelta[2]);
 
         car.node.collisionStep(); //Check for collisions
 
         let currentStartLineCollision = false;
 
         car.node.colliders.forEach((c) => {
+            let handledMTV = false;
             if (c.collided) {
                 const collisions = c.collisions;
 
                 for (let i = 0; i < collisions.length; i++) {
                     const t = collisions[i].sceneNode.tag;
                     const p = collisions[i].sceneNode;
-                    if (debug) {
+                    if (debug && debugOptions.reportCollisionType) {
                         
                         if(p.name) {
                             console.log("type: " + t + " name: " + p.name);
@@ -479,47 +538,53 @@ function loadTrack(trackIndex) {
                         }
                     }
                     if (t == "wall") {
-                        
-                        // //A collision resulted. Add negative of delta pos to undo.
-                        // let carInv = vec.scale(-1, carDelta);
-                        // let camInv = vec.scale(-1, camDelta);
-                        // car.velocityXZ = 0;
-                        // car.node.translate(carInv[0], carYVelocity, carInv[2]);
-                        // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
+                        if(/*!handledMTV*/true) {
+                            // //A collision resulted. Add negative of delta pos to undo.
+                            // let carInv = vec.scale(-1, carDelta);
+                            // let camInv = vec.scale(-1, camDelta);
+                            // car.velocityXZ = 0;
+                            // car.node.translate(carInv[0], carYVelocity, carInv[2]);
+                            // Camera.main.translate(camInv[0], camInv[1], camInv[2]);
 
-                        //New collision code
-                        
-                        let MTV = collisions[i].MTV;
-                        let norm = collisions[i].normal;
-                        let carVelVector = vec.rotate([0, 0, -1 * car.velocityXZ], 0, carRotationY, 0);
-                        let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
+                            //New collision code
+                            
+                            let MTV = collisions[i].MTV;
+                            let norm = collisions[i].normal;
+                            let carVelVector = car.velocityVec;
+                            let deflectAngle = vec.angle(carVelVector, norm) - Math.PI/2;
 
-                        if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
-                            //Only for angles smaller than 45 and speeds great enough
-                            let cross = vec.cross(carVelVector, norm);
-                        
-                            if(cross[1] > 0) {
-                                carRotationY += deflectAngle;
-                            } else if(cross[1] < 0) {
-                                carRotationY -= deflectAngle;
+                            if(deflectAngle < Math.PI/4 && Math.abs(car.velocityXZ) >= MIN_DEFLECT_VEL) {
+                                //Only for angles smaller than 45 and speeds great enough
+                                let cross = vec.cross(carVelVector, norm);
+                            
+                                if(cross[1] > 0) {
+                                    carRotationY += deflectAngle;
+                                } else if(cross[1] < 0) {
+                                    carRotationY -= deflectAngle;
+                                }
+
+                                car.velocityXZ -= WALL_FRICTION;
+                                if(car.velocityXZ < MAX_REVERSE_VEL) {
+                                    car.velocityXZ = MAX_REVERSE_VEL;
+                                }
+
+                            } else {
+                                //Lose all velocity because colliding with wall head on
+                                car.velocityXZ = 0;
+                            }
+                            
+                            car.node.translate(MTV[0], MTV[1], MTV[2]);
+                            Camera.main.translate(MTV[0], MTV[1], MTV[2]);
+
+                            if(car.spinFramesLeft > 0 && car.velocityXZ == 0) {
+                                //If car is spinning, cut the spinning short
+                                car.spinFramesLeft = 0;
                             }
 
-                            car.velocityXZ -= WALL_FRICTION;
-                            if(car.velocityXZ < MAX_REVERSE_VEL) {
-                                car.velocityXZ = MAX_REVERSE_VEL;
-                            }
+                            handledMTV = true;
 
-                        } else {
-                            //Lose all velocity because colliding with wall head on
-                            car.velocityXZ = 0;
-                        }
-                        
-                        car.node.translate(MTV[0], MTV[1], MTV[2]);
-                        Camera.main.translate(MTV[0], MTV[1], MTV[2]);
-
-                        
-                        
-                        
+                        }        
+                               
                     
                     } else if (t == "ramp") {
                         //collision with ramp
@@ -612,12 +677,10 @@ function loadTrack(trackIndex) {
                         controlsDisabled = true;
                         let speed = Math.abs(car.velocityXZ);
                         // proprotional to speed makes spinning quicker when you move slower, proportional to inverse speed makes spinning quicker when you move faster
-                        let rotationFrames = Math.min(
-                            60,
-                            Math.round((30 * 15) / speed)
-                        );
+                        let rotationFrames = 2 * updatesPerSecond; // 2 seconds
                         let direction = Math.random();
                         let rotationStep = (4 * Math.PI) / rotationFrames;
+                        
                         if (direction < 0.5) {
                             rotationStep = -1 * rotationStep;
                         }
@@ -627,14 +690,22 @@ function loadTrack(trackIndex) {
                             car.spinFramesLeft = rotationFrames;
                             car.originalUpdate = car.node.update;
                             car.node.update = function () {
+                                if(car.velocityXZ == 0) {
+                                    car.spinFramesLeft = 0; //Stop spin if car stops.
+                                }
+
                                 if (car.spinFramesLeft > 0) {
+                                    //carRotationY += rotationStep;
+                                    //TODO figure out why not rotating
                                     carRotationY += rotationStep;
                                     // Slow down the car drastically while spinning
-                                    car.velocityXZ *= 0.95;
-                                    car.spinFramesLeft--;
-                                    if (car.spinFramesLeft == 0) {
+                                    
+                                    car.velocityXZ -= SPINOUT_FRICTION;
+                                    if(car.velocityXZ < 0) {
                                         car.velocityXZ = 0;
                                     }
+
+                                    car.spinFramesLeft--;
                                 } else {
                                     car.spinning = false;
                                     // Restore the original update function after spinning
@@ -648,7 +719,7 @@ function loadTrack(trackIndex) {
                         }
                     } else if (
                         t == "magnet" &&
-                        car.node.translation[1] < groundLevel + 1
+                        car.node.translation[1] < track.groundLevel + 1
                     ) {
                         terminalVelocity = MAGNET_TERMINAL_VEL;
                         if (Math.abs(car.velocityXZ) > 2) {
@@ -738,6 +809,30 @@ function loadTrack(trackIndex) {
             }
         }
 
+        //car chasis movement animations
+
+        const acc = (car.velocityXZ - carVelT1);
+        
+        if(acc > 0 && carPitch <= MAX_CAR_PITCH) {
+            carPitch += 0.01;
+            if(carPitch >= MAX_CAR_PITCH) {
+                carPitch = MAX_CAR_PITCH;
+            }
+        } else if(Math.abs(acc) > 0) {
+            carPitch -= 0.01;
+            if(carPitch < 0) {
+                carPitch = 0;
+            }
+        }
+        const carModel = car.node.getChild("carModel");
+        carModel.rotation = [0, 0, 0]; //Reset rotation
+        carModel.rotateLocal(-carPitch, 0, 0);
+        carModel.rotate(0, -carYaw, 0);
+        carModel.rotateLocal(0, 0, -carRoll);
+
+        carRoll *= CAR_ROLL_REDUCE_FACTOR;
+        carYaw *= CAR_YAW_REDUCE_FACTOR;
+
         // Apply car rotation to actual sceneNode
         car.node.rotation = [0, carRotationY + Math.PI, 0];
 
@@ -764,12 +859,17 @@ function loadTrack(trackIndex) {
             //Add spark particle generators to wings
         g1 = new ParticleGenerator("/textures/default.png");
         g2 = new ParticleGenerator("/textures/default.png");
+        boosterEmitter = new ParticleGenerator("/textures/car/booster_2.png");
         g1.maxParticles = 100;
         g2.maxParticles = 100;
+        boosterEmitter.maxParticles = 100;
         g1.emitAmount = 3;
         g2.emitAmount = 3;
+        boosterEmitter.emitAmount = 3;
         g1.enable = false;
         g2.enable = false;
+        boosterEmitter.enable = true;
+        boosterEmitter.interpolate = true;
         let gInit = (p) => {
             //Move opposite car direction
             //Car dir
@@ -784,17 +884,43 @@ function loadTrack(trackIndex) {
             p.size = [1.5, 1.5];
             p.ttl = 60;
         }
+        let boosterInit = (p) => {
+            const randStrength = 1.0;
+            const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
+            p.size = vec.scale(Math.random() * randStrength * 0.3 + 0.7, [2.5, 2.5]);
+            p.ttl = 60;
+            p.velocity = vec.scale(1/1.5, car.velocityVec);
+            p.velocity = vec.add(p.velocity, randInfluence);
+
+            if(car.spinning) {
+                
+                const pushback = vec.rotate(vec.scale(15.0, vec3.backward), 0, carRotationY, 0);
+                p.velocity = vec.add(p.velocity, pushback);
+            }
+        }
         let gUpdate = (p) => {
             p.position = vec.add(p.position, p.velocity);
             p.size = vec.scale(0.95, p.size);
+        }
+        let boosterUpdate = (p) => {
+            p.size = vec.scale(0.1, p.size);
+            if(vec.magnitude(p.size) < 0.0001) {
+                p.ttl = 1;
+            }
+            p.position = vec.add(p.position, p.velocity);
         }
         g1.particleInit = gInit;
         g1.particleUpdate = gUpdate;
         g2.particleInit = gInit;
         g2.particleUpdate = gUpdate;
+        boosterEmitter.particleInit = boosterInit;
+        boosterEmitter.particleUpdate = boosterUpdate;
+
         carModel.getChild("wing_left").addParticleGenerator(g1);
 
         carModel.getChild("wing_right").addParticleGenerator(g2);
+
+        carModel.getChild("booster_emitter").addParticleGenerator(boosterEmitter);
        
     });
     carModel.name = "carModel";
@@ -802,6 +928,8 @@ function loadTrack(trackIndex) {
 
     const c = new CollisionPlane()
     car.node.addCollisionPlane(c);
+    car.node.fineGrainedCollision = true;
+    
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
@@ -864,12 +992,12 @@ function loadTrack(trackIndex) {
         const spawnSeperation = 40;
         car.node.translation = vec.add(
             [startLine.translation[0], 0, startLine.translation[2]],
-            [-3 * spawnSeperation + spawnSeperation * Client.id, groundLevel, 0]
+            [-3 * spawnSeperation + spawnSeperation * Client.id, track.groundLevel, 0]
         );
 
         Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
-        sceneGraph.preCalcMatrices(ground);
+        sceneGraph.preCalcMatrices(sceneGraph.root);
     });
     
     ground.translate(0, -5, -50);
@@ -909,7 +1037,7 @@ function loadTrack(trackIndex) {
     let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
     light.update = function () {
         const ti = this.textureIndex;
-        const timePassed = () => frameCounter / UPDATES_PER_SECOND;
+        const timePassed = () => frameCounter / updatesPerSecond;
 
         if (allClientsLoaded) {
             switch (ti) {

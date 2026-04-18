@@ -20,9 +20,8 @@ class SceneNode {
     // Used to keep track of the mesh loading progress on track load time.
     static numMeshes = 0;
     static numLoadedMeshes = 0;
-
-    static collidables = [];
-
+    
+    static collidables = []; // Used as a store for all collidable objects in the scene
 
     constructor() {
         this.parent = null; // Assumed to be root node until added as child node.
@@ -34,8 +33,11 @@ class SceneNode {
         this.world = mat.identity();
         this.mesh = null;
         this.tag = "default";
+        this.visible = true;
         
         this.colliders = [];
+        this.fineGrainedCollision = false; // If enabled, collision detection is more accurate (more intensive)
+        this.fineGrainedCollisionInterval = 5.0;
     }
 
     translate(tx, ty, tz) {
@@ -73,6 +75,29 @@ class SceneNode {
 
     }
 
+    rotateOnAxis(axis, angle) {
+        /* rotates the scene node around the axis with the angle provided */
+        const newRot = mat.rotateAround(axis, angle);
+        const originalRot = mat.rotate(this.rotation[0], this.rotation[1], this.rotation[2]);
+
+        this.rotation = mat.getRotationVector(mat.multiply(newRot, originalRot));
+    }
+
+    rotateLocal(rx, ry, rz) {
+        /* Rotates on the objects local axes in its local coordinate system
+        as opposed to global axis rotation */
+        
+        //Calculation of new reference frame
+        const localX = vec.rotate(vec3.right, this.rotation[0], this.rotation[1], this.rotation[2]);
+        const localY = vec.rotate(vec3.up, this.rotation[0], this.rotation[1], this.rotation[2]);
+        const localZ = vec.rotate(vec3.backward, this.rotation[0], this.rotation[1], this.rotation[2]);
+
+        //Rotate around X, then Y, then Z
+        this.rotateOnAxis(localX, rx);
+        this.rotateOnAxis(localY, ry);
+        this.rotateOnAxis(localZ, rz);
+    }
+
     calculateLocal(o) {
         //Calculates the model matrix of this transformable object according to its translation and rotation.
         let rx = o.rotation[0];
@@ -99,7 +124,8 @@ class SceneNode {
             Returns promise that resolves when meshes are loaded.
         */
         SceneNode.numMeshes++;
-        return loadModelFile(fileNames).then((model) => {
+
+        const meshLoadedPromise = loadModelFile(fileNames).then((model) => {
             /*
                 Recursively search the node tree.
             */
@@ -172,6 +198,9 @@ class SceneNode {
             }
             SceneNode.numLoadedMeshes++;
         });
+        resourceLoadingPromises.push(meshLoadedPromise);
+        
+        return meshLoadedPromise;
     }
 
     addParticleGenerator(p) {
@@ -180,8 +209,30 @@ class SceneNode {
     }
 
     addCollisionPlane(collisionPlane) {
+        SceneNode.numMeshes++;
+
+        resourceLoadingPromises.push(collisionPlane.loadedPromise.then(() => {
+            SceneNode.numLoadedMeshes++;
+        }));
+
         collisionPlane.parent = this;
-        this.colliders.push(collisionPlane);
+        
+        if(this.markedStatic) {
+            staticCollidables.push(c);
+        } else {
+            this.colliders.push(collisionPlane);
+        }
+        
+        collisionPlane.model = mat.multiply(this.world, this.calculateLocal(collisionPlane));
+    }
+
+    markAsStatic() {
+        this.markedStatic = true;
+        this.colliders.forEach((c) => {
+            //remove from collidables list and move to staticCollidables
+            SceneNode.collidables = SceneNode.collidables.filter(item => item !== c);
+            staticCollidables.push(c);
+        });
     }
 
     collisionStep() {
@@ -190,15 +241,75 @@ class SceneNode {
             This is meant to be called after all movements are done,
             and then after the call, collision can be checked.
         */
-        this.colliders.forEach((c => {
+        if(this.fineGrainedCollision) {
+            /* 
+                The idea behind fine grained collision is:
+                    - Find the path between the last position of this scenenode
+                    and the current position.
+                    - Starting from the last position, move along the path at a specified small (fine) interval,
+                    at each point check for collision.
+                    - If there is a collision, exit the search.
+                    - The MTV is saved for each collider. Calculate the vector between the current position of the
+                    scenenode and the position where the search ended. Add this vector to each MTV to produce the correct results.
+
+            */
+            const lastPos = mat.getTranslationVector(this.world);
+
+            const currentPos = mat.getTranslationVector(mat.multiply(this.parent.world, mat.translate(this.translation[0], this.translation[1], this.translation[2])));
             
-            let local = this.calculateLocal(this);
-            let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
-            let world = mat.multiply(parentWorld, local);
-            c.model = mat.multiply(world, this.calculateLocal(c));
-            c.checkCollisions(SceneNode.collidables);
-        
-        }));
+            //Flatten
+            lastPos[1] = 0;
+            currentPos[1] = 0;
+
+            const path = vec.subtract(currentPos, lastPos);
+
+            const pathNormal = vec.magnitude(path) == 0 ? [0, 0, 0] : vec.normalize(path);
+
+            const nIntervals = Math.max(Math.floor(vec.magnitude(path) / this.fineGrainedCollisionInterval), 1);
+
+            let collidedYet = false;
+
+            for(let i = 1; i <= nIntervals; i++) {
+
+                //Calculate interval translation along path
+                const iT = vec.scale(i * this.fineGrainedCollisionInterval, pathNormal);
+
+                this.colliders.forEach((c) => {
+
+                    //Apply interval translation
+                    c.model = mat.multiply(mat.translate(iT[0], iT[1], iT[2]), mat.multiply(this.world, this.calculateLocal(c)));
+                    c.checkCollisions(SceneNode.collidables);
+
+                    if(c.collided && !collidedYet) {
+                        collidedYet = true;
+                    }
+                });
+
+                if(collidedYet) {
+                    //Time to exit
+                    //Calculate offset from end of path and add to each MTV
+                    const offset = vec.subtract(vec.add(iT, lastPos), currentPos);
+                    this.colliders.forEach((c) => {
+                        //Apply offset to MTV
+                        c.collisions.forEach((collision) => {
+                            collision.MTV = vec.add(collision.MTV, offset);
+                        })
+                    });
+                    break;
+                }
+            } 
+
+        } else {
+            this.colliders.forEach((c) => {
+                
+                let local = this.calculateLocal(this);
+                let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
+                let world = mat.multiply(parentWorld, local);
+                c.model = mat.multiply(world, this.calculateLocal(c));
+                c.checkCollisions(SceneNode.collidables);
+            
+            });
+        }
 
     }
 
@@ -309,22 +420,24 @@ class SceneNode {
     }
 
     render() {
+        if(this.visible) {
 
-        if (debug) {
-            this.colliders.forEach((c) => {
-                c.render(Camera.main);
-            });
-            
-        }
-        if (this.mesh) {
-            this.mesh.render(Camera.main);
-        }
+            if (debug) {
+                this.colliders.forEach((c) => {
+                    c.render(Camera.main);
+                });
+                
+            }
+            if (this.mesh) {
+                this.mesh.render(Camera.main);
+            }
 
-        if(this.particleGenerator) {
-            this.particleGenerator.render(Camera.main);
-        }
+            if(this.particleGenerator) {
+                this.particleGenerator.render(Camera.main);
+            }
 
-        this.children.forEach((child) => { child.render() });
+            this.children.forEach((child) => { child.render() });
+        }
     }
 }
 
@@ -337,8 +450,7 @@ const sceneGraph = {
         this.root.render();
     },
     reset: function() {
-        /*Clears the scene heirarchy and UI and then calls back
-        the provided callback function*/
+        /*Clears the scene heirarchy and UI*/
         UILayer = [];
         this.root = new SceneNode();
         SceneNode.numMeshes = 0;
@@ -369,5 +481,5 @@ const sceneGraph = {
         });
 
         node.children.forEach((child) => { this.preCalcMatrices(child)});
-    }
+    },
 };

@@ -14,6 +14,7 @@ function loadAudioSettings() {
 
 function loadMenu() {
     // Initialize camera with proper aspect ratio
+
     const canvas = document.getElementById('c');
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = 25;
@@ -120,7 +121,7 @@ function loadLobby() {
             let frameCounter = 0;
             playerStrip.update = function() {
                 frameCounter++;
-                const timePassed = frameCounter / UPDATES_PER_SECOND;
+                const timePassed = frameCounter / updatesPerSecond;
                 if(timePassed % 2 == 0) {
                     //Every even second
                     this.textureIndex = this.textureIndex ? 0 : 1;

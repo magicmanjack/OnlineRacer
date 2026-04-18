@@ -41,17 +41,18 @@ const mat = {
         /*
             Multiplies any size square matrix m with a vector x.
         */
-        if (Math.sqrt(m.length) != x.length) {
+        const sqrt = Math.sqrt(m.length);
+        if (sqrt != x.length) {
             console.log("Must multiply only a square matrix with a vector such that the rows of the matrix match the columns of the vector.");
             return;
         }
 
         let result = [];
 
-        for (let row = 0; row < Math.sqrt(m.length); row++) {
+        for (let row = 0; row < sqrt; row++) {
             result.push(0);
-            for (let index = 0; index < Math.sqrt(m.length); index++) {
-                result[row] += m[row * 4 + index] * x[index];
+            for (let index = 0; index < sqrt; index++) {
+                result[row] += m[row * sqrt + index] * x[index];
             }
         }
         return result;
@@ -94,10 +95,34 @@ const mat = {
     },
 
     rotate: function (rx, ry, rz) {
-        //creates rotation matrix that rotates anticlockwise about x then y, then z.
-        //OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
+        /*
+        creates rotation matrix that rotates anticlockwise about x then y, then z (global axis),
+        or rotate around z, y, then x (local/intrinsic axis).
 
+         Note: OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
+        */
         return this.multiply(this.multiply(this.rotateZ(rz), this.rotateY(ry)), this.rotateX(rx));
+    },
+
+    rotateAround: function (axis, angle) {
+        /*
+            Returns a rotation matrix which represents a rotation around the specified axis by the provided angle.
+            Matrix is derived from https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+        */
+        const v = vec.normalize(axis);
+        const cs = Math.cos(angle);
+        const sn = Math.sin(angle);
+
+        const [x, y, z] = [0, 1, 2];
+
+        const R = [
+            v[x]*v[x]*(1 - cs) + cs, v[x]*v[y]*(1 - cs) - v[z]*sn, v[x]*v[z]*(1 - cs) + v[y]*sn, 0,
+            v[x]*v[y]*(1 - cs) + v[z]*sn, v[y]*v[y]*(1 - cs) + cs, v[y]*v[z]*(1 - cs) - v[x]*sn, 0, 
+            v[x]*v[z]*(1 - cs) - v[y]*sn, v[y]*v[z]*(1 - cs) + v[x]*sn, v[z]*v[z]*(1 - cs) + cs, 0,
+            0, 0, 0, 1
+        ];
+
+        return R;
     },
 
     transpose: function (m) {
@@ -185,7 +210,7 @@ const mat = {
     },
     getTranslationVector : function(m) {
         /*
-            Gets translation vector out of 4x4 transformation matrix by looking at colomn 3.
+            Gets translation vector out of 4x4 transformation matrix by looking at column 4.
         */
         if(m.length != 16) {
             console.log("cannot get translation vector from a non 4x4 matrix");
@@ -202,6 +227,21 @@ const mat = {
        const col = [m[0], m[4], m[8]];
        const mag = Math.sqrt(col[0] * col[0] + col[1] * col[1] + col[2] * col[2]);
        return [mag, mag, mag];
+    },
+    transformVerts: function (m, v) {
+        /*
+            Transforms a set of vertices by the matrix m
+         */
+        const out = [];
+        for(let i = 0; i < v.length; i+=3) {
+            const p = [v[i], v[i+1], v[i+2], 1];
+            const t = mat.multiplyVec(m, p);
+            for(let j = 0; j < 3; j++) {
+                //Push each transformed component of the vector to the out set.
+                out.push(t[j]);
+            }
+        }
+        return out;
     }
 
 };
@@ -281,6 +321,15 @@ const mat3x3 = {
     }
 
 };
+
+const vec3 = {
+    up: [0, 1, 0],
+    down: [0, -1, 0],
+    left: [-1, 0, 0],
+    right: [1, 0, 0],
+    forward: [0, 0, -1],
+    backward: [0, 0, 1]
+}
 
 const vec = {
     /*
@@ -382,5 +431,5 @@ const vec = {
         // A dot B = |A||B|cos(theta) which means theta = cos-1(A dot B / (|A||B|))
         return Math.acos(vec.dot(a, b) / (vec.magnitude(a)*vec.magnitude(b)));        
 
-    }
+    },
 };
