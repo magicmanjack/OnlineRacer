@@ -15,7 +15,8 @@ const debugOptions = {
     displayUpdatesPerSecond : false,
     displayFramesPerSecond: false,
     displayMeshInfo: false,
-    reportCollisionType: false
+    reportCollisionType: false,
+    displayNumberOfCollidables: false
 }
 
 let gl;

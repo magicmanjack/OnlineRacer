@@ -60,6 +60,8 @@ class CollisionPlane {
         this.collisions = [];
         this.collisionMTV = [0, 0, 0];
         this.collisionNormal = [0, 0, 0];
+        
+        this.partitionDiscovered = false; // Used only by staticCollidables to flag whether the collider has been located already during the sweeping phase.
 
         SceneNode.collidables.push(this);
     }  
@@ -238,6 +240,11 @@ class CollisionPlane {
 
     }
 
+    reset() {
+        this.collisions = [];
+        this.collided = false;
+    }
+
     checkCollisions(collidables) {
         /*
             iterate through a list of objects to check collisions for and call collides(other).
@@ -245,8 +252,7 @@ class CollisionPlane {
             one moving object only, if checking collisions for multiple moving objects, the behaviour is
             undefined.
         */
-            this.collided = false;
-            this.collisions = [];
+            
             collidables.forEach(other => {
                 if(other === this) {
                     return;

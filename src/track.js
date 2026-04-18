@@ -933,7 +933,10 @@ function loadTrack(trackIndex) {
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
+    
     ground.addMesh([TRACKS[trackIndex]]).then(() => {
+        ground.translate(0, -5, -50);
+        //ground.markAsStatic();
         startLine = ground.getChild("startline");
         startLine.tag = "start";
 
@@ -945,6 +948,7 @@ function loadTrack(trackIndex) {
 
         ground.getChildren("solid").forEach((element) => {
             element.tag = "wall";
+            element.markAsStatic();
         });
 
         /*
@@ -955,10 +959,12 @@ function loadTrack(trackIndex) {
 
         ground.getChildren("magnetpad").forEach((e) => {
             e.tag = "magnet";
+            e.markAsStatic();
         });
 
         ground.getChildren("ramp").forEach((e) => {
             e.tag = "ramp";
+            e.markAsStatic();
         });
 
         ground.getChildren("obstacle").forEach((e) => {
@@ -971,10 +977,12 @@ function loadTrack(trackIndex) {
 
         ground.getChildren("boost").forEach((e) => {
             e.tag = "boost";
+            e.markAsStatic();
         });
 
         ground.getChildren("checkpoint").forEach((e) => {
             e.tag = "checkpoint";
+            e.markAsStatic();
             // Preserve the original name from the 3D model for checkpoint identification
             if (!e.name) {
                 e.name = e.tag; // Fallback if name isn't set
@@ -999,11 +1007,14 @@ function loadTrack(trackIndex) {
 
         sceneGraph.preCalcMatrices(sceneGraph.root);
     });
-    
-    ground.translate(0, -5, -50);
 
     sceneGraph.root.addChild(car.node);
     sceneGraph.root.addChild(ground); 
+
+    getAllResourcesLoadedPromise().then(() => {
+        sceneGraph.preCalcMatrices();
+        staticCollidables.buildPartitions();
+    });
     
 
     // Traffic light code
@@ -1108,4 +1119,6 @@ function loadTrack(trackIndex) {
 
     clientCar = car;
     initRaceNetworking();
+
+
 }

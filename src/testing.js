@@ -19,14 +19,6 @@ function spaceDivisionTest() {
 
     const w = 30;
 
-    for(let i = 0; i < w; i++) {
-        for(let j = 0; j < w; j++) {
-            spawner.translation = [i - w/2, 0, j - w/2];
-            sceneGraph.preCalcMatrices();
-            g.spawn();
-        }
-    }
-
     for(let i = 0; i < 10; i++) {
         const obj = new SceneNode();
         obj.translation = [Math.random() * w - w/2, 0, Math.random() * w - w/2];
@@ -46,10 +38,12 @@ function spaceDivisionTest() {
     player.addMesh(["models/car/car.fbx"]).then(() => {
         player.scale = [0.1, 0.1, 0.1];
     });
+    player.addCollisionPlane(new CollisionPlane());
+    player.colliders[0].scale = [10, 10, 10];
     player.update = () => {
         player.rotate(0, 0.1, 0);
 
-        staticCollidables.getCollidablesAt(player.translation).forEach((c) => {
+        staticCollidables.getCollidables(player).forEach((c) => {
             c.parent.visible = true;
         });
         if(input.up) {
@@ -74,6 +68,14 @@ function spaceDivisionTest() {
     getAllResourcesLoadedPromise().then(() => {
         sceneGraph.preCalcMatrices();
         staticCollidables.buildPartitions();
+
+        for(let i = 0; i < staticCollidables.partitions.length; i++) {
+            for(let j = 0; j < staticCollidables.partitions[0].length; j++) {
+                spawner.translation = [i * staticCollidables.partitionWidth - staticCollidables.offsetX, 0, j * staticCollidables.partitionWidth - staticCollidables.offsetZ];
+                sceneGraph.preCalcMatrices();
+                g.spawn();
+            }
+        }
     })
     //TODO mark each node as static. Once all nodes are guarenteed loaded (and their colliders), call preCalcMatrices and then build partitions
 }
@@ -93,7 +95,7 @@ function highSpeedParticleTest() {
         player.update = () => {
             timer++;
             const acc = 0.1;
-            if(timer <= 14) {vel += acc;}
+            if(timer < 100) {vel += acc;}
             
             player.translation = vec.add(player.translation, vec.scale(vel, vec3.forward));
             player.collisionStep();
@@ -114,9 +116,18 @@ function highSpeedParticleTest() {
     const obj = new SceneNode();
     obj.translation = [0, 0, -10];
     obj.addCollisionPlane(new CollisionPlane());
+    //obj.markAsStatic();
+    const parent = new SceneNode();
+    parent.addChild(obj);
+    parent.markAsStatic();
+
+    getAllResourcesLoadedPromise().then(() => {
+        sceneGraph.preCalcMatrices();
+        staticCollidables.buildPartitions();
+    })
     
 
-    sceneGraph.root.addChild(obj);
+    sceneGraph.root.addChild(parent);
     sceneGraph.root.addChild(player);
 }
 
