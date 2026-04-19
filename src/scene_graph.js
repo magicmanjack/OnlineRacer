@@ -47,9 +47,9 @@ class SceneNode {
     }
 
     scaleBy(sx, sy, sz) {
-        this.scale[0] = sx;
-        this.scale[1] = sy;
-        this.scale[2] = sz;
+        this.scale[0] *= sx;
+        this.scale[1] *= sy;
+        this.scale[2] *= sz;
     }
 
     rotate(rx, ry, rz) {
