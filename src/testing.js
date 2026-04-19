@@ -87,6 +87,8 @@ function highSpeedParticleTest() {
     Camera.main.translation = [0, 30, -10];
     Camera.main.rotation = [-Math.PI/2, 0, 0];
     const player = new SceneNode();
+    player.fineGrainedCollision = true;
+    player.fineGrainedCollisionInterval = 0.2;
     player.addMesh(["models/car/car.fbx"]).then(() => {
         player.rotate(0, Math.PI, 0);
         player.scale = [0.1, 0.1, 0.1];
@@ -102,6 +104,8 @@ function highSpeedParticleTest() {
 
             player.colliders.forEach((c) => {
                 if(c.collided) {
+                    console.log("collision");
+                    console.log(c.collisions);
                     const MTV = c.collisions[0].MTV;
                     player.translate(MTV[0], MTV[1], MTV[2]);
                     vel = 0;
@@ -110,16 +114,15 @@ function highSpeedParticleTest() {
         }
         player.colliders[0].scale = [10, 10, 10];
     });
-    player.addCollisionPlane(new CollisionPlane());
-    player.fineGrainedCollision = false;
+    player.addCollisionPlane(new CollisionPlane()); 
 
     const obj = new SceneNode();
     obj.translation = [0, 0, -10];
     obj.addCollisionPlane(new CollisionPlane());
-    //obj.markAsStatic();
-    const parent = new SceneNode();
-    parent.addChild(obj);
-    parent.markAsStatic();
+    obj.markAsStatic();
+    // const parent = new SceneNode();
+    // parent.addChild(obj);
+    // parent.markAsStatic();
 
     getAllResourcesLoadedPromise().then(() => {
         sceneGraph.preCalcMatrices();
@@ -127,7 +130,7 @@ function highSpeedParticleTest() {
     })
     
 
-    sceneGraph.root.addChild(parent);
+    sceneGraph.root.addChild(obj);
     sceneGraph.root.addChild(player);
 }
 

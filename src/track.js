@@ -451,7 +451,10 @@ function loadTrack(trackIndex) {
             }
             if (car.velocityXZ > terminalVelocity) {
                 if (terminalVelocity == MAGNET_TERMINAL_VEL) {
-                    car.velocityXZ -= MAGNET_FRICTION * 2;
+                    car.velocityXZ -= MAGNET_FRICTION;
+                    if(car.velocityXZ < MAGNET_TERMINAL_VEL) {
+                        car.velocityXZ = MAGNET_TERMINAL_VEL;
+                    }
                 } else {
                     car.velocityXZ -= POST_TERMINAL_FRICTION;
                 }
