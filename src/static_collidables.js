@@ -8,6 +8,12 @@ const staticCollidables = {
     partitions:[],
     offsetX: 0,
     offsetZ: 0,
+    reset: function() {
+        /* The colliders are not cleared automatically if the parent object gets destroyed */
+        this.spacePartitions = [];
+        this.partitions = [];
+        
+    },
     push: function(collidable) {
         this.baseSet.push(collidable);
     },

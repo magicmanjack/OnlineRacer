@@ -66,8 +66,11 @@ const audio = {
     },
 };
 
+let probe;
+
 function loadTrack(trackIndex) {
     sceneGraph.reset();
+    staticCollidables.reset();
     toggleHUD = true;
 
     let car;
@@ -89,6 +92,7 @@ function loadTrack(trackIndex) {
     let cameraLagFactor = 0.1;
 
     car = new Car();
+    probe = car;
 
     let carYVelocity = 0;
     let rotateSpeed = 0;
@@ -936,12 +940,13 @@ function loadTrack(trackIndex) {
     c.scale = [2, 1, 3];
 
     ground = new SceneNode();
-    
+
     ground.addMesh([TRACKS[trackIndex]]).then(() => {
         ground.translate(0, -5, -50);
         //ground.markAsStatic();
         startLine = ground.getChild("startline");
         startLine.tag = "start";
+        startLine.markAsStatic();
 
         /*
         for(let i = 1; i <= 111; i++ ) {
@@ -976,6 +981,7 @@ function loadTrack(trackIndex) {
             meshChild.update = () => {
                 meshChild.rotate(0, 0.1, 0.07);
             };
+            
         });
 
         ground.getChildren("boost").forEach((e) => {

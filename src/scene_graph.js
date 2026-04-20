@@ -218,7 +218,7 @@ class SceneNode {
         collisionPlane.parent = this;
         
         if(this.markedStatic) {
-            staticCollidables.push(c);
+            staticCollidables.push(collisionPlane);
         } else {
             this.colliders.push(collisionPlane);
         }
