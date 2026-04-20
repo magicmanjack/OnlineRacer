@@ -856,8 +856,26 @@ function loadTrack(trackIndex) {
 
     const carModel = new SceneNode();
     //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
-    carModel.addMesh(["models/car/car.fbx"]).then(() => {
-        //Changes car texture based on player ID.
+    carModel.addMesh(["models/car/car.fbx"]);
+    carModel.name = "carModel";
+    car.node.addChild(carModel);
+
+    const c = new CollisionPlane()
+    car.node.addCollisionPlane(c);
+    car.node.fineGrainedCollision = true;
+    
+    c.scale = [2, 1, 3];
+
+    ground = new SceneNode();
+
+    ground.addMesh([TRACKS[trackIndex]]);
+
+    sceneGraph.root.addChild(car.node);
+    sceneGraph.root.addChild(ground); 
+
+    AfterLoaded(() => {
+
+                //Changes car texture based on player ID.
         if(Client.id > 1) {
             loadTextureAsync(`textures/car/car_player_${Client.id}.png`).then((texture) => {
                 carModel.getChild("Cube").mesh.texture = texture;
@@ -928,20 +946,7 @@ function loadTrack(trackIndex) {
         carModel.getChild("wing_right").addParticleGenerator(g2);
 
         carModel.getChild("booster_emitter").addParticleGenerator(boosterEmitter);
-       
-    });
-    carModel.name = "carModel";
-    car.node.addChild(carModel);
 
-    const c = new CollisionPlane()
-    car.node.addCollisionPlane(c);
-    car.node.fineGrainedCollision = true;
-    
-    c.scale = [2, 1, 3];
-
-    ground = new SceneNode();
-
-    ground.addMesh([TRACKS[trackIndex]]).then(() => {
         ground.translate(0, -5, -50);
         //ground.markAsStatic();
         startLine = ground.getChild("startline");
@@ -1014,13 +1019,6 @@ function loadTrack(trackIndex) {
 
         Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
-        sceneGraph.preCalcMatrices(sceneGraph.root);
-    });
-
-    sceneGraph.root.addChild(car.node);
-    sceneGraph.root.addChild(ground); 
-
-    getAllResourcesLoadedPromise().then(() => {
         sceneGraph.preCalcMatrices();
         staticCollidables.buildPartitions();
     });

@@ -76,15 +76,16 @@ loadTextureAsync = (textureName) => {
 
 
 /*
-    resourceLoadingPromises and getAllResourcesLoadedPromise() are used for
+    resourceLoadingPromises and AfterLoaded(func) are used for
     creating actions that occur once all important resources have loaded.
     For a resource to take part in this, the resource just has to
     push a promise to resourceLoadingPromises that resolves once the resource has loaded.
 */
 let resourceLoadingPromises = [];
 
-function getAllResourcesLoadedPromise() {
-    return Promise.all(resourceLoadingPromises).then(() => {
-        loadingPromises = []; // Make sure to clear so doesn't get too large
+function AfterLoaded(func) {
+    Promise.all(resourceLoadingPromises).then(() => {
+        resourceloadingPromises = []; // Make sure to clear so doesn't get too large
+        func();
     });
 }
