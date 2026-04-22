@@ -7,6 +7,63 @@ const mat = {
             0, 0, 0, 1
         ];
     },
+    inverse:function (m) {
+        const minors = [];
+        /* Firstly, compute matrix of minors by computing determinants 
+        ignoring values on current row and column */
+        
+
+    },
+    determinant: function(m) {
+        if(m.length == 4) {
+            //2x2 square matrix simple determinant case
+            const det = m[0]*m[3]-m[1]*m[2];
+            if(det == 0) {
+                console.err("the determinant is 0!")
+            }
+            return det;
+        } else if(m.length > 4 && Number.isInteger(Math.sqrt(m.length))) {
+
+            // Need to recursively compute minors
+            const n = Math.sqrt(m.length);
+            const minors = Array(n).fill();
+
+            for(let c = 0; c < n; c++) {
+                //Build matrix filled with other values not in this row or column
+                const others = [];
+                const skipCol = c;
+                for(let r = 1/*first row can be skipped*/; r < n; r++) {
+
+                    for(let c = 0; c < n; c++) {
+                        if(c == skipCol) {
+                            continue;
+                        }
+                        others.push(m[r * n + c]);
+                    }
+                }
+
+                //Compute determinant of others
+                const detOfOthers = this.determinant(others);
+
+                minors[c] = detOfOthers;
+            }
+
+            //Now we have computed the minors we can compute the determinant
+            //Just multiply top row of matrix by minors (but in +-+- checkboard order)
+            let det = 0;
+
+            for(let c = 0; c < n; c++) {
+                det += (c % 2 > 0 ? -1 : 1) * m[c] * minors[c];    
+            }
+
+            return det;
+
+            
+        } else {
+            console.error("Attempted to calculate determinant of non square matrix");
+            return null;
+        }
+    },
     scale: function (x, y, z) {
         return [
             x, 0, 0, 0,
