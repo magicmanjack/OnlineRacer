@@ -14,13 +14,60 @@ const mat = {
         
 
     },
+    inverse:function(m) {
+        /* Calculates and returns the inverse of m (if it exists) */
+        if(!Number.isInteger(Math.sqrt(m.length))) {
+            //Is not square matrix
+            console.error("Cannot get inverse of non square matrix");
+            return null;
+        }
+        const det = this.determinant(m);
+        if(det == 0) {
+            console.error("The inverse of the provided matrix does not exist");
+            return null;
+        }
+
+        const minors = Array(m.length).fill();
+        const n = Math.sqrt(m.length);
+
+        for(let row = 0; row < n; row++) {
+            for(let col = 0; col < n; col++) {
+                const others = [];
+                for(let othersRow = 0; othersRow < n; othersRow++) {
+                    for(let othersCol = 0; othersCol < n; othersCol++) {
+                        if(othersRow == row || othersCol == col) {
+                            continue;
+                        }
+
+                        others.push(m[othersRow * n + othersCol]);
+                    }
+                }
+                minors[row * n + col] = this.determinant(others);
+                
+            }
+        }
+
+        //Once we have the minors array we get the cofactors
+        const cofactors = Array(m.length).fill();
+
+        for(let r = 0; r < n; r++) {
+            for(let c = 0; c < n; c++) {
+                const sign = ((r % 2 > 0) ? -1 : 1) * ((c % 2 > 0) ? -1 : 1);
+                cofactors[r * n + c] = minors[r * n + c] * sign;
+            }
+        }
+
+        const adjugate = mat.transpose(cofactors);
+
+        return this.multiplyScalar(adjugate, 1/det);
+
+    },
     determinant: function(m) {
-        if(m.length == 4) {
+        if(m.length == 1) {
+            return m;
+        } else if(m.length == 4) {
             //2x2 square matrix simple determinant case
             const det = m[0]*m[3]-m[1]*m[2];
-            if(det == 0) {
-                console.err("the determinant is 0!")
-            }
             return det;
         } else if(m.length > 4 && Number.isInteger(Math.sqrt(m.length))) {
 
@@ -114,6 +161,14 @@ const mat = {
         }
         return result;
     },
+    multiplyScalar: function(m, s) {
+        /* Multiplies each value of the matrix m by scalar s */
+        const out = [];
+        m.forEach((e) => {
+            out.push(e * s);
+        });
+        return out;
+    },
 
     translate: function (tx, ty, tz) {
         return [
@@ -183,16 +238,16 @@ const mat = {
     },
 
     transpose: function (m) {
-        //returns the transpose of the 4x4 matrix m.
-        if (m.length != 16) {
-            console.log("error: can only transpose a 4x4 matrix");
-            return;
+        //returns the transpose of the matrix m.
+        if(!Number.isInteger(Math.sqrt(m.length))) {
+            console.log("Can only transpose a square matrix");
+            return null;
         }
-
-        let result = new Array(16);
-        for (let row = 0; row < 4; row++) {
-            for (let col = 0; col < 4; col++) {
-                result[col * 4 + row] = m[row * 4 + col];
+        const n = Math.sqrt(m.length);
+        const result = new Array(m.length).fill();
+        for (let row = 0; row < n; row++) {
+            for (let col = 0; col < n; col++) {
+                result[col * n + row] = m[row * n + col];
             }
         }
         return result;
