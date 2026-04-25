@@ -849,7 +849,7 @@ function loadTrack(trackIndex) {
         const zoomHeight = startHeight + car.velocityXZ * 0.5;
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
-
+        Camera.main.updatePerspective();
         //Update leaderboard
         leaderboard.update();
     };

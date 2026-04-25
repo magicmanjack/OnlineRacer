@@ -169,16 +169,12 @@ class UIPanel {
         */
         //TODO: get transformed points. Get mouse postion in terms of NDC space. Check collision using traditional box method.
 
-        function perspectiveDivide(vec4) {
-            return [vec4[0]/vec4[3], vec4[1]/vec4[3], vec4[2]/vec4[3], 1];
-        }
-
         const proj = mat.projection(Camera.main.displayWidth, Camera.main.displayHeight, Camera.main.zNear, Camera.main.zFar);
         const v = this.vertices;
-        const ll = perspectiveDivide(mat.multiplyVec(proj, [v[0], v[1], v[2], 1]));
-        const rl = perspectiveDivide(mat.multiplyVec(proj, [v[3], v[4], v[5], 1]));
-        const lu = perspectiveDivide(mat.multiplyVec(proj, [v[6], v[7], v[8], 1]));
-        const ru = perspectiveDivide(mat.multiplyVec(proj, [v[9], v[10], v[11], 1]));
+        const ll = vec4.perspectiveDivide(mat.multiplyVec(proj, [v[0], v[1], v[2], 1]));
+        const rl = vec4.perspectiveDivide(mat.multiplyVec(proj, [v[3], v[4], v[5], 1]));
+        const lu = vec4.perspectiveDivide(mat.multiplyVec(proj, [v[6], v[7], v[8], 1]));
+        const ru = vec4.perspectiveDivide(mat.multiplyVec(proj, [v[9], v[10], v[11], 1]));
 
         const mx = input.mouseXNorm; // Normalized mouse coordinates (to the window size) -1 to 1.
         const my = input.mouseYNorm;

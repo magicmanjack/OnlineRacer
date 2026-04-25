@@ -1,5 +1,21 @@
 /* Code that is used for testing functionality*/
 
+function miniMapTest() {
+    sceneGraph.reset();
+
+    Camera.main.translation = [0, 100, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+
+    const ground = new SceneNode();
+
+    ground.addMesh(["models/maps/track1.fbx"]).then(() => {
+        ground.scale = [0.01, 0.01, 0.01];
+
+        miniMap.create()
+    });
+    sceneGraph.root.addChild(ground);
+}
+
 function spaceDivisionTest() {
     /* Testing the collision system optimisations */
     sceneGraph.reset();

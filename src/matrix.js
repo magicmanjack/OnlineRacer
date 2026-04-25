@@ -7,13 +7,6 @@ const mat = {
             0, 0, 0, 1
         ];
     },
-    inverse:function (m) {
-        const minors = [];
-        /* Firstly, compute matrix of minors by computing determinants 
-        ignoring values on current row and column */
-        
-
-    },
     inverse:function(m) {
         /* Calculates and returns the inverse of m (if it exists) */
         if(!Number.isInteger(Math.sqrt(m.length))) {
@@ -110,6 +103,15 @@ const mat = {
             console.error("Attempted to calculate determinant of non square matrix");
             return null;
         }
+    },
+    chain: function(arrayOfMatrices) {
+        /* Multiplies the provided matrices in the array together */
+        let result = mat.identity();
+        for(let i = arrayOfMatrices.length - 1; i >= 0; i--) {
+            result = mat.multiply(arrayOfMatrices[i], result);
+        }
+
+        return result;
     },
     scale: function (x, y, z) {
         return [
@@ -441,6 +443,12 @@ const vec3 = {
     right: [1, 0, 0],
     forward: [0, 0, -1],
     backward: [0, 0, 1]
+}
+
+const vec4 = {
+    perspectiveDivide: function(vec4) {
+        return [vec4[0]/vec4[3], vec4[1]/vec4[3], vec4[2]/vec4[3], 1];
+    }
 }
 
 const vec = {
