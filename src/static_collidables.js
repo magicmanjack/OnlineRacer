@@ -3,14 +3,13 @@ in the scene. */
 
 const staticCollidables = {
     partitionWidth: 120,
-    spacePartitions:[],
     baseSet:[], // The base set of colliders
     partitions:[],
     offsetX: 0,
     offsetZ: 0,
     reset: function() {
         /* The colliders are not cleared automatically if the parent object gets destroyed */
-        this.spacePartitions = [];
+        this.baseSet = [];
         this.partitions = [];
         
     },
