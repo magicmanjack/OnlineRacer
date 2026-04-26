@@ -100,7 +100,7 @@ class CollisionPlane {
         // uses the SAT to test for collision against the other object.
 
         const transformVerts = (m, v) => {
-             // transformed into world space then into the x/y plane
+             // transformed into world space then into the x/z plane
             const out = [];
             for(let i = 0; i < v.length; i+=3) {
                 const p = [v[i], v[i+1], v[i+2], 1];

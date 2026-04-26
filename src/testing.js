@@ -11,9 +11,21 @@ function miniMapTest() {
     ground.addMesh(["models/maps/track1.fbx"]).then(() => {
         ground.scale = [0.01, 0.01, 0.01];
 
-        miniMap.create()
+        miniMap.create(ground, "textures/maps/track1/track01_new.png")
     });
     sceneGraph.root.addChild(ground);
+}
+
+function nonUniformScaleTest() {
+    sceneGraph.reset();
+
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+
+    const block = new SceneNode();
+    block.addMesh(["models/testing/nonuniform.fbx"]);
+
+    sceneGraph.root.addChild(block);
 }
 
 function spaceDivisionTest() {

@@ -113,6 +113,8 @@ class SceneNode {
         return mat.multiply(mat.translate(tx, ty, tz), mat.multiply(mat.rotate(rx, ry, rz), mat.scale(sx, sy, sz)));
     }
 
+
+
     addChild(node) {
         node.parent = this;
         this.children.push(node);
@@ -340,6 +342,8 @@ class SceneNode {
         }
 
         let local = this.calculateLocal(this);
+        this.local = local;
+
         let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
 
         this.world = mat.multiply(parentWorld, local);

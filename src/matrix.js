@@ -294,9 +294,10 @@ const mat = {
             the rotation vector from the rotation part of the matrix.
             Details on the math can be found at https://www.geometrictools.com/Documentation/EulerAngles.pdf
         */
-        const inverseScale = 1 / this.getScaleVector(m)[0];
+        
 
         function r(row, col) {
+            const inverseScale = 1 / mat.getScaleVector(m)[col];
             return m[row * 4 + col] * inverseScale;
         }
 
@@ -335,12 +336,18 @@ const mat = {
     getScaleVector: function(m) {
         /*
             Gets scale vector by looking at the first column vector.
-            At the moment this only supports uniform scaling and cannot extract
-            seperate scalings for each axis.
+            At the moment this only supports positive scalings.
         */
-       const col = [m[0], m[4], m[8]];
-       const mag = Math.sqrt(col[0] * col[0] + col[1] * col[1] + col[2] * col[2]);
-       return [mag, mag, mag];
+       const col1vec = [m[0], m[4], m[8]];
+       const col2vec = [m[1], m[5], m[9]];
+       const col3vec = [m[2], m[6], m[10]];
+
+
+       const sx = vec.magnitude(col1vec);
+       const sy = vec.magnitude(col2vec);
+       const sz = vec.magnitude(col3vec);
+
+       return [sx, sy, sz];
     },
     transformVerts: function (m, v) {
         /*

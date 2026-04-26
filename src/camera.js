@@ -65,15 +65,18 @@ class Camera {
         this.projection = mat.projection(this.displayWidth, this.displayHeight, this.zNear, this.zFar);
     }
 
-    getBoundingBox(sceneNode) {
+    getBoundingBox(sceneNode, project=true) {
         /*Returns the bounding box of the provided sceneNode from the perspective
         of the camera in the form of [u, r, d ,l] (up, right, down, left) 
-        Note: the coordinates are in normalized device space [-1, 1] */
+        Note: the coordinates are in normalized device space [-1, 1].
+        If project is set to false, perspective projection is not used and the coordinates
+        are just from the view point of the camera. */
+
         if(sceneNode.mesh == null) {
             console.error("Could not get bounding box from sceneNode without mesh");
             return;
         }
-        const mvp = mat.chain([this.projection, this.createView(), sceneNode.world]);
+        const mvp = mat.chain([project ? this.projection : mat.identity, this.createView(), sceneNode.world]);
 
         const vertices = sceneNode.mesh.vertices;
         
