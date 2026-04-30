@@ -2,18 +2,76 @@
 
 function miniMapTest() {
     sceneGraph.reset();
-
-    Camera.main.translation = [0, 100, 0];
-    Camera.main.rotation = [-Math.PI/2, 0, 0];
-
     const ground = new SceneNode();
-
     ground.addMesh(["models/maps/track1.fbx"]).then(() => {
-        ground.scale = [0.01, 0.01, 0.01];
+        sceneGraph.preCalcMatrices();
+        const mm = new SceneNode();
+        const g = ground.getChild("ground");
+        mm.mesh = g.mesh.reuse();
+        mm.mesh.parent = mm;
+        mm.world = [...g.world];
+        mm.translation = mat.getTranslationVector(mm.world);
+        mm.rotation = mat.getRotationVector(mm.world);
+        mm.scale = mat.getScaleVector(mm.world);
 
-        miniMap.create(ground, "textures/maps/track1/track01_new.png")
+        ground.rotate(0, 0.5, 0);
+        ground.scaleBy(2, 2, 2);
+        ground.rotate(0.4, 0.4, 0.4);
+        sceneGraph.preCalcMatrices();
+
+        minimap.create(ground, mm);
+        sceneGraph.root.addChild(mm);
+
+        const minimapController = new SceneNode();
+        minimapController.update = () => {
+            minimap.updatePosition(Camera.main);
+        }
+        sceneGraph.root.addChild(minimapController);
+        
     });
+
     sceneGraph.root.addChild(ground);
+}
+
+function addCameraControl(speed = 0.4) {
+    const cameraController = new SceneNode();
+    cameraController.update = () => {
+        const rotateSpeed = 0.05;
+        const c = Camera.main;
+        const forwardVec = vec.rotate(vec.scale(speed, vec3.forward), c.rotation[0], c.rotation[1], c.rotation[2]);
+
+        const rightVec = vec.rotate(vec.scale(speed, vec3.right), c.rotation[0], c.rotation[1], c.rotation[2]);
+
+        if(input.up) {
+            
+            Camera.main.translate(forwardVec[0], forwardVec[1], forwardVec[2]);
+        }
+        if(input.down) {
+
+            Camera.main.translate(-forwardVec[0], -forwardVec[1], -forwardVec[2]);
+        }
+        if(input.left) {
+               Camera.main.translate(-rightVec[0], -rightVec[1], -rightVec[2]);
+        }
+        if(input.right) {
+            Camera.main.translate(rightVec[0], rightVec[1], rightVec[2]);
+        }
+        if(input.up2) {
+            Camera.main.rotateLocal(rotateSpeed, 0, 0);
+        }
+        if(input.down2) {
+            Camera.main.rotateLocal(-rotateSpeed, 0, 0);
+        }
+        if(input.left2) {
+            Camera.main.rotateRelative(0, rotateSpeed, 0);
+        }
+        if(input.right2) {
+            Camera.main.rotateRelative(0, -rotateSpeed, 0);
+        }
+        
+    }
+
+    sceneGraph.root.addChild(cameraController);
 }
 
 function nonUniformScaleTest() {

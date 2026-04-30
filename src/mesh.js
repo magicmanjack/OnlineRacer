@@ -143,7 +143,8 @@ class Mesh {
         if (this.loaded) {
             gl.useProgram(this.shader);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
-            gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(cam.createView()));
+            
+            gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(this.parent.isUI ? mat.identity() : cam.createView()));
             gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(cam.projection));
 
             this.ext.bindVertexArrayOES(this.vao);

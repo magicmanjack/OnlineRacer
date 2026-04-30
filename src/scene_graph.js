@@ -191,7 +191,7 @@ class SceneNode {
                         const mesh = model.meshes[child.node.meshes[0]]; 
                         const material = model.materials[mesh.materialindex];
                         childSceneNode.mesh = new Mesh(mesh, material);
-                        childSceneNode.mesh.parent = parent.sceneNode;
+                        childSceneNode.mesh.parent = childSceneNode;
                         
                     }
                     

@@ -4,7 +4,7 @@ const TRACKS = [
 ]
 
 const track = {
-    groundLevel: 5
+    groundLevel: 10
 }
 
 let toggleHUD = false;
@@ -947,7 +947,7 @@ function loadTrack(trackIndex) {
 
         carModel.getChild("booster_emitter").addParticleGenerator(boosterEmitter);
 
-        ground.translate(0, -5, -50);
+        //ground.translate(0, -5, 0);
         //ground.markAsStatic();
         startLine = ground.getChild("startline");
         startLine.tag = "start";
