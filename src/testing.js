@@ -1,5 +1,91 @@
 /* Code that is used for testing functionality*/
 
+function miniMapTest() {
+    sceneGraph.reset();
+    const ground = new SceneNode();
+    ground.addMesh(["models/maps/track1.fbx"]).then(() => {
+        sceneGraph.preCalcMatrices();
+        const mm = new SceneNode();
+        const g = ground.getChild("ground");
+        mm.mesh = g.mesh.reuse();
+        mm.mesh.parent = mm;
+        mm.world = [...g.world];
+        mm.translation = mat.getTranslationVector(mm.world);
+        mm.rotation = mat.getRotationVector(mm.world);
+        mm.scale = mat.getScaleVector(mm.world);
+
+        ground.rotate(0, 0.5, 0);
+        ground.scaleBy(2, 2, 2);
+        ground.rotate(0.4, 0.4, 0.4);
+        sceneGraph.preCalcMatrices();
+
+        minimap.create(ground, mm);
+        sceneGraph.root.addChild(mm);
+
+        const minimapController = new SceneNode();
+        minimapController.update = () => {
+            minimap.updatePosition(Camera.main);
+        }
+        sceneGraph.root.addChild(minimapController);
+        
+    });
+
+    sceneGraph.root.addChild(ground);
+}
+
+function addCameraControl(speed = 0.4) {
+    const cameraController = new SceneNode();
+    cameraController.update = () => {
+        const rotateSpeed = 0.05;
+        const c = Camera.main;
+        const forwardVec = vec.rotate(vec.scale(speed, vec3.forward), c.rotation[0], c.rotation[1], c.rotation[2]);
+
+        const rightVec = vec.rotate(vec.scale(speed, vec3.right), c.rotation[0], c.rotation[1], c.rotation[2]);
+
+        if(input.up) {
+            
+            Camera.main.translate(forwardVec[0], forwardVec[1], forwardVec[2]);
+        }
+        if(input.down) {
+
+            Camera.main.translate(-forwardVec[0], -forwardVec[1], -forwardVec[2]);
+        }
+        if(input.left) {
+               Camera.main.translate(-rightVec[0], -rightVec[1], -rightVec[2]);
+        }
+        if(input.right) {
+            Camera.main.translate(rightVec[0], rightVec[1], rightVec[2]);
+        }
+        if(input.up2) {
+            Camera.main.rotateLocal(rotateSpeed, 0, 0);
+        }
+        if(input.down2) {
+            Camera.main.rotateLocal(-rotateSpeed, 0, 0);
+        }
+        if(input.left2) {
+            Camera.main.rotateRelative(0, rotateSpeed, 0);
+        }
+        if(input.right2) {
+            Camera.main.rotateRelative(0, -rotateSpeed, 0);
+        }
+        
+    }
+
+    sceneGraph.root.addChild(cameraController);
+}
+
+function nonUniformScaleTest() {
+    sceneGraph.reset();
+
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+
+    const block = new SceneNode();
+    block.addMesh(["models/testing/nonuniform.fbx"]);
+
+    sceneGraph.root.addChild(block);
+}
+
 function spaceDivisionTest() {
     /* Testing the collision system optimisations */
     sceneGraph.reset();
@@ -18,14 +104,6 @@ function spaceDivisionTest() {
     }
 
     const w = 30;
-
-    for(let i = 0; i < w; i++) {
-        for(let j = 0; j < w; j++) {
-            spawner.translation = [i - w/2, 0, j - w/2];
-            sceneGraph.preCalcMatrices();
-            g.spawn();
-        }
-    }
 
     for(let i = 0; i < 10; i++) {
         const obj = new SceneNode();
@@ -46,10 +124,12 @@ function spaceDivisionTest() {
     player.addMesh(["models/car/car.fbx"]).then(() => {
         player.scale = [0.1, 0.1, 0.1];
     });
+    player.addCollisionPlane(new CollisionPlane());
+    player.colliders[0].scale = [10, 10, 10];
     player.update = () => {
         player.rotate(0, 0.1, 0);
 
-        staticCollidables.getCollidablesAt(player.translation).forEach((c) => {
+        staticCollidables.getCollidables(player).forEach((c) => {
             c.parent.visible = true;
         });
         if(input.up) {
@@ -74,6 +154,14 @@ function spaceDivisionTest() {
     getAllResourcesLoadedPromise().then(() => {
         sceneGraph.preCalcMatrices();
         staticCollidables.buildPartitions();
+
+        for(let i = 0; i < staticCollidables.partitions.length; i++) {
+            for(let j = 0; j < staticCollidables.partitions[0].length; j++) {
+                spawner.translation = [i * staticCollidables.partitionWidth - staticCollidables.offsetX, 0, j * staticCollidables.partitionWidth - staticCollidables.offsetZ];
+                sceneGraph.preCalcMatrices();
+                g.spawn();
+            }
+        }
     })
     //TODO mark each node as static. Once all nodes are guarenteed loaded (and their colliders), call preCalcMatrices and then build partitions
 }
@@ -85,6 +173,8 @@ function highSpeedParticleTest() {
     Camera.main.translation = [0, 30, -10];
     Camera.main.rotation = [-Math.PI/2, 0, 0];
     const player = new SceneNode();
+    player.fineGrainedCollision = true;
+    player.fineGrainedCollisionInterval = 0.2;
     player.addMesh(["models/car/car.fbx"]).then(() => {
         player.rotate(0, Math.PI, 0);
         player.scale = [0.1, 0.1, 0.1];
@@ -93,13 +183,15 @@ function highSpeedParticleTest() {
         player.update = () => {
             timer++;
             const acc = 0.1;
-            if(timer <= 14) {vel += acc;}
+            if(timer < 100) {vel += acc;}
             
             player.translation = vec.add(player.translation, vec.scale(vel, vec3.forward));
             player.collisionStep();
 
             player.colliders.forEach((c) => {
                 if(c.collided) {
+                    console.log("collision");
+                    console.log(c.collisions);
                     const MTV = c.collisions[0].MTV;
                     player.translate(MTV[0], MTV[1], MTV[2]);
                     vel = 0;
@@ -108,12 +200,20 @@ function highSpeedParticleTest() {
         }
         player.colliders[0].scale = [10, 10, 10];
     });
-    player.addCollisionPlane(new CollisionPlane());
-    player.fineGrainedCollision = false;
+    player.addCollisionPlane(new CollisionPlane()); 
 
     const obj = new SceneNode();
     obj.translation = [0, 0, -10];
     obj.addCollisionPlane(new CollisionPlane());
+    obj.markAsStatic();
+    // const parent = new SceneNode();
+    // parent.addChild(obj);
+    // parent.markAsStatic();
+
+    getAllResourcesLoadedPromise().then(() => {
+        sceneGraph.preCalcMatrices();
+        staticCollidables.buildPartitions();
+    })
     
 
     sceneGraph.root.addChild(obj);

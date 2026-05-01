@@ -15,7 +15,9 @@ const debugOptions = {
     displayUpdatesPerSecond : false,
     displayFramesPerSecond: false,
     displayMeshInfo: false,
-    reportCollisionType: false
+    reportCollisionType: false,
+    displayNumberOfCollidables: false,
+    displayKeyPresses: false
 }
 
 let gl;
@@ -48,9 +50,8 @@ function updateViewport() {
     // Update camera dimensions to match canvas aspect ratio
     if (typeof Camera.main !== 'undefined') {
         const aspectRatio = gl.canvas.width / gl.canvas.height;
-        const baseHeight = 25;
-        Camera.main.displayHeight = baseHeight;
-        Camera.main.displayWidth = baseHeight * aspectRatio;
+        Camera.main.displayWidth = Camera.main.displayHeight * aspectRatio;
+        Camera.main.updatePerspective();
     }
 }
 
@@ -134,9 +135,9 @@ function update() {
 
 function render() {
 
-    update();
-
     currentGamepad.update();
+
+    update();
 
     gl.clearColor(0.0, 0.8, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

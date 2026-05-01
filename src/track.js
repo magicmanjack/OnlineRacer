@@ -4,7 +4,7 @@ const TRACKS = [
 ]
 
 const track = {
-    groundLevel: 5
+    groundLevel: 10
 }
 
 let toggleHUD = false;
@@ -66,8 +66,11 @@ const audio = {
     },
 };
 
+let probe;
+
 function loadTrack(trackIndex) {
     sceneGraph.reset();
+    staticCollidables.reset();
     toggleHUD = true;
 
     let car;
@@ -89,6 +92,7 @@ function loadTrack(trackIndex) {
     let cameraLagFactor = 0.1;
 
     car = new Car();
+    probe = car;
 
     let carYVelocity = 0;
     let rotateSpeed = 0;
@@ -451,7 +455,10 @@ function loadTrack(trackIndex) {
             }
             if (car.velocityXZ > terminalVelocity) {
                 if (terminalVelocity == MAGNET_TERMINAL_VEL) {
-                    car.velocityXZ -= MAGNET_FRICTION * 2;
+                    car.velocityXZ -= MAGNET_FRICTION;
+                    if(car.velocityXZ < MAGNET_TERMINAL_VEL) {
+                        car.velocityXZ = MAGNET_TERMINAL_VEL;
+                    }
                 } else {
                     car.velocityXZ -= POST_TERMINAL_FRICTION;
                 }
@@ -612,7 +619,7 @@ function loadTrack(trackIndex) {
                                 const obstacleMesh = p.getChildren("mesh")[0].mesh;
 
                                 obstacleShard.mesh = obstacleMesh.reuse();
-                                obstacleShard.scaleBy(0.5, 0.5, 0.5);
+                                // obstacleShard.scale = [2, 2, 2];
                                 obstacleShard.translation = [
                                     ...car.node.translation,
                                 ];
@@ -842,15 +849,33 @@ function loadTrack(trackIndex) {
         const zoomHeight = startHeight + car.velocityXZ * 0.5;
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
-
+        Camera.main.updatePerspective();
         //Update leaderboard
         leaderboard.update();
     };
 
     const carModel = new SceneNode();
     //Adding mesh as seperate scene node to easily add animation to model while keeping base transformation simple.
-    carModel.addMesh(["models/car/car.fbx"]).then(() => {
-        //Changes car texture based on player ID.
+    carModel.addMesh(["models/car/car.fbx"]);
+    carModel.name = "carModel";
+    car.node.addChild(carModel);
+
+    const c = new CollisionPlane()
+    car.node.addCollisionPlane(c);
+    car.node.fineGrainedCollision = true;
+    
+    c.scale = [2, 1, 3];
+
+    ground = new SceneNode();
+
+    ground.addMesh([TRACKS[trackIndex]]);
+
+    sceneGraph.root.addChild(car.node);
+    sceneGraph.root.addChild(ground); 
+
+    AfterLoaded(() => {
+
+                //Changes car texture based on player ID.
         if(Client.id > 1) {
             loadTextureAsync(`textures/car/car_player_${Client.id}.png`).then((texture) => {
                 carModel.getChild("Cube").mesh.texture = texture;
@@ -921,21 +946,12 @@ function loadTrack(trackIndex) {
         carModel.getChild("wing_right").addParticleGenerator(g2);
 
         carModel.getChild("booster_emitter").addParticleGenerator(boosterEmitter);
-       
-    });
-    carModel.name = "carModel";
-    car.node.addChild(carModel);
 
-    const c = new CollisionPlane()
-    car.node.addCollisionPlane(c);
-    car.node.fineGrainedCollision = true;
-    
-    c.scale = [2, 1, 3];
-
-    ground = new SceneNode();
-    ground.addMesh([TRACKS[trackIndex]]).then(() => {
+        //ground.translate(0, -5, 0);
+        //ground.markAsStatic();
         startLine = ground.getChild("startline");
         startLine.tag = "start";
+        startLine.markAsStatic();
 
         /*
         for(let i = 1; i <= 111; i++ ) {
@@ -945,6 +961,7 @@ function loadTrack(trackIndex) {
 
         ground.getChildren("solid").forEach((element) => {
             element.tag = "wall";
+            element.markAsStatic();
         });
 
         /*
@@ -955,10 +972,12 @@ function loadTrack(trackIndex) {
 
         ground.getChildren("magnetpad").forEach((e) => {
             e.tag = "magnet";
+            e.markAsStatic();
         });
 
         ground.getChildren("ramp").forEach((e) => {
             e.tag = "ramp";
+            e.markAsStatic();
         });
 
         ground.getChildren("obstacle").forEach((e) => {
@@ -967,14 +986,17 @@ function loadTrack(trackIndex) {
             meshChild.update = () => {
                 meshChild.rotate(0, 0.1, 0.07);
             };
+            
         });
 
         ground.getChildren("boost").forEach((e) => {
             e.tag = "boost";
+            e.markAsStatic();
         });
 
         ground.getChildren("checkpoint").forEach((e) => {
             e.tag = "checkpoint";
+            e.markAsStatic();
             // Preserve the original name from the 3D model for checkpoint identification
             if (!e.name) {
                 e.name = e.tag; // Fallback if name isn't set
@@ -997,13 +1019,9 @@ function loadTrack(trackIndex) {
 
         Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
-        sceneGraph.preCalcMatrices(sceneGraph.root);
+        sceneGraph.preCalcMatrices();
+        staticCollidables.buildPartitions();
     });
-    
-    ground.translate(0, -5, -50);
-
-    sceneGraph.root.addChild(car.node);
-    sceneGraph.root.addChild(ground); 
     
 
     // Traffic light code
@@ -1108,4 +1126,6 @@ function loadTrack(trackIndex) {
 
     clientCar = car;
     initRaceNetworking();
+
+
 }

@@ -7,6 +7,10 @@ const input = {
     leftBinding : "a",
     rightBinding : "d",
     driftBinding : "Enter",
+    up2Binding: "ArrowUp",
+    down2Binding: "ArrowDown",
+    left2Binding: "ArrowLeft",
+    right2Binding: "ArrowRight",
     up : false,
     upHeld : false,
     down : false,
@@ -15,6 +19,14 @@ const input = {
     leftHeld : false,
     right : false,
     rightHeld : false,
+    up2: false,
+    up2Held: false,
+    down2: false,
+    down2Held: false,
+    left2: false,
+    left2Held: false,
+    right2: false,
+    right2Held: false,
     drift : false,
     driftHeld: false,
     mouseX : 0,
@@ -41,6 +53,11 @@ const input = {
             
             if(e.type === "keydown") {
                 let k = e.key;
+
+                if(debug && debugOptions.displayKeyPresses) {
+                    console.log(e.key);
+                }
+                
                 if(k === this.upBinding) {
                     this.up = true;
                     this.upHeld = true;
@@ -61,6 +78,23 @@ const input = {
                     this.drift = true;
                     this.driftHeld = true;
                 }
+                if(k === this.up2Binding) {
+                    this.up2 = true;
+                    this.up2Held = true;
+                }
+                if(k === this.down2Binding) {
+                    this.down2 = true;
+                    this.down2Held = true;
+                }
+                if(k === this.left2Binding) {
+                    this.left2 = true;
+                    this.left2Held = true;
+                }
+                if(k === this.right2Binding) {
+                    this.right2 = true;
+                    this.right2Held = true;
+                }
+                
             }
             
             if(e.type === "keyup") {
@@ -76,6 +110,18 @@ const input = {
                 }
                 if(k === this.rightBinding) {
                     this.rightHeld = false;
+                }
+                if(k === this.up2Binding) {
+                    this.up2Held = false;
+                }
+                if(k === this.down2Binding) {
+                    this.down2Held = false;
+                }
+                if(k === this.left2Binding) {
+                    this.left2Held = false;
+                }
+                if(k === this.right2Binding) {
+                    this.right2Held = false;
                 }
                 if(k === this.driftBinding) {
                     this.driftHeld = false;
@@ -111,6 +157,18 @@ const input = {
         }
         if(!this.driftHeld) {
             this.drift = false;
+        }
+        if(!this.up2Held) {
+            this.up2 = false;
+        }
+        if(!this.down2Held) {
+            this.down2 = false;
+        }
+        if(!this.right2Held) {
+            this.right2 = false;
+        }
+        if(!this.left2Held) {
+            this.left2 = false;
         }
         this.mouseClicked = false;
     }

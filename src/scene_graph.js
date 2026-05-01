@@ -47,9 +47,9 @@ class SceneNode {
     }
 
     scaleBy(sx, sy, sz) {
-        this.scale[0] = sx;
-        this.scale[1] = sy;
-        this.scale[2] = sz;
+        this.scale[0] *= sx;
+        this.scale[1] *= sy;
+        this.scale[2] *= sz;
     }
 
     rotate(rx, ry, rz) {
@@ -112,6 +112,8 @@ class SceneNode {
 
         return mat.multiply(mat.translate(tx, ty, tz), mat.multiply(mat.rotate(rx, ry, rz), mat.scale(sx, sy, sz)));
     }
+
+
 
     addChild(node) {
         node.parent = this;
@@ -189,7 +191,7 @@ class SceneNode {
                         const mesh = model.meshes[child.node.meshes[0]]; 
                         const material = model.materials[mesh.materialindex];
                         childSceneNode.mesh = new Mesh(mesh, material);
-                        childSceneNode.mesh.parent = parent.sceneNode;
+                        childSceneNode.mesh.parent = childSceneNode;
                         
                     }
                     
@@ -218,7 +220,7 @@ class SceneNode {
         collisionPlane.parent = this;
         
         if(this.markedStatic) {
-            staticCollidables.push(c);
+            staticCollidables.push(collisionPlane);
         } else {
             this.colliders.push(collisionPlane);
         }
@@ -241,7 +243,9 @@ class SceneNode {
             This is meant to be called after all movements are done,
             and then after the call, collision can be checked.
         */
+
         if(this.fineGrainedCollision) {
+            //TODO add checking from collidables list
             /* 
                 The idea behind fine grained collision is:
                     - Find the path between the last position of this scenenode
@@ -273,12 +277,19 @@ class SceneNode {
 
                 //Calculate interval translation along path
                 const iT = vec.scale(i * this.fineGrainedCollisionInterval, pathNormal);
-
+                
                 this.colliders.forEach((c) => {
+
+                    //clear previous collisions
+                    c.reset();
 
                     //Apply interval translation
                     c.model = mat.multiply(mat.translate(iT[0], iT[1], iT[2]), mat.multiply(this.world, this.calculateLocal(c)));
-                    c.checkCollisions(SceneNode.collidables);
+                    c.checkCollisions([...staticCollidables.getCollidables(c), ...SceneNode.collidables]);
+                    
+                    if(debug && debugOptions.displayNumberOfCollidables) {
+                        console.log(`collidables: ${SceneNode.collidables.length}, s_collidables: ${staticCollidables.getCollidables(c).length}`);
+                    }
 
                     if(c.collided && !collidedYet) {
                         collidedYet = true;
@@ -299,15 +310,26 @@ class SceneNode {
                 }
             } 
 
+            // //Now to check dynamic objects (In this configuration the dynamic objects are check using normal collision
+            // this.colliders.forEach((c) => {
+            //     let local = this.calculateLocal(this);
+            //     let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
+            //     let world = mat.multiply(parentWorld, local);
+            //     c.model = mat.multiply(world, this.calculateLocal(c));
+            //     c.checkCollisions(SceneNode.collidables);
+            // });
         } else {
             this.colliders.forEach((c) => {
-                
+                c.reset();
                 let local = this.calculateLocal(this);
                 let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
                 let world = mat.multiply(parentWorld, local);
                 c.model = mat.multiply(world, this.calculateLocal(c));
-                c.checkCollisions(SceneNode.collidables);
-            
+                c.checkCollisions([...SceneNode.collidables, ...staticCollidables.getCollidables(c)]);
+                if(debug && debugOptions.displayNumberOfCollidables) {
+                    console.log(`collidables: ${SceneNode.collidables.length}, s_collidables: ${staticCollidables.getCollidables(c).length}`);
+                }
+                
             });
         }
 
@@ -320,6 +342,8 @@ class SceneNode {
         }
 
         let local = this.calculateLocal(this);
+        this.local = local;
+
         let parentWorld = this.parent ? this.parent.world : mat.identity(); // returns identity if parent is root.
 
         this.world = mat.multiply(parentWorld, local);
