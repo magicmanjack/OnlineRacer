@@ -466,6 +466,9 @@ function loadTrack(trackIndex) {
                     }
                 } else {
                     car.velocityXZ -= POST_TERMINAL_FRICTION;
+                    if(car.velocityXZ < terminalVelocity) {
+                        car.velocityXZ = terminalVelocity;
+                    }
                 }
             }
         }
@@ -811,6 +814,9 @@ function loadTrack(trackIndex) {
         if (boostTimer > 0) {
             if (car.velocityXZ < BOOST_TERMINAL_VEL) {
                 car.velocityXZ += POST_TERMINAL_FRICTION;
+                if(car.velocityXZ > BOOST_TERMINAL_VEL) {
+                    car.velocityXZ = BOOST_TERMINAL_VEL;
+                }
                 /* Cancels out POST_TERMINAL_FRICTION so that the car can keep accelerating
                 past the normal terminalVelocity
                 */
