@@ -1,6 +1,11 @@
 const TRACKS = [
-    "models/maps/track1.fbx",
-    "models/maps/track_brands_hatch.fbx"
+    {
+        path:"models/maps/track1.fbx",
+        minimapPath:"models/maps/track1_minimap.fbx",
+    },
+    {
+        path: "models/maps/track_brands_hatch.fbx",
+    }
 ]
 
 const track = {
@@ -850,6 +855,10 @@ function loadTrack(trackIndex) {
         Camera.main.displayHeight = zoomHeight;
         Camera.main.displayWidth = zoomHeight * aspectRatio;
         Camera.main.updatePerspective();
+
+        //Update minimap
+        minimap.updatePosition(car.node);
+
         //Update leaderboard
         leaderboard.update();
     };
@@ -868,7 +877,10 @@ function loadTrack(trackIndex) {
 
     ground = new SceneNode();
 
-    ground.addMesh([TRACKS[trackIndex]]);
+    ground.addMesh([TRACKS[trackIndex].path]);
+
+    const minimapNode = new SceneNode();
+    minimapNode.addMesh([TRACKS[trackIndex].minimapPath]);
 
     sceneGraph.root.addChild(car.node);
     sceneGraph.root.addChild(ground); 
@@ -1019,7 +1031,14 @@ function loadTrack(trackIndex) {
 
         Camera.main.translation = vec.add(car.node.translation, vec.rotate(CAMERA_REL_CAR, 0, startLine.rotation[1], 0));
 
+        //build minimap
+        const minimapMeshNode = minimapNode.children[0];
+        minimapMeshNode.transparent = true;
+        sceneGraph.root.addChild(minimapMeshNode);
         sceneGraph.preCalcMatrices();
+
+        minimap.create(ground, minimapMeshNode);
+
         staticCollidables.buildPartitions();
     });
     
