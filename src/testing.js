@@ -10,33 +10,45 @@ function transparencyTest() {
     addCameraControl(40);
 }
 
-function miniMapTest() {
+function miniMapTest() 
+{
     sceneGraph.reset();
+    addCameraControl(40);
     const ground = new SceneNode();
     ground.addMesh(["models/maps/track1.fbx"]).then(() => {
         sceneGraph.preCalcMatrices();
-        const mm = new SceneNode();
+        
         const g = ground.getChild("ground");
-        mm.mesh = g.mesh.reuse();
-        mm.mesh.parent = mm;
-        mm.world = [...g.world];
-        mm.translation = mat.getTranslationVector(mm.world);
-        mm.rotation = mat.getRotationVector(mm.world);
-        mm.scale = mat.getScaleVector(mm.world);
+        // const mm = new SceneNode();
+        // mm.mesh = g.mesh.reuse();
+        // mm.mesh.parent = mm;
+        // mm.world = [...g.world];
+        // mm.translation = mat.getTranslationVector(mm.world);
+        // mm.rotation = mat.getRotationVector(mm.world);
+        // mm.scale = mat.getScaleVector(mm.world);
 
-        ground.rotate(0, 0.5, 0);
-        ground.scaleBy(2, 2, 2);
-        ground.rotate(0.4, 0.4, 0.4);
-        sceneGraph.preCalcMatrices();
+        const mm = new SceneNode();
+        mm.addMesh(["models/maps/track1_minimap.fbx"]).then(() => {
+            
+            // ground.rotate(0, 0.5, 0);
+            // ground.scaleBy(2, 2, 2);
+            // ground.rotate(0.4, 0.4, 0.4);
+            
+            
+            const meshNode = mm.getChild("Plane");
+            sceneGraph.root.addChild(meshNode);
+            sceneGraph.preCalcMatrices();
+            meshNode.transparent = true;
+            
+            minimap.create(ground, meshNode);
 
-        minimap.create(ground, mm);
-        sceneGraph.root.addChild(mm);
-
-        const minimapController = new SceneNode();
-        minimapController.update = () => {
-            minimap.updatePosition(Camera.main);
-        }
-        sceneGraph.root.addChild(minimapController);
+            const minimapController = new SceneNode();
+            minimapController.update = () => {
+                minimap.updatePosition(Camera.main);
+            }
+            sceneGraph.root.addChild(minimapController);
+        });
+        
         
     });
 
