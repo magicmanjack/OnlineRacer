@@ -1,4 +1,14 @@
 /* Code that is used for testing functionality*/
+function transparencyTest() {
+    sceneGraph.reset();
+    const ground = new SceneNode();
+    ground.addMesh(["models/maps/track1.fbx"]);
+    sceneGraph.root.addChild(ground);
+    const panel = new UIPanel(0, 0, 10, 5, ["textures/testing/transparency_test.png"]);
+    panel.transparent = true;
+    UILayer.push(panel);
+    addCameraControl(40);
+}
 
 function miniMapTest() {
     sceneGraph.reset();
