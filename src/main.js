@@ -151,7 +151,26 @@ function render() {
             HUD.style.display = "none";
         }
         sceneGraph.renderScene();
-        UILayer.forEach((e) => {e.render(Camera.main)});
+
+        const transparentUI = [];
+        UILayer.forEach((e) => {
+            if(e.transparent) {
+                transparentUI.push(e);
+            } else {
+                e.render(Camera.main)
+            }
+        });
+
+        //Now render transparent
+        
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        transparentUI.forEach((e) => {
+            e.render(Camera.main);
+        });
+
+        gl.disable(gl.BLEND);
     }
 
     requestAnimationFrame(render);

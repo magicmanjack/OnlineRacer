@@ -38,6 +38,8 @@ class SceneNode {
         this.colliders = [];
         this.fineGrainedCollision = false; // If enabled, collision detection is more accurate (more intensive)
         this.fineGrainedCollisionInterval = 5.0;
+
+        this.transparent = false;
     }
 
     translate(tx, ty, tz) {
@@ -452,7 +454,10 @@ class SceneNode {
                 });
                 
             }
-            if (this.mesh) {
+
+            if(this.transparent && this.mesh) {
+                sceneGraph.transparentMeshes.push(this.mesh);
+            } else if (this.mesh) {
                 this.mesh.render(Camera.main);
             }
 
@@ -470,8 +475,21 @@ const sceneGraph = {
     updateScene: function () {
         this.root.updateChildren();
     },
+    transparentMeshes: [],
     renderScene: function () {
         this.root.render();
+        //Now render transparent objects
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        this.transparentMeshes.forEach((nodeMesh) => {
+            nodeMesh.render(Camera.main);
+        });
+
+        gl.disable(gl.BLEND);
+
+        this.transparentMeshes = [];
+
     },
     reset: function() {
         /*Clears the scene heirarchy and UI*/
