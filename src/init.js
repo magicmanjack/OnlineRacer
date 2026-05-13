@@ -94,9 +94,13 @@ function loadMenu() {
     }
     UILayer.push(b1);
 
-    sceneGraph.root.addChild(car);
-    sceneGraph.root.addChild(backdrop);
-    sceneGraph.root.addChild(background);
+    const textCanvas = document.querySelector("#text");
+    const ctx = textCanvas.getContext("2d");
+    ctx.fillText("test", 50, 50);
+
+    // sceneGraph.root.addChild(car);
+    // sceneGraph.root.addChild(backdrop);
+    // sceneGraph.root.addChild(background);
 }
 
 function connectingScreen() {
