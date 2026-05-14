@@ -24,6 +24,7 @@ class Mesh {
 
     static defaultShader;
 
+    textCtx;
 
     constructor(mesh, material, shader=Mesh.defaultShader) {
 
@@ -52,7 +53,12 @@ class Mesh {
         this.name = mesh.name;
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
-        
+
+        const canvas = document.createElement("canvas");
+        this.textCtx = canvas.getContext("2d");
+        document.getElementById("gameContainer").appendChild(canvas);
+        // const textCanvas = document.querySelector("#text");
+        // this.textCtx = textCanvas.getContext("2d");
     }
 
     loadMeshData = (mesh) => {
@@ -154,6 +160,30 @@ class Mesh {
             if(debug) {
                 
             }
+
+            // convert from clip space to pixels
+            this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+
+            const location =  mat.transpose(this.model);
+
+            location[0] /= location[14];
+            location[5] /= location[14];
+
+            const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
+            const pixelY = (location[5] * -0.5 + 0.5) * gl.canvas.height;
+
+            this.textCtx.canvas.width = gl.canvas.width;
+            this.textCtx.canvas.height = gl.canvas.height;
+            this.textCtx.fillRect(pixelX - 50, pixelY + 10, 100, -30);
+            this.textCtx.textAlign = "center";
+            this.textCtx.textBaseline = "middle";
+            this.textCtx.font = "20px monospace";
+            this.textCtx.fillStyle = "white";
+            
+            // console.log(`${pixelX}, ${pixelY}`);
+            
+            
+            this.textCtx.fillText(this.name, pixelX, pixelY);
         }
 
     }

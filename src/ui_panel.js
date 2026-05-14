@@ -45,6 +45,8 @@ class UIPanel {
 
     static shader;
 
+    textCtx;
+
     constructor(x, y, w, h, textures) {
 
         this.x = x;
@@ -121,6 +123,8 @@ class UIPanel {
         gl.enableVertexAttribArray(this.textureCoordsLocation);
         gl.vertexAttribPointer(this.textureCoordsLocation, 2, type, normalize, stride, offset);
 
+        // const textCanvas = document.querySelector("#text");
+        // this.textCtx = textCanvas.getContext("2d");
 
     }
 
@@ -195,11 +199,24 @@ class UIPanel {
     render(cam) {
         if(this.loaded) {
             gl.useProgram(UIPanel.shader);
-            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
+            const location = mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar));
+            gl.uniformMatrix4fv(this.projectionLocation, false, location);
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
-            
+
+            // convert from clip space to pixels
+            // this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+
+            // location[0] /= location[14];
+            // location[5] /= location[14];
+
+            // const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
+            // const pixelY = (location[5] * -0.5 + 0.5) * gl.canvas.height;
+
+            // this.textCtx.canvas.width = gl.canvas.width;
+            // this.textCtx.canvas.height = gl.canvas.height;
+            // this.textCtx.fillText("TESTTESTTEST", pixelX, pixelY);
         }  
     }
 
