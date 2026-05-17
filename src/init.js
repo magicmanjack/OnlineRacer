@@ -71,7 +71,9 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
+    // const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
+    const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/green_button_bg_0.png", "textures/menu/green_button_bg_1.png"]);
+    b1.addText("connect");
     b1.whenClicked = function() {
 
         Client.onOpen = (e) => {
@@ -79,6 +81,7 @@ function loadMenu() {
         };
         
         Client.connect();
+        b1.removeText();
         connectingScreen();
     };
     b1.update = function() {

@@ -45,7 +45,9 @@ class UIPanel {
 
     static shader;
 
+    canvas;
     textCtx;
+    textContent;
 
     constructor(x, y, w, h, textures) {
 
@@ -122,10 +124,6 @@ class UIPanel {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.textureCoords), gl.STATIC_DRAW);
         gl.enableVertexAttribArray(this.textureCoordsLocation);
         gl.vertexAttribPointer(this.textureCoordsLocation, 2, type, normalize, stride, offset);
-
-        // const textCanvas = document.querySelector("#text");
-        // this.textCtx = textCanvas.getContext("2d");
-
     }
 
     recalculateVertices() {
@@ -196,28 +194,58 @@ class UIPanel {
         }
     }
 
+    addText(content) {
+        // Create new canvas element
+        this.canvas = document.createElement("canvas");
+        this.textCtx = this.canvas.getContext("2d");
+        document.getElementById("gameContainer").appendChild(this.canvas);
+
+        this.textContent = content;
+
+        // Use existing canvas element that has ID "text"
+        // const textCanvas = document.querySelector("#text");
+        // this.textCtx = textCanvas.getContext("2d");
+    }
+
+    removeText() {
+        if (this.textCtx !== undefined) {
+            this.canvas.remove();
+            this.textCtx = undefined;
+            this.textContent = "";
+        }  
+    }
+
     render(cam) {
         if(this.loaded) {
             gl.useProgram(UIPanel.shader);
-            const location = mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar));
+            let location = mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar));
             gl.uniformMatrix4fv(this.projectionLocation, false, location);
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
 
-            // convert from clip space to pixels
-            // this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+            if (this.textCtx !== undefined) {
+                // convert from clip space to pixels
+                this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
 
-            // location[0] /= location[14];
-            // location[5] /= location[14];
+                location = mat.multiplyVec(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar), [this.x, this.y, this.z, 1]);
 
-            // const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
-            // const pixelY = (location[5] * -0.5 + 0.5) * gl.canvas.height;
+                    location[0] /= location[3];
+                    location[1] /= location[3];
 
-            // this.textCtx.canvas.width = gl.canvas.width;
-            // this.textCtx.canvas.height = gl.canvas.height;
-            // this.textCtx.fillText("TESTTESTTEST", pixelX, pixelY);
-        }  
+                const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
+                const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
+
+                this.textCtx.canvas.width = gl.canvas.width;
+                this.textCtx.canvas.height = gl.canvas.height;
+                // this.textCtx.fillRect(pixelX - 50, pixelY + 10, 100, -30);
+                this.textCtx.textAlign = "center";
+                this.textCtx.textBaseline = "middle";
+                this.textCtx.font = "54px monospace";
+                this.textCtx.fillStyle = "white";
+                this.textCtx.fillText(this.textContent, pixelX, pixelY);
+            }
+        }
     }
 
 }
