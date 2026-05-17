@@ -54,11 +54,12 @@ class Mesh {
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
 
-        const canvas = document.createElement("canvas");
-        this.textCtx = canvas.getContext("2d");
-        document.getElementById("gameContainer").appendChild(canvas);
-        // const textCanvas = document.querySelector("#text");
-        // this.textCtx = textCanvas.getContext("2d");
+        if (seeObjectNames) {
+            const canvas = document.createElement("canvas");
+            this.textCtx = canvas.getContext("2d");
+            document.getElementById("gameContainer").appendChild(canvas);
+        }
+        
     }
 
     loadMeshData = (mesh) => {
@@ -160,41 +161,39 @@ class Mesh {
                 
             }
 
-            // convert from clip space to pixels
-            this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+            if (seeObjectNames) {
+                // convert from clip space to pixels
+                this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
 
-            const modelLocMat = this.model;
-            const viewLocMat = this.parent.isUI ? mat.identity() : cam.createView();
-            const projLocMat = cam.projection;
+                const modelLocMat = this.model;
+                const viewLocMat = this.parent.isUI ? mat.identity() : cam.createView();
+                const projLocMat = cam.projection;
 
-            // const location =  mat.multiply(mat.multiply(modelLocMat, viewLocMat), projLocMat); // i.e. M^tV^tP^tA 
-            // let location = mat.multiply(projLocMat, viewLocMat); // i.e. P^tV^tM^tA
-            let location = mat.multiply(projLocMat, mat.multiply(viewLocMat, modelLocMat)); // i.e. P^tV^tM^tA
+                let location = mat.multiply(projLocMat, mat.multiply(viewLocMat, modelLocMat)); // i.e. P^tV^tM^tA
 
-            location = mat.multiplyVec(location, [0, 0, 0, 1]);
+                location = mat.multiplyVec(location, [0, 0, 0, 1]);
 
-            console.log(location);
+                location[0] /= location[3];
+                location[1] /= location[3];
 
-            location[0] /= location[3];
-            location[1] /= location[3];
+                const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
+                const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
 
-            // location[0] /= location[14];
-            // location[5] /= location[14];
+                // set text properties
+                this.textCtx.canvas.width = gl.canvas.width;
+                this.textCtx.canvas.height = gl.canvas.height;
+                this.textCtx.textAlign = "center";
+                this.textCtx.textBaseline = "middle";
+                this.textCtx.font = "20px monospace";
+                
+                // set background for text
+                this.textCtx.fillStyle = 'rgba(0,0,0,0.35)';
+                this.textCtx.fillRect(pixelX - 50, pixelY + 10, 100, -30);
 
-            const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
-            const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
-
-            this.textCtx.canvas.width = gl.canvas.width;
-            this.textCtx.canvas.height = gl.canvas.height;
-            this.textCtx.fillRect(pixelX - 50, pixelY + 10, 100, -30);
-            this.textCtx.textAlign = "center";
-            this.textCtx.textBaseline = "middle";
-            this.textCtx.font = "20px monospace";
-            this.textCtx.fillStyle = "white";
-            
-            // console.log(`${pixelX}, ${pixelY}`);
-            
-            this.textCtx.fillText(this.name, pixelX, pixelY);
+                // set text colour
+                this.textCtx.fillStyle = "white";
+                this.textCtx.fillText(this.name, pixelX, pixelY);
+            }
         }
 
     }
