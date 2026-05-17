@@ -163,21 +163,23 @@ class Mesh {
             // convert from clip space to pixels
             this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
 
-            const modelLocMat = mat.transpose(this.model);
-            const viewLocMat = mat.transpose(this.parent.isUI ? mat.identity() : cam.createView());
-            const projLocMat = mat.transpose(cam.projection);
+            const modelLocMat = this.model;
+            const viewLocMat = this.parent.isUI ? mat.identity() : cam.createView();
+            const projLocMat = cam.projection;
 
             // const location =  mat.multiply(mat.multiply(modelLocMat, viewLocMat), projLocMat); // i.e. M^tV^tP^tA 
             // let location = mat.multiply(projLocMat, viewLocMat); // i.e. P^tV^tM^tA
             let location = mat.multiply(projLocMat, mat.multiply(viewLocMat, modelLocMat)); // i.e. P^tV^tM^tA
 
-            // console.log(location);
+            location = mat.multiplyVec(location, [0, 0, 0, 1]);
 
-            // location[0] /= location[3];
-            // location[1] /= location[3];
+            console.log(location);
 
-            location[0] /= location[14];
-            location[5] /= location[14];
+            location[0] /= location[3];
+            location[1] /= location[3];
+
+            // location[0] /= location[14];
+            // location[5] /= location[14];
 
             const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
             const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
