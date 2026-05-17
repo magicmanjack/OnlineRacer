@@ -149,7 +149,6 @@ class Mesh {
         if (this.loaded) {
             gl.useProgram(this.shader);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
-            
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(this.parent.isUI ? mat.identity() : cam.createView()));
             gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(cam.projection));
 
@@ -164,13 +163,24 @@ class Mesh {
             // convert from clip space to pixels
             this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
 
-            const location =  mat.transpose(this.model);
+            const modelLocMat = mat.transpose(this.model);
+            const viewLocMat = mat.transpose(this.parent.isUI ? mat.identity() : cam.createView());
+            const projLocMat = mat.transpose(cam.projection);
+
+            // const location =  mat.multiply(mat.multiply(modelLocMat, viewLocMat), projLocMat); // i.e. M^tV^tP^tA 
+            // let location = mat.multiply(projLocMat, viewLocMat); // i.e. P^tV^tM^tA
+            let location = mat.multiply(projLocMat, mat.multiply(viewLocMat, modelLocMat)); // i.e. P^tV^tM^tA
+
+            // console.log(location);
+
+            // location[0] /= location[3];
+            // location[1] /= location[3];
 
             location[0] /= location[14];
             location[5] /= location[14];
 
             const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
-            const pixelY = (location[5] * -0.5 + 0.5) * gl.canvas.height;
+            const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
 
             this.textCtx.canvas.width = gl.canvas.width;
             this.textCtx.canvas.height = gl.canvas.height;
@@ -181,7 +191,6 @@ class Mesh {
             this.textCtx.fillStyle = "white";
             
             // console.log(`${pixelX}, ${pixelY}`);
-            
             
             this.textCtx.fillText(this.name, pixelX, pixelY);
         }
