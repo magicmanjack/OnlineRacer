@@ -72,7 +72,7 @@ function loadMenu() {
     };
     
     // const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
-    const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/green_button_bg_0.png", "textures/menu/green_button_bg_1.png"]);
+    const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
     b1.addText("connect");
     b1.whenClicked = function() {
 
@@ -184,7 +184,9 @@ function loadLobby() {
     };
 
     const lobbyPlayerPanel = new UIPanel(0, 2, 20, 20, ["textures/menu/lobby_players_panel.png"]);
-    const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_0.png", "textures/menu/begin_button_1.png"]);
+    // const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_0.png", "textures/menu/begin_button_1.png"]);
+    const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_bg_0.png", "textures/menu/begin_button_bg_1.png"]);
+    beginButton.addText("Begin", 40);
     beginButton.update = function() {
         if(this.mouseHovering) {
             this.textureIndex = 1;
@@ -198,6 +200,7 @@ function loadLobby() {
     }
     beginButton.whenClicked = function() {
         if(Client.connected) {
+            beginButton.removeText();
             Client.webSocket.send(JSON.stringify({
                 type:"relay_all",
                 relay:{

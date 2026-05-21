@@ -49,6 +49,8 @@ class UIPanel {
     textCtx;
     textContent;
     textTex;
+    size;
+    font;
 
     constructor(x, y, w, h, textures) {
 
@@ -192,7 +194,7 @@ class UIPanel {
         }
     }
 
-    addText(content, size=54) {
+    addText(content, size=54, font="monospace") {
         /*
             Adds text as a texture (which in turn uses a canvas HTML element)
             The default font size is 54px as that fits with the green connect background texture
@@ -203,15 +205,21 @@ class UIPanel {
         this.textCtx = this.canvas.getContext("2d");
         document.getElementById("gameContainer").appendChild(this.canvas);
 
+        this.size = size;
+        this.font = font;
+
         // Set text properties
         this.textContent = content;
         this.textCtx.canvas.width = gl.canvas.width;
         this.textCtx.canvas.height = gl.canvas.height;
         this.textCtx.textAlign = "center";
         this.textCtx.textBaseline = "middle";
-        this.textCtx.font = `${size}px monospace`;
+        this.textCtx.font = `${size}px ${font}`;
         this.textCtx.fillStyle = "white";
         this.textCtx.fillText(this.textContent, -1000, -1000);
+        // Why (-1000, -1000)?
+        // =================== 
+        // So we don't see the text's starting position before it gets moved 
 
         // Create texture for text
         this.textTex = gl.createTexture();
@@ -223,7 +231,7 @@ class UIPanel {
     }
 
     removeText() {
-        this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+        this.canvas.remove();
         gl.deleteTexture(this.textTex);
     }
 
@@ -253,10 +261,9 @@ class UIPanel {
 
                 this.textCtx.canvas.width = gl.canvas.width;
                 this.textCtx.canvas.height = gl.canvas.height;
-                // this.textCtx.fillRect(pixelX - 50, pixelY + 10, 100, -30);
                 this.textCtx.textAlign = "center";
                 this.textCtx.textBaseline = "middle";
-                this.textCtx.font = "54px monospace";
+                this.textCtx.font = `${this.size}px ${this.font}`;
                 this.textCtx.fillStyle = "white";
                 this.textCtx.fillText(this.textContent, pixelX, pixelY);
             }
