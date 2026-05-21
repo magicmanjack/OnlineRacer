@@ -48,6 +48,7 @@ class UIPanel {
     canvas;
     textCtx;
     textContent;
+    textTex;
 
     constructor(x, y, w, h, textures) {
 
@@ -136,8 +137,6 @@ class UIPanel {
         const w = this.w;
         const h = this.h;
 
-        
-
         this.vertices = [
             x - w / 2, y - h / 2, z,
             x + w / 2, y - h / 2, z,
@@ -145,7 +144,6 @@ class UIPanel {
             x + w / 2, y + h / 2, z
         ];
 
-        
         // Load into buffer
 
         this.ext.bindVertexArrayOES(this.vao);
@@ -194,25 +192,39 @@ class UIPanel {
         }
     }
 
-    addText(content) {
+    addText(content, size=54) {
+        /*
+            Adds text as a texture (which in turn uses a canvas HTML element)
+            The default font size is 54px as that fits with the green connect background texture
+        */
+
         // Create new canvas element
         this.canvas = document.createElement("canvas");
         this.textCtx = this.canvas.getContext("2d");
         document.getElementById("gameContainer").appendChild(this.canvas);
 
+        // Set text properties
         this.textContent = content;
+        this.textCtx.canvas.width = gl.canvas.width;
+        this.textCtx.canvas.height = gl.canvas.height;
+        this.textCtx.textAlign = "center";
+        this.textCtx.textBaseline = "middle";
+        this.textCtx.font = `${size}px monospace`;
+        this.textCtx.fillStyle = "white";
+        this.textCtx.fillText(this.textContent, -1000, -1000);
 
-        // Use existing canvas element that has ID "text"
-        // const textCanvas = document.querySelector("#text");
-        // this.textCtx = textCanvas.getContext("2d");
+        // Create texture for text
+        this.textTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.textTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textCtx.canvas);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     }
 
     removeText() {
-        if (this.textCtx !== undefined) {
-            this.canvas.remove();
-            this.textCtx = undefined;
-            this.textContent = "";
-        }  
+        this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+        gl.deleteTexture(this.textTex);
     }
 
     render(cam) {
@@ -225,13 +237,16 @@ class UIPanel {
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
 
             if (this.textCtx !== undefined) {
-                // convert from clip space to pixels
+                // place the text at the correct position 
+                // TODO: convert this to use recalculateVertices()
+
+                 // convert from clip space to pixels
                 this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
 
                 location = mat.multiplyVec(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar), [this.x, this.y, this.z, 1]);
 
-                    location[0] /= location[3];
-                    location[1] /= location[3];
+                location[0] /= location[3];
+                location[1] /= location[3];
 
                 const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
                 const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
