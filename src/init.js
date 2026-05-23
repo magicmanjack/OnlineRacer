@@ -1,3 +1,5 @@
+const uiStartXPos = 15;
+
 function init() {
     
     loadMenu();
@@ -20,8 +22,11 @@ function loadMenu() {
     Camera.main.displayHeight = 25;
     Camera.main.displayWidth = 25 * aspectRatio;
 
+    const propXLoc = -37.5;
+    const carYLoc = -10;
+
     const car = new SceneNode();
-    car.translation = [0, -25, -80];
+    car.translation = [propXLoc, carYLoc, -80];
     car.scale = [5, 5, 5];
     car.update = () => {
         
@@ -59,32 +64,32 @@ function loadMenu() {
 
     const backdrop = new SceneNode();
     backdrop.addMesh(["models/menu/backdrop.fbx"]);
-    backdrop.translation = [0, -35, -80]
+    backdrop.translation = [propXLoc, carYLoc - 10, -80]
     backdrop.scale = [0.2, 0.2, 0.2];
 
     const background = new SceneNode();
     background.addMesh(["models/menu/menubackground.fbx"]);
-    background.translation = [0, -20, -80];
+    background.translation = [propXLoc, carYLoc + 5, -80];
     background.scale = [2, 2, 2];
     background.update = () => {
         const factor = 0.0625;
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    // const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
-    const b1 = new UIPanel(0, 0, 16, 4, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
-    b1.addText("connect");
-    b1.whenClicked = function() {
+    // const playOnlineBtn = new UIPanel(uiStartXPos, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
+    const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
+    playOnlineBtn.addText("Play Online", 84);
+    playOnlineBtn.whenClicked = function() {
 
         Client.onOpen = (e) => {
             loadLobby();
         };
         
         Client.connect();
-        b1.removeText();
+        playOnlineBtn.removeText();
         connectingScreen();
     };
-    b1.update = function() {
+    playOnlineBtn.update = function() {
         if(this.mouseHovering) {
             this.textureIndex = 1;
         } else {
@@ -92,10 +97,10 @@ function loadMenu() {
         }
 
         // if (currentGamepad.isHeld("A")) {
-        //     b1.whenClicked();
+        //     playOnlineBtn.whenClicked();
         // }
     }
-    UILayer.push(b1);
+    UILayer.push(playOnlineBtn);
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);
@@ -104,7 +109,7 @@ function loadMenu() {
 
 function connectingScreen() {
     UILayer = [];
-    UILayer.push(new UIPanel(0, 0, 3*4, 3, ["textures/menu/connecting.png"]));
+    UILayer.push(new UIPanel(uiStartXPos, 0, 3*4, 3, ["textures/menu/connecting.png"]));
 }
 
 function loadLobby() {
@@ -120,7 +125,7 @@ function loadLobby() {
         if(m.type == "set_id") {
             const id = m.id;
             const stripHeight = 5;
-            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
+            const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
             let frameCounter = 0;
             playerStrip.update = function() {
                 frameCounter++;
@@ -138,7 +143,7 @@ function loadLobby() {
         if(m.type == "lobby_state") {
             m.ids.forEach((id) => {
                     const stripHeight = 5;
-                    const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`]);
+                    const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`]);
                     idToUIPanel.set(id, playerStrip);
                     UILayer.unshift(playerStrip);
             });
@@ -149,7 +154,7 @@ function loadLobby() {
         if(m.type == "lobby_update_player_connected") {
             const id = m.id;
             const stripHeight = 5;
-            const playerStrip = new UIPanel(0,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
+            const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
             idToUIPanel.set(id, playerStrip);
             UILayer.unshift(playerStrip);
         }
@@ -169,23 +174,23 @@ function loadLobby() {
                     lobbyNum = m.num;
                     for(let i = 0; i < lobbyNum; i++) {
                         const stripHeight = 5;
-                        const playerStrip = new UIPanel(0,12 - stripHeight/2 - (i) *stripHeight, stripHeight * 4, stripHeight, [`textures/player_${i + 1}.png`]);
+                        const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (i) *stripHeight, stripHeight * 4, stripHeight, [`textures/player_${i + 1}.png`]);
                         UILayer.unshift(playerStrip);
                     } 
                 } else {
                     //Only add one player to lobby.
                     lobbyNum++;
                     const stripHeight = 5;
-                    const playerStrip = new UIPanel(0,12 - stripHeight/2 - (lobbyNum - 1) *stripHeight, stripHeight * 4, stripHeight, [`textures/player_${lobbyNum}.png`]);
+                    const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (lobbyNum - 1) *stripHeight, stripHeight * 4, stripHeight, [`textures/player_${lobbyNum}.png`]);
                     UILayer.unshift(playerStrip);
                 }
         }
         */
     };
 
-    const lobbyPlayerPanel = new UIPanel(0, 2, 20, 20, ["textures/menu/lobby_players_panel.png"]);
+    const lobbyPlayerPanel = new UIPanel(uiStartXPos, 2, 20, 20, ["textures/menu/lobby_players_panel.png"]);
     // const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_0.png", "textures/menu/begin_button_1.png"]);
-    const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_bg_0.png", "textures/menu/begin_button_bg_1.png"]);
+    const beginButton = new UIPanel(uiStartXPos, -11, 3*4, 3, ["textures/menu/begin_button_bg_0.png", "textures/menu/begin_button_bg_1.png"]);
     beginButton.addText("Begin", 40);
     beginButton.update = function() {
         if(this.mouseHovering) {
