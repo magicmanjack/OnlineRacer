@@ -109,7 +109,7 @@ function loadMenu() {
     }
     UILayer.push(playOnlineBtn);
 
-    const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
+    const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, ["textures/menu/offline_button_bg_0.png", "textures/menu/offline_button_bg_1.png"]);
     playOfflineBtn.addText("Play Offline", 84);
     playOfflineBtn.whenClicked = function() {
         // TODO: Implement offline mode functionality
