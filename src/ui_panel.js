@@ -231,7 +231,9 @@ class UIPanel {
     }
 
     removeText() {
-        this.canvas.remove();
+        if (this.canvas) {
+            this.canvas.remove();
+        }
         gl.deleteTexture(this.textTex);
     }
 

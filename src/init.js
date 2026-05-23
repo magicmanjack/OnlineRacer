@@ -14,6 +14,13 @@ function loadAudioSettings() {
     }
 }
 
+function clearUIPanel() {
+    for (const element of UILayer) {
+        element.removeText();
+    }
+    UILayer = [];
+}
+
 function loadMenu() {
     // Initialize camera with proper aspect ratio
 
@@ -76,7 +83,7 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
     
-    // const playOnlineBtn = new UIPanel(uiStartXPos, 0, 16, 4, ["textures/menu/connect_button_0.png", "textures/menu/connect_button_1.png"]);
+    // Play Online button
     const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
     playOnlineBtn.addText("Play Online", 84);
     playOnlineBtn.whenClicked = function() {
@@ -102,18 +109,37 @@ function loadMenu() {
     }
     UILayer.push(playOnlineBtn);
 
+    const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
+    playOfflineBtn.addText("Play Offline", 84);
+    playOfflineBtn.whenClicked = function() {
+        // TODO: Implement offline mode functionality
+        console.log("Play Offline has been clicked");
+    };
+    playOfflineBtn.update = function() {
+        if(this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+
+        // if (currentGamepad.isHeld("A")) {
+        //     playOfflineBtn.whenClicked();
+        // }
+    }
+    UILayer.push(playOfflineBtn);
+
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);
     sceneGraph.root.addChild(background);
 }
 
 function connectingScreen() {
-    UILayer = [];
+    clearUIPanel();
     UILayer.push(new UIPanel(uiStartXPos, 0, 3*4, 3, ["textures/menu/connecting.png"]));
 }
 
 function loadLobby() {
-    UILayer = [];
+    clearUIPanel();
     const idToUIPanel = new Map();
 
     Client.onMessage = (e) => {
