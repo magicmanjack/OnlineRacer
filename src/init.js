@@ -82,6 +82,12 @@ function loadMenu() {
         const factor = 0.0625;
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
+
+    // Game Title
+    const gameTitleTxt = new UIPanel(0, 11, 20, 6, ["textures/menu/blank.png"]);
+    gameTitleTxt.transparent = true;
+    gameTitleTxt.addText("OnlineRacer", 112, "Verdana", "black");
+    UILayer.push(gameTitleTxt);
     
     // Play Online button
     const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);

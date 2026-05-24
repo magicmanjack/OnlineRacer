@@ -51,6 +51,7 @@ class UIPanel {
     textTex;
     size;
     font;
+    fillStyle;
 
     constructor(x, y, w, h, textures) {
 
@@ -194,7 +195,7 @@ class UIPanel {
         }
     }
 
-    addText(content, size=54, font="monospace") {
+    addText(content, size=54, font="monospace", fillStyle="white") {
         /*
             Adds text as a texture (which in turn uses a canvas HTML element)
             The default font size is 54px as that fits with the green connect background texture
@@ -207,6 +208,7 @@ class UIPanel {
 
         this.size = size;
         this.font = font;
+        this.fillStyle = fillStyle;
 
         // Set text properties
         this.textContent = content;
@@ -215,7 +217,7 @@ class UIPanel {
         this.textCtx.textAlign = "center";
         this.textCtx.textBaseline = "middle";
         this.textCtx.font = `${size}px ${font}`;
-        this.textCtx.fillStyle = "white";
+        this.textCtx.fillStyle = fillStyle;
         this.textCtx.fillText(this.textContent, -1000, -1000);
         // Why (-1000, -1000)?
         // =================== 
@@ -266,7 +268,7 @@ class UIPanel {
                 this.textCtx.textAlign = "center";
                 this.textCtx.textBaseline = "middle";
                 this.textCtx.font = `${this.size}px ${this.font}`;
-                this.textCtx.fillStyle = "white";
+                this.textCtx.fillStyle = this.fillStyle;
                 this.textCtx.fillText(this.textContent, pixelX, pixelY);
             }
         }
