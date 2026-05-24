@@ -4,7 +4,7 @@
 */
 class Client {
     //Use if hosting on Jacks network
-    //static wsUri = "ws://192.168.1.237:5174";
+    //static wsUri = "ws://172.20.10.9:5174";
 
     //Use if hosting locally on LAN
     static wsUri = "ws://localhost:5174";
@@ -12,7 +12,7 @@ class Client {
    
 
     //Use if hosting on link local
-    // static wsUri = "ws://127.0.0.1/";
+    //static wsUri = "ws://127.0.0.1/";
     //static wsUri = "ws://127.0.0.1/";
     
     static webSocket;
@@ -33,6 +33,19 @@ class Client {
                 Client.onOpen(e);
             }
         };
+
+        ws.onsend = (e) => {
+            if(debug && debugOptions.displayWebsocketOutgoing) {
+                console.log("Outgoing data: \n", e);
+            }
+        }
+
+        //Wrapping send function to provide logging capability
+        const originalSend = ws.send;
+        ws.send = function(e) {
+            originalSend.apply(this, [e]);
+            ws.onsend(e);
+        }
 
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
