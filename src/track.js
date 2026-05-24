@@ -71,8 +71,6 @@ const audio = {
     },
 };
 
-let probe;
-
 function loadTrack(trackIndex) {
     sceneGraph.reset();
     staticCollidables.reset();
@@ -97,7 +95,7 @@ function loadTrack(trackIndex) {
     let cameraLagFactor = 0.1;
 
     car = new Car();
-    probe = car;
+    
 
     let carYVelocity = 0;
     let rotateSpeed = 0;

@@ -19,7 +19,8 @@ const debugOptions = {
     displayMeshInfo: false,
     reportCollisionType: false,
     displayNumberOfCollidables: false,
-    displayKeyPresses: false
+    displayKeyPresses: false,
+    displayWebsocketOutgoing: false,
 }
 
 let gl;
