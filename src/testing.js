@@ -1,4 +1,35 @@
 /* Code that is used for testing functionality*/
+
+let probe;
+
+function rotationInterpolationTest() {
+    sceneGraph.reset();
+    const car = new SceneNode();
+    car.addMesh(["models/car/car.fbx"]);
+    sceneGraph.root.addChild(car);
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    
+    const directionController = new SceneNode();
+    probe = car;
+    addRotationControls(directionController, 0.1);
+    sceneGraph.root.addChild(directionController);    
+
+    AfterLoaded(() => {
+        sceneGraph.preCalcMatrices();
+        //setUpdatesPerSecond(10);
+        let tick = 0;
+        car.update = () => {
+            car.rotateTowards(directionController.rotation, 0.5);
+            if(tick < 10) {
+                tick++;
+            }
+                  
+        }
+        
+    });
+}
+
 function transparencyTest() {
     sceneGraph.reset();
     const ground = new SceneNode();
@@ -55,8 +86,26 @@ function miniMapTest()
     sceneGraph.root.addChild(ground);
 }
 
+function addRotationControls(node, rotateSpeed =0.4) {
+    node.update = () => {
+        if(input.up2) {
+            node.rotateLocal(rotateSpeed, 0, 0);
+        }
+        if(input.down2) {
+            node.rotateLocal(-rotateSpeed, 0, 0);
+        }
+        if(input.left2) {
+            node.rotateRelative(0, rotateSpeed, 0);
+        }
+        if(input.right2) {
+            node.rotateRelative(0, -rotateSpeed, 0);
+        } 
+    }
+}
+
 function addCameraControl(speed = 0.4) {
     const cameraController = new SceneNode();
+    
     cameraController.update = () => {
         const rotateSpeed = 0.05;
         const c = Camera.main;

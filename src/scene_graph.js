@@ -100,6 +100,41 @@ class SceneNode {
         this.rotateOnAxis(localZ, rz);
     }
 
+    rotateTowards(rotation, t) {
+        /* Given a rotation vector (rx, ry, rz), the sceneNode rotates towards the rotation
+        defined by the rotation vector. the argument t (between 0 and 1) is the interpolation parameter (at t=0,
+        the rotation is just the rotation of the sceneNode, and at t=1, the rotation is as provided. For
+        values in between, the rotation is interpolated. */
+        const toRotation = mat3x3.rotate(...rotation);
+        const fromRotation = mat3x3.rotate(...this.rotation);
+
+        //convert to quaternions
+        const q1 = mat3x3.toQuaternion(fromRotation);
+        const q2 = mat3x3.toQuaternion(toRotation);
+        
+        const q1opposite = vec.scale(-1, q1);
+
+        let q;
+
+        if(Math.acos(vec.dot(q1, q2)) <= Math.acos(vec.dot(q1opposite, q2))) {
+            q = quaternion.slerp(q1, q2, t);
+            
+        } else {
+            q = quaternion.slerp(q1opposite, q2, t);
+            
+        }
+
+        //console.log(vec.magnitude(vec.subtract(q1, q2)));
+        
+        //Interpolate a quaternion between both quaternions using slerp
+        
+        const interpolatedRotation = quaternion.toRotationMatrix(q);
+        
+        this.rotation = mat.getRotationVector(mat3x3.to4x4(interpolatedRotation));
+
+
+    }
+
     calculateLocal(o) {
         //Calculates the model matrix of this transformable object according to its translation and rotation.
         let rx = o.rotation[0];

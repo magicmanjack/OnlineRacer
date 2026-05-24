@@ -363,7 +363,7 @@ const mat = {
             }
         }
         return out;
-    }
+    },
 
 };
 
@@ -439,9 +439,164 @@ const mat3x3 = {
         //OpenGL uses a right handed coordinate system. Y up, X right, and Z out of the screen.
 
         return this.multiply(this.multiply(this.rotateZ(rz), this.rotateY(ry)), this.rotateX(rx));
+    },
+    toQuaternion: function(m) {
+        /* Takes a rotation matrix m and returns the quaternion associated with it.
+        Uses Shepperds method */
+
+        const m11 = m[0];
+        const m12 = m[1];
+        const m13 = m[2];
+        const m21 = m[3];
+        const m22 = m[4];
+        const m23 = m[5];
+        const m31 = m[6];
+        const m32 = m[7];
+        const m33 = m[8];
+        
+
+        const tests = [
+            m11 + m22 + m33,
+            m11,
+            m22,
+            m33
+        ];
+
+        let max = Number.NEGATIVE_INFINITY;
+        let chosenAlgorithm = 0;
+
+        //As in shepperds method, find best algorithm to use to avoid number precision problems
+        for(let i = 0; i < tests.length; i++) {
+            if(tests[i] > max) {
+                max = tests[i];
+                chosenAlgorithm = i;
+            }
+        }
+
+        let quaternion;
+
+        switch(chosenAlgorithm) {
+            case 0: {
+                quaternion = [
+                    Math.sqrt(1 + m11 + m22 + m33),
+                    (m32 - m23) / Math.sqrt(1 + m11 + m22 + m33),
+                    (m13 - m31) / Math.sqrt(1 + m11 + m22 + m33),
+                    (m21 - m12) / Math.sqrt(1 + m11 + m22 + m33),
+                ]
+
+                quaternion = vec.scale(0.5, quaternion);
+                break;
+            }
+
+            case 1: {
+                quaternion = [
+                    (m32 - m23) / Math.sqrt(1 + m11 - m22 - m33),
+                    Math.sqrt(1 + m11 - m22 - m33),
+                    (m12 + m21) / Math.sqrt(1 + m11 - m22 - m33),
+                    (m31 + m13) / Math.sqrt(1 + m11 - m22 - m33)
+                ]
+                
+                quaternion = vec.scale(0.5, quaternion);
+                break;
+            }
+
+            case 2: {
+                quaternion = [
+                    (m13 - m31) / Math.sqrt(1- m11 + m22 - m33),
+                    (m12 + m21) / Math.sqrt(1- m11 + m22 - m33),
+                    Math.sqrt(1- m11 + m22 - m33),
+                    (m23 + m32) / Math.sqrt(1- m11 + m22 - m33),
+                ]
+
+                quaternion = vec.scale(0.5, quaternion);
+                break;
+            }
+
+            case 3: {
+                quaternion = [
+                    (m21 - m12) / Math.sqrt(1 - m11 - m22 + m33),
+                    (m31 + m13) / Math.sqrt(1 - m11 - m22 + m33),
+                    (m32 + m23) / Math.sqrt(1 - m11 - m22 + m33),
+                    Math.sqrt(1 - m11 - m22 + m33)
+
+                ]
+
+                quaternion = vec.scale(0.5, quaternion); 
+                break;
+            }
+
+
+        }
+
+        return quaternion;
+
+    },
+    to4x4: function(m) {
+        /*Takes a rotation matrix m and pads it with values
+        to turn it into a 4x4 homogenous transformation matrix */
+        const identity = mat.identity();
+
+        const m4x4 = [];
+        for(let r = 0; r < 4; r++) {
+            for(let c = 0; c < 4; c++) {
+                const value = (r == 3 || c == 3) ? identity[r * 4 + c] : m[r * 3 + c];
+                m4x4.push(value);
+            }
+        } 
+        return m4x4;
     }
 
 };
+
+const quaternion = {
+    rotate: function(axis, angle) {
+        /* given an axis and an angle, returns the associated quaternion */
+        const normedAxis = vec.normalize(axis);
+        return [
+            Math.cos(angle/2),
+            ...vec.scale(Math.sin(angle/2), normedAxis)
+        ];
+    },
+    angle: function(q) {
+        /* Given a quaternion in the form of a 4 value array, 
+        returns the angle around the quaternions rotation axis */
+        return 2 * Math.acos(q[0]);
+    },
+    axis: function(q) {
+        /* Given a quaternion in the form of a 4 value array, returns the axis that the quaternion
+        rotates around. */
+
+        return vec.normalize(q.slice(1, 4));
+    },
+    toRotationMatrix: function(q) {
+        /* Returns the 3x3 rotation matrix associated with this quaternion */
+        const qr = q[0];
+        const qi = q[1];
+        const qj = q[2];
+        const qk = q[3];
+
+        return [
+            1 - 2*(qj*qj + qk*qk), 2*(qi*qj - qk*qr), 2*(qi*qk + qj*qr),
+            2*(qi*qj + qk*qr), 1-2*(qi*qi + qk*qk), 2*(qj*qk - qi*qr),
+            2*(qi*qk - qj*qr), 2*(qj*qk + qi*qr), 1-2*(qi*qi + qj*qj)
+        ];
+    },
+    slerp: function(q1, q2, t) {
+        /* Spherical interpolation between quaternions q1 and q2. t is the interpolation parameter
+        that defines how far along the interpolation we are. (At t=0 we are at q1, and at t=1 we are at q2) */
+        const theta = Math.acos(vec.dot(q1, q2));
+        
+        if(theta == 0) {
+            //If quaternion q1 is q2, no need to interpolate, otherwise a division by zero error will occur
+            return q2;
+        }
+
+        return vec.add(
+            vec.scale(Math.sin((1-t)*theta)/Math.sin(theta), q1),
+            vec.scale(Math.sin(t*theta)/Math.sin(theta), q2)
+        );
+    }
+}
 
 const vec3 = {
     up: [0, 1, 0],
