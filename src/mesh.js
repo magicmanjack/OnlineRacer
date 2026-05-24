@@ -24,6 +24,7 @@ class Mesh {
 
     static defaultShader;
 
+    textCtx;
 
     constructor(mesh, material, shader=Mesh.defaultShader) {
 
@@ -52,6 +53,12 @@ class Mesh {
         this.name = mesh.name;
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
+
+        if (seeObjectNames) {
+            const canvas = document.createElement("canvas");
+            this.textCtx = canvas.getContext("2d");
+            document.getElementById("gameContainer").appendChild(canvas);
+        }
         
     }
 
@@ -143,7 +150,6 @@ class Mesh {
         if (this.loaded) {
             gl.useProgram(this.shader);
             gl.uniformMatrix4fv(this.modelLocation, false, mat.transpose(this.model));
-            
             gl.uniformMatrix4fv(this.viewLocation, false, mat.transpose(this.parent.isUI ? mat.identity() : cam.createView()));
             gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(cam.projection));
 
@@ -153,6 +159,40 @@ class Mesh {
 
             if(debug) {
                 
+            }
+
+            if (seeObjectNames) {
+                // convert from clip space to pixels
+                this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+
+                const modelLocMat = this.model;
+                const viewLocMat = this.parent.isUI ? mat.identity() : cam.createView();
+                const projLocMat = cam.projection;
+
+                let location = mat.multiply(projLocMat, mat.multiply(viewLocMat, modelLocMat)); // i.e. P^tV^tM^tA
+
+                location = mat.multiplyVec(location, [0, 0, 0, 1]);
+
+                location[0] /= location[3];
+                location[1] /= location[3];
+
+                const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
+                const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
+
+                // set text properties
+                this.textCtx.canvas.width = gl.canvas.width;
+                this.textCtx.canvas.height = gl.canvas.height;
+                this.textCtx.textAlign = "center";
+                this.textCtx.textBaseline = "middle";
+                this.textCtx.font = "20px monospace";
+                
+                // set background for text
+                this.textCtx.fillStyle = 'rgba(0,0,0,0.35)';
+                this.textCtx.fillRect(pixelX - 50, pixelY + 10, 100, -30);
+
+                // set text colour
+                this.textCtx.fillStyle = "white";
+                this.textCtx.fillText(this.name, pixelX, pixelY);
             }
         }
 

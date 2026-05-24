@@ -24,6 +24,16 @@ body {
     height: 100%;
 }
 
+canvas:not(#c) {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 0px;
+    z-index: 10;
+    pointer-events: none;
+}
+
 #timer-display {
     position: absolute;
     top: 2vh;

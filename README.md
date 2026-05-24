@@ -13,7 +13,7 @@
     ```
 3. Once all npm dependencies are installed, you can start the project by running this command:
     ```
-    deno run --allow-read=. --allow-net=0.0.0.0:5174 server/server.js  
+    deno run --allow-read=. --allow-net=0.0.0.0:5174 server/server.js
     ```
 4. This will start the server on localhost. Open up your browser of choice and go to [0.0.0.0](0.0.0.0)
 

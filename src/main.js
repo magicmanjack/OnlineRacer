@@ -11,6 +11,8 @@ function setUpdatesPerSecond(ups) {
 
 let debug = false;
 
+let seeObjectNames = false; // WARNING: This setting is very performance-intensive
+
 const debugOptions = {
     displayUpdatesPerSecond : false,
     displayFramesPerSecond: false,

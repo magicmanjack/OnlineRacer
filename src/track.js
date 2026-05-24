@@ -1123,7 +1123,7 @@ function loadTrack(trackIndex) {
                         timePassed() < 0.25
                     ) {
                         // TODO: Check for a button press instead of held button to avoid easy free boosts
-                        boostTimer = 0.1;
+                        // boostTimer = 0.1;
                         boostSfxEle.play();
                         break;
                     } else if (timePassed() > 2) {

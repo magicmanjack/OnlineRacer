@@ -45,6 +45,14 @@ class UIPanel {
 
     static shader;
 
+    canvas;
+    textCtx;
+    textContent;
+    textTex;
+    size;
+    font;
+    fillStyle;
+
     constructor(x, y, w, h, textures) {
 
         this.x = x;
@@ -120,8 +128,6 @@ class UIPanel {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.textureCoords), gl.STATIC_DRAW);
         gl.enableVertexAttribArray(this.textureCoordsLocation);
         gl.vertexAttribPointer(this.textureCoordsLocation, 2, type, normalize, stride, offset);
-
-
     }
 
     recalculateVertices() {
@@ -134,8 +140,6 @@ class UIPanel {
         const w = this.w;
         const h = this.h;
 
-        
-
         this.vertices = [
             x - w / 2, y - h / 2, z,
             x + w / 2, y - h / 2, z,
@@ -143,7 +147,6 @@ class UIPanel {
             x + w / 2, y + h / 2, z
         ];
 
-        
         // Load into buffer
 
         this.ext.bindVertexArrayOES(this.vao);
@@ -192,15 +195,83 @@ class UIPanel {
         }
     }
 
+    addText(content, size=54, font="monospace", fillStyle="white") {
+        /*
+            Adds text as a texture (which in turn uses a canvas HTML element)
+            The default font size is 54px as that fits with the green connect background texture
+        */
+
+        // Create new canvas element
+        this.canvas = document.createElement("canvas");
+        this.textCtx = this.canvas.getContext("2d");
+        document.getElementById("gameContainer").appendChild(this.canvas);
+
+        this.size = size;
+        this.font = font;
+        this.fillStyle = fillStyle;
+
+        // Set text properties
+        this.textContent = content;
+        this.textCtx.canvas.width = gl.canvas.width;
+        this.textCtx.canvas.height = gl.canvas.height;
+        this.textCtx.textAlign = "center";
+        this.textCtx.textBaseline = "middle";
+        this.textCtx.font = `${size}px ${font}`;
+        this.textCtx.fillStyle = fillStyle;
+        this.textCtx.fillText(this.textContent, -1000, -1000);
+        // Why (-1000, -1000)?
+        // =================== 
+        // So we don't see the text's starting position before it gets moved 
+
+        // Create texture for text
+        this.textTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.textTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textCtx.canvas);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+
+    removeText() {
+        if (this.canvas) {
+            this.canvas.remove();
+        }
+        gl.deleteTexture(this.textTex);
+    }
+
     render(cam) {
         if(this.loaded) {
             gl.useProgram(UIPanel.shader);
-            gl.uniformMatrix4fv(this.projectionLocation, false, mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar)));
+            let location = mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar));
+            gl.uniformMatrix4fv(this.projectionLocation, false, location);
             this.ext.bindVertexArrayOES(this.vao);
             gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
-            
-        }  
+
+            if (this.textCtx !== undefined) {
+                // place the text at the correct position 
+                // TODO: convert this to use recalculateVertices()
+
+                 // convert from clip space to pixels
+                this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
+
+                location = mat.multiplyVec(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar), [this.x, this.y, this.z, 1]);
+
+                location[0] /= location[3];
+                location[1] /= location[3];
+
+                const pixelX = (location[0] * 0.5 + 0.5) * gl.canvas.width;
+                const pixelY = (location[1] * -0.5 + 0.5) * gl.canvas.height;
+
+                this.textCtx.canvas.width = gl.canvas.width;
+                this.textCtx.canvas.height = gl.canvas.height;
+                this.textCtx.textAlign = "center";
+                this.textCtx.textBaseline = "middle";
+                this.textCtx.font = `${this.size}px ${this.font}`;
+                this.textCtx.fillStyle = this.fillStyle;
+                this.textCtx.fillText(this.textContent, pixelX, pixelY);
+            }
+        }
     }
 
 }
