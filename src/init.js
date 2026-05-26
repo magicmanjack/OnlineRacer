@@ -84,14 +84,14 @@ function loadMenu() {
     };
 
     // Game Title
-    const gameTitleTxt = new UIPanel(0, 11, 20, 6, ["textures/menu/blank.png"]);
+    const gameTitleTxt = new UIPanel(0, 11, 30, 6, ["textures/menu/logo.png"]);
     gameTitleTxt.transparent = true;
-    gameTitleTxt.addText("OnlineRacer", 112, "Verdana", "black");
+    // gameTitleTxt.addText("OnlineRacer", 2, "Verdana", "black");
     UILayer.push(gameTitleTxt);
     
     // Play Online button
     const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
-    playOnlineBtn.addText("Play Online", 84);
+    playOnlineBtn.addText("Play Online", 0.75);
     playOnlineBtn.whenClicked = function() {
 
         Client.onOpen = (e) => {
@@ -116,7 +116,7 @@ function loadMenu() {
     UILayer.push(playOnlineBtn);
 
     const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, ["textures/menu/offline_button_bg_0.png", "textures/menu/offline_button_bg_1.png"]);
-    playOfflineBtn.addText("Play Offline", 84);
+    playOfflineBtn.addText("Play Offline", 0.75);
     playOfflineBtn.whenClicked = function() {
         // TODO: Implement offline mode functionality
         console.log("Play Offline has been clicked");
@@ -132,7 +132,7 @@ function loadMenu() {
         //     playOfflineBtn.whenClicked();
         // }
     }
-    UILayer.push(playOfflineBtn);
+    UILayer.push(playOfflineBtn);   
 
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);
@@ -223,7 +223,7 @@ function loadLobby() {
     const lobbyPlayerPanel = new UIPanel(uiStartXPos, 2, 20, 20, ["textures/menu/lobby_players_panel.png"]);
     // const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_0.png", "textures/menu/begin_button_1.png"]);
     const beginButton = new UIPanel(uiStartXPos, -11, 3*4, 3, ["textures/menu/begin_button_bg_0.png", "textures/menu/begin_button_bg_1.png"]);
-    beginButton.addText("Begin", 40);
+    beginButton.addText("Begin", 0.7);
     beginButton.update = function() {
         if(this.mouseHovering) {
             this.textureIndex = 1;

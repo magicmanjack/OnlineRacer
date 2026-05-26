@@ -216,7 +216,8 @@ class UIPanel {
         this.textCtx.canvas.height = gl.canvas.height;
         this.textCtx.textAlign = "center";
         this.textCtx.textBaseline = "middle";
-        this.textCtx.font = `${size}px ${font}`;
+        // this.textCtx.font = `${size}vh ${font}`;
+        this.textCtx.font = `${this.size * this.textCtx.canvas.width / 15}px ${this.font}`;
         this.textCtx.fillStyle = fillStyle;
         this.textCtx.fillText(this.textContent, -1000, -1000);
         // Why (-1000, -1000)?
@@ -267,7 +268,8 @@ class UIPanel {
                 this.textCtx.canvas.height = gl.canvas.height;
                 this.textCtx.textAlign = "center";
                 this.textCtx.textBaseline = "middle";
-                this.textCtx.font = `${this.size}px ${this.font}`;
+                // this.textCtx.font = `${this.size}vh ${this.font}`;
+                this.textCtx.font = `${this.size * this.textCtx.canvas.height / 10}px ${this.font}`;
                 this.textCtx.fillStyle = this.fillStyle;
                 this.textCtx.fillText(this.textContent, pixelX, pixelY);
             }
