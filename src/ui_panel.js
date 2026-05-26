@@ -53,6 +53,8 @@ class UIPanel {
     font;
     fillStyle;
 
+    jersey15font = new FontFace("jersey15", "url('https://fonts.gstatic.com/s/jersey15/v4/_6_9EDzuROGsUuk2TWjiZYAg.woff2')");
+
     constructor(x, y, w, h, textures) {
 
         this.x = x;
@@ -195,7 +197,7 @@ class UIPanel {
         }
     }
 
-    addText(content, size=54, font="monospace", fillStyle="white") {
+    addText(content, size=54, font="jersey15, monospace", fillStyle="white") {
         /*
             Adds text as a texture (which in turn uses a canvas HTML element)
             The default font size is 54px as that fits with the green connect background texture
@@ -216,8 +218,11 @@ class UIPanel {
         this.textCtx.canvas.height = gl.canvas.height;
         this.textCtx.textAlign = "center";
         this.textCtx.textBaseline = "middle";
-        // this.textCtx.font = `${size}vh ${font}`;
-        this.textCtx.font = `${this.size * this.textCtx.canvas.width / 15}px ${this.font}`;
+        this.textCtx.font = `${this.size * this.textCtx.canvas.width / 10}px ${this.font}`;
+        this.jersey15font.load().then((font) => {
+            document.fonts.add(font);
+            this.textCtx.font = `${this.size * this.textCtx.canvas.height / 10}px jersey15`;
+        });
         this.textCtx.fillStyle = fillStyle;
         this.textCtx.fillText(this.textContent, -1000, -1000);
         // Why (-1000, -1000)?
@@ -268,7 +273,6 @@ class UIPanel {
                 this.textCtx.canvas.height = gl.canvas.height;
                 this.textCtx.textAlign = "center";
                 this.textCtx.textBaseline = "middle";
-                // this.textCtx.font = `${this.size}vh ${this.font}`;
                 this.textCtx.font = `${this.size * this.textCtx.canvas.height / 10}px ${this.font}`;
                 this.textCtx.shadowColor = "black";
                 this.textCtx.shadowBlur = 3;
