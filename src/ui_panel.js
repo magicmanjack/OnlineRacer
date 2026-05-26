@@ -270,6 +270,8 @@ class UIPanel {
                 this.textCtx.textBaseline = "middle";
                 // this.textCtx.font = `${this.size}vh ${this.font}`;
                 this.textCtx.font = `${this.size * this.textCtx.canvas.height / 10}px ${this.font}`;
+                this.textCtx.shadowColor = "black";
+                this.textCtx.shadowBlur = 3;
                 this.textCtx.fillStyle = this.fillStyle;
                 this.textCtx.fillText(this.textContent, pixelX, pixelY);
             }
