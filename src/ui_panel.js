@@ -12,6 +12,13 @@ function removeUIPanel(UIPanel) {
     }
 }
 
+function clearUIPanel() {
+    for (const element of UILayer) {
+        element.removeText();
+    }
+    UILayer = [];
+}
+
 class UIPanel {
 
     /*

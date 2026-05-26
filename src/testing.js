@@ -2,6 +2,56 @@
 
 let probe;
 
+function linearAndRotationalInterpolationTest() {
+   sceneGraph.reset();
+    const car = new SceneNode();
+    car.addMesh(["models/car/car.fbx"]);
+
+    sceneGraph.root.addChild(car);
+
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    
+    const locationController = new SceneNode();
+    addRotationControls(locationController, 0.1);
+    addMovementControls(locationController, 1);
+
+    sceneGraph.root.addChild(locationController);
+    locationController.addMesh(["models/car/car.fbx"]).then(() => {locationController.scale = [0.5, 0.5, 0.5]});
+
+
+    probe = car;
+    
+    sceneGraph.root.addChild(locationController);   
+    car.update = () => {
+        car.moveTowards(vec.add(locationController.translation, [10, 0, 0]), 0.1);
+        car.rotateTowards(locationController.rotation, 0.1);
+    } 
+}
+
+function linearInterpolationTest() {
+    sceneGraph.reset();
+    const car = new SceneNode();
+    car.addMesh(["models/car/car.fbx"]);
+
+    sceneGraph.root.addChild(car);
+
+    Camera.main.translation = [0, 30, 0];
+    Camera.main.rotation = [-Math.PI/2, 0, 0];
+    
+    const locationController = new SceneNode();
+    addMovementControls(locationController, 1);
+
+    sceneGraph.root.addChild(locationController);
+    locationController.addMesh(["models/car/car.fbx"]).then(() => {locationController.scale = [0.1, 0.1, 0.1]});
+
+    car.update = () => {
+        car.moveTowards(locationController.translation, 0.1);
+    }
+
+
+}
+
 function rotationInterpolationTest() {
     sceneGraph.reset();
     const car = new SceneNode();
@@ -11,6 +61,11 @@ function rotationInterpolationTest() {
     Camera.main.rotation = [-Math.PI/2, 0, 0];
     
     const directionController = new SceneNode();
+    
+    directionController.addMesh(["models/car/car.fbx"]).then(() => {
+        directionController.translation = [10, 0, 0];
+        directionController.scale = [0.5, 0.5, 0.5];
+    })
     probe = car;
     addRotationControls(directionController, 0.1);
     sceneGraph.root.addChild(directionController);    
@@ -20,7 +75,7 @@ function rotationInterpolationTest() {
         //setUpdatesPerSecond(10);
         let tick = 0;
         car.update = () => {
-            car.rotateTowards(directionController.rotation, 0.5);
+            car.rotateTowards(directionController.rotation, 0.1);
             if(tick < 10) {
                 tick++;
             }
@@ -100,6 +155,27 @@ function addRotationControls(node, rotateSpeed =0.4) {
         if(input.right2) {
             node.rotateRelative(0, -rotateSpeed, 0);
         } 
+    }
+}
+
+function addMovementControls(node, movementSpeed=0.4) {
+    const originalUpdate = node.update;
+    node.update = function(...args) {
+        if(typeof(originalUpdate) === "function") {
+            originalUpdate.apply(this, args);
+        }
+        if(input.up) {
+            this.translate(0, 0, -movementSpeed);
+        }
+        if(input.down) {
+            this.translate(0, 0, movementSpeed);
+        }
+        if(input.left) {
+            this.translate(-movementSpeed, 0, 0);
+        }
+        if(input.right) {
+            this.translate(movementSpeed, 0, 0);
+        }
     }
 }
 
