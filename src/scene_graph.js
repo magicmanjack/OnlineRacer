@@ -135,6 +135,15 @@ class SceneNode {
 
     }
 
+    moveTowards(translation, t) {
+        /* Given a translation vector and an interpolation parameter t,
+        this function moves the sceneNode towards the translation.
+        t represents how far along the path to move. 1 is the full distance and 0 is no distance. */
+        const displacement = vec.subtract(translation, this.translation);
+        this.translation = vec.add(this.translation, vec.scale(t, displacement));
+
+    } 
+
     calculateLocal(o) {
         //Calculates the model matrix of this transformable object according to its translation and rotation.
         let rx = o.rotation[0];
@@ -528,7 +537,7 @@ const sceneGraph = {
     },
     reset: function() {
         /*Clears the scene heirarchy and UI*/
-        UILayer = [];
+        clearUIPanel();
         this.root = new SceneNode();
         SceneNode.numMeshes = 0;
         SceneNode.numLoadedMeshes = 0;

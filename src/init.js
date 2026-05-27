@@ -14,12 +14,7 @@ function loadAudioSettings() {
     }
 }
 
-function clearUIPanel() {
-    for (const element of UILayer) {
-        element.removeText();
-    }
-    UILayer = [];
-}
+
 
 function loadMenu() {
     // Initialize camera with proper aspect ratio
