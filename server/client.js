@@ -49,6 +49,7 @@ class Client {
 
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
+            // console.log(msg);
 
             if(msg.type == "set_id") {
                 Client.id = msg.id;

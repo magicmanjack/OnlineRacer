@@ -204,7 +204,7 @@ class UIPanel {
         }
     }
 
-    addText(content, size=54, font="jersey15, monospace", fillStyle="white") {
+    addText(content, size=0.95, font="jersey15, monospace", fillStyle="white") {
         /*
             Adds text as a texture (which in turn uses a canvas HTML element)
             The default font size is 54px as that fits with the green connect background texture
