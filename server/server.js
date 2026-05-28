@@ -9,7 +9,7 @@ let lobby = [];
 let players = [];
 let availableId = 0;
 
-let logging = false;
+let logging = true;
 
 Deno.serve({
     //port: 8080,
@@ -197,10 +197,13 @@ function onPlayerMessage(event) {
     The main server code. Function called when the player/client sends
     a message.
     */
+    const timeArrival = performance.now();
     const msg = JSON.parse(event.data);
 
+    //TODO output the time of arrival and compare to the message contents containing the send time (performance.now() + Client.timeOffset)
+
     if (logging) {
-        console.log(`msg:\n${event.data}`);
+        console.log(`timeArrival: ${timeArrival}\nmsg:\n${event.data}`);
     }
     switch (msg.type) {
         case "add_car": {
@@ -274,5 +277,21 @@ function onPlayerMessage(event) {
             */
 
             sendAllOthers(msg.relay, this);
+            break;
+        
+        case "time_sync":
+            if(logging) {
+                console.log("Sent time sync response");
+            }
+            this.send(JSON.stringify({
+                type:"time_sync_response",
+                t1:timeArrival,
+                t2:performance.now()
+            }))
+            break;
+    }
+
+    if(logging) {
+        console.log("\n\n");
     }
 }
