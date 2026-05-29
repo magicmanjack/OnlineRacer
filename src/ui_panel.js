@@ -47,6 +47,7 @@ class UIPanel {
     whenClicked;
     mouseHovering = false;
     update;
+    id = 1;
 
     loaded;
 

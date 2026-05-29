@@ -193,8 +193,10 @@ function connectToLobby() {
 function connectingScreen() {
     clearUIPanel();
 
+    const connectingPrompt = new UIPanel(uiStartXPos, 0, 14, 3, ["textures/menu/connecting_bg.png"]); 
+    connectingPrompt.addText("Connecting...");
     UILayer.push(
-        new UIPanel(uiStartXPos, 0, 3 * 4, 3, ["textures/menu/connecting.png"]),
+        connectingPrompt
     );
 
     timeoutFunctionId = setInterval(timeoutFunction, waitTime);
@@ -266,15 +268,25 @@ function loadLobby() {
                 12 - stripHeight / 2 - (id - 1) * stripHeight,
                 stripHeight * 4,
                 stripHeight,
-                [`textures/menu/player_${id}.png`, "textures/menu/you.png"],
+                [`textures/menu/player_bg.png`],
             );
+            playerStrip.addText(`Player ${id}`);
             let frameCounter = 0;
+            playerStrip.id = id;
             playerStrip.update = function () {
                 frameCounter++;
                 const timePassed = frameCounter / updatesPerSecond;
                 if (timePassed % 2 == 0) {
                     //Every even second
-                    this.textureIndex = this.textureIndex ? 0 : 1;
+                    
+                    if (this.textContent !== ">You<") {
+                        playerStrip.removeText();
+                        playerStrip.addText(">You<");
+                    } else {
+                        playerStrip.removeText();
+                        playerStrip.addText(`Player ${this.id}`);
+                    }
+                    
                 }
             };
 
@@ -290,8 +302,9 @@ function loadLobby() {
                     12 - stripHeight / 2 - (id - 1) * stripHeight,
                     stripHeight * 4,
                     stripHeight,
-                    [`textures/menu/player_${id}.png`],
+                    [`textures/menu/player_bg.png`],
                 );
+                playerStrip.addText(`Player ${id}`);
                 idToUIPanel.set(id, playerStrip);
                 UILayer.unshift(playerStrip);
             });
@@ -307,8 +320,9 @@ function loadLobby() {
                 12 - stripHeight / 2 - (id - 1) * stripHeight,
                 stripHeight * 4,
                 stripHeight,
-                [`textures/menu/player_${id}.png`, "textures/menu/you.png"],
+                [`textures/menu/player_bg.png`, "textures/menu/you.png"],
             );
+            playerStrip.addText(`Player ${id}`);
             idToUIPanel.set(id, playerStrip);
             UILayer.unshift(playerStrip);
         }
