@@ -25,7 +25,16 @@ class Client {
 
     static timeOffset; // The offset (in milliseconds) between the clients time (based on performance.now()) and the servers time
 
-    static synchronizeServerTime(maxIterations=1, iteration=0, timeOffsets=[]) {
+    static synchronizeServerTime(iterations=1) {
+            let resolveFunction;
+            const finishedPromise = new Promise((res, rej) => {
+                resolveFunction = res;
+            })
+            Client.synchronizeServerTimeRec(resolveFunction, iterations);
+            return finishedPromise;
+    } 
+
+    static synchronizeServerTimeRec(resolveFunction, maxIterations, iteration=0, timeOffsets=[]) {
         /* Once called, performs an algorithm similar to NTP to calculate the time
         difference between the server and the client. This can be useful for game
         network updates that require specific time information. */
@@ -55,7 +64,7 @@ class Client {
             timeOffsets = timeOffsets.filter((e) => (e <= m + stdDev && e >= m - stdDev));
 
             Client.timeOffset = mean(timeOffsets);
-
+            resolveFunction();
             return;
         }
 
@@ -87,7 +96,7 @@ class Client {
                 //Return onMessage to its former state
                 Client.webSocket.onmessage = originalOnMessage;
                 //Recursive call
-                Client.synchronizeServerTime(maxIterations, iteration+1, timeOffsets);
+                Client.synchronizeServerTimeRec(resolveFunction, maxIterations, iteration+1, timeOffsets);
             }
         }
         
