@@ -8,7 +8,7 @@ class Client {
 
     //Use if hosting locally on LAN
     static wsUri = "ws://localhost:5174";
-    //static wsUri = "ws://10.47.136.217:5174";
+    //static wsUri = "ws://172.20.10.9:5174";
    
 
     //Use if hosting on link local
@@ -25,7 +25,7 @@ class Client {
 
     static timeOffset; // The offset (in milliseconds) between the clients time (based on performance.now()) and the servers time
 
-    static synchronizeServerTime(iterations=1) {
+    static synchronizeServerTime(iterations=5) {
             let resolveFunction;
             const finishedPromise = new Promise((res, rej) => {
                 resolveFunction = res;

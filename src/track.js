@@ -887,7 +887,7 @@ function loadTrack(trackIndex) {
     minimapNode.addMesh([TRACKS[trackIndex].minimapPath]);
 
     sceneGraph.root.addChild(car.node);
-    sceneGraph.root.addChild(ground); 
+    sceneGraph.root.addChild(ground);   
 
     AfterLoaded(() => {
 
@@ -1148,6 +1148,7 @@ function loadTrack(trackIndex) {
     }
 
     clientCar = car;
+    
     initRaceNetworking();
 
 
