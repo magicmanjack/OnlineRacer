@@ -591,7 +591,6 @@ const quaternion = {
         
         if(dot < 0) {
             //Quaternions approaching or at 180 degrees apart (which causes failure) so flip one.
-            console.log("!");
             q1 = vec.scale(-1, q1);
             dot = vec.dot(q1, q2);
         }
