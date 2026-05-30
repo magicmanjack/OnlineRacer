@@ -584,7 +584,23 @@ const quaternion = {
     slerp: function(q1, q2, t) {
         /* Spherical interpolation between quaternions q1 and q2. t is the interpolation parameter
         that defines how far along the interpolation we are. (At t=0 we are at q1, and at t=1 we are at q2) */
-        const theta = Math.acos(vec.dot(q1, q2));
+        q1 = vec.normalize(q1);
+        q2 = vec.normalize(q2);
+
+        let dot = vec.dot(q1, q2);
+        
+        if(dot < 0) {
+            //Quaternions approaching or at 180 degrees apart (which causes failure) so flip one.
+            console.log("!");
+            q1 = vec.scale(-1, q1);
+            dot = vec.dot(q1, q2);
+        }
+        if(dot > 1) {
+            //This happens sometimes due to precision issues.
+            dot = 1;
+        }
+
+        const theta = Math.acos(dot);
         
         if(theta == 0) {
             //If quaternion q1 is q2, no need to interpolate, otherwise a division by zero error will occur

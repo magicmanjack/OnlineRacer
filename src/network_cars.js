@@ -149,10 +149,13 @@ function initRaceNetworking() {
                                 carModel.rotateTowards(packetT2.modelTransform.rotation, interpolationValue);
                                 carModel.moveTowards(packetT2.modelTransform.translation, interpolationValue);
 
+                                //console.log(`o1:${packetT1.transform.rotation}\no2:${packetT2.transform.rotation}\nn:${netCar.node.rotation}`);
+                                
+
                             }
                     
                         } else {
-                            console.log("Extrapolate");
+                            //console.log("Extrapolate");
                         }
                     }
 

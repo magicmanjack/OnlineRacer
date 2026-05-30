@@ -116,13 +116,7 @@ class SceneNode {
 
         let q;
 
-        if(Math.acos(vec.dot(q1, q2)) <= Math.acos(vec.dot(q1opposite, q2))) {
-            q = quaternion.slerp(q1, q2, t);
-            
-        } else {
-            q = quaternion.slerp(q1opposite, q2, t);
-            
-        }
+        q = quaternion.slerp(q1, q2, t);
 
         //console.log(vec.magnitude(vec.subtract(q1, q2)));
         
