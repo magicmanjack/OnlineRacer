@@ -622,6 +622,7 @@ function loadTrack(trackIndex) {
                         
                     } else if (t == "boost") {
                         boostTimer = 1;
+                        boostSfxEle.load();
                         boostSfxEle.play();
                     } else if (t == "start") {
                         currentStartLineCollision = true;
