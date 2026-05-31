@@ -28,6 +28,8 @@ const audio = {
     soundBuffer: soundBuffer,
     audioContext: audioContext,
     elements: new Map([]),
+    gainNodes: new Map([]), // Maps elementIDs to their gainNodes if you want to control volume of each track individually
+
     loadAudio: function (elementId, volume = 0.25) {
         // Load file from audio element
         const audioElement = document.getElementById(elementId);
@@ -61,6 +63,8 @@ const audio = {
 
             this.elements.set(elementId, audioElement);
             // console.log("Added " + elementId + " with " + audioElement);
+
+            this.gainNodes.set(elementId, volumeControlGainNode);
         }
         return audioElement;
     },
@@ -196,6 +200,11 @@ function loadTrack(trackIndex) {
     const obstacleCrashSfxEle = audio.loadAudio("sfx_obstacle_crash");
     const nextLapReachedSfxEle = audio.loadAudio("sfx_next_lap_reached");
     const raceFinishedSfxEle = audio.loadAudio("sfx_race_finished");
+    const engineSfxEle = audio.loadAudio("sfx_engine_loop");
+    engineSfxEle.play();
+    const windSfxEle = audio.loadAudio("sfx_wind_noise");
+    audio.gainNodes.get(windSfxEle.id).gain.value = 0; // Set to silent during start
+    windSfxEle.play();
 
     car.node.update = () => {
 
@@ -852,6 +861,12 @@ function loadTrack(trackIndex) {
         // Apply car rotation to actual sceneNode
         car.node.rotation = [0, carRotationY + Math.PI, 0];
 
+        //Warp engine sound to match velocity
+        engineSfxEle.playbackRate = 0.5 + Math.min((car.velocityXZ / BOOST_TERMINAL_VEL), 1) * 1.5;
+        engineSfxEle.preservesPitch = false;
+        //Chain wind loudness to match velocity
+        audio.gainNodes.get(windSfxEle.id).gain.value = Math.min(car.velocityXZ / BOOST_TERMINAL_VEL, 1) * 0.1;
+
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
         const aspectRatio = canvas.width / canvas.height;
@@ -1073,6 +1088,7 @@ function loadTrack(trackIndex) {
     const redLightSfxEle = audio.loadAudio("sfx_red_light");
     const orangeLightSfxEle = audio.loadAudio("sfx_orange_light");
     const greenLightSfxEle = audio.loadAudio("sfx_green_light");
+    
 
     let frameCounter = 0;
     let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
@@ -1112,7 +1128,7 @@ function loadTrack(trackIndex) {
                         startTimer = true;
                         controlsDisabled = false;
                         greenLightSfxEle.play();
-                        raceMusicEle.play();
+                        //raceMusicEle.play();
                     }
                     break;
                 }
