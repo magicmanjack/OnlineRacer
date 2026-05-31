@@ -24,6 +24,15 @@ var soundBuffer = null;
 var audioContext = new AudioContext();
 
 const audio = {
+    init:function() {
+        this.masterGainNode.connect(this.audioContext.destination);
+        const volumeControl = document.querySelector("#volume");
+        volumeControl.addEventListener("input", () => {
+            this.masterGainNode.gain.value = volumeControl.value;
+        });
+
+    },
+    masterGainNode:audioContext.createGain(),
     musicBuffer: musicBuffer,
     soundBuffer: soundBuffer,
     audioContext: audioContext,
@@ -39,27 +48,13 @@ const audio = {
 
             audioElement.muted = false;
 
-            // Set default volume
-            // const gainNode = this.audioContext.createGain();
-            // gainNode.gain.value = volume;
-
-            // Add modifier based on volume slider (0% to 200% of default volume value)
+            
             const volumeControlGainNode = this.audioContext.createGain();
-            volumeControlGainNode.gain.value = volume;
-            const volumeControl = document.querySelector("#volume");
-
-            // Set to initial volume
-            volumeControlGainNode.gain.value = volumeControl.value;
-
-            // Add event to allow user to adjust volume
-            volumeControl.addEventListener("input", () => {
-                volumeControlGainNode.gain.value = volumeControl.value;
-            });
 
             track
                 // .connect(gainNode)
                 .connect(volumeControlGainNode)
-                .connect(this.audioContext.destination);
+                .connect(this.masterGainNode);
 
             this.elements.set(elementId, audioElement);
             // console.log("Added " + elementId + " with " + audioElement);
@@ -74,6 +69,8 @@ const audio = {
         }
     },
 };
+
+audio.init();
 
 function loadTrack(trackIndex) {
     sceneGraph.reset();
@@ -201,7 +198,7 @@ function loadTrack(trackIndex) {
     const nextLapReachedSfxEle = audio.loadAudio("sfx_next_lap_reached");
     const raceFinishedSfxEle = audio.loadAudio("sfx_race_finished");
     const engineSfxEle = audio.loadAudio("sfx_engine_loop");
-    engineSfxEle.play();
+    
     const windSfxEle = audio.loadAudio("sfx_wind_noise");
     audio.gainNodes.get(windSfxEle.id).gain.value = 0; // Set to silent during start
     windSfxEle.play();
@@ -866,7 +863,7 @@ function loadTrack(trackIndex) {
         engineSfxEle.playbackRate = 0.5 + Math.min((car.velocityXZ / BOOST_TERMINAL_VEL), 1) * 1.5;
         engineSfxEle.preservesPitch = false;
         //Chain wind loudness to match velocity
-        audio.gainNodes.get(windSfxEle.id).gain.value = Math.min(car.velocityXZ / BOOST_TERMINAL_VEL, 1) * 0.1;
+        audio.gainNodes.get(windSfxEle.id).gain.value = Math.min(car.velocityXZ / BOOST_TERMINAL_VEL, 1) * 0.2;
 
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
@@ -1060,6 +1057,8 @@ function loadTrack(trackIndex) {
         minimap.create(ground, minimapMeshNode);
 
         staticCollidables.buildPartitions();
+
+        engineSfxEle.play();
     });
     
 

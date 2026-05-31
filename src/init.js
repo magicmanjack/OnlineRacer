@@ -1,9 +1,33 @@
 const uiStartXPos = 15;
 
 function init() {
-    
-    loadMenu();
-    loadAudioSettings();
+    ignitionScreen();
+
+}
+
+function ignitionScreen() {
+    //Need to call menu after click
+    const ignitionBarrel = new UIPanel(0, 0, 10, 10, ["textures/menu/ignition_0.png", "textures/menu/ignition_1.png", "textures/menu/ignition_2.png"]);
+    UILayer.push(ignitionBarrel);
+    ignitionBarrel.transparent = true;
+    ignitionBarrel.update = function() {
+        if(this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+    }
+    ignitionBarrel.whenClicked = function() {
+        this.textureIndex = 2;
+        let ticks = 0;
+        ignitionBarrel.update = () => {
+            ticks++;
+            if(ticks/updatesPerSecond == 2) {
+                sceneGraph.reset();
+                loadMenu();
+            }
+        }
+    }
 }
 
 function loadAudioSettings() {
@@ -17,7 +41,12 @@ function loadAudioSettings() {
 
 
 function loadMenu() {
+    loadAudioSettings();
     // Initialize camera with proper aspect ratio
+
+    const menuMusicEle = audio.loadAudio("menu_music");
+    menuMusicEle.load();
+    menuMusicEle.play();
 
     const canvas = document.getElementById('c');
     const aspectRatio = canvas.width / canvas.height;
