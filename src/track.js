@@ -60,7 +60,35 @@ const audio = {
             // console.log("Added " + elementId + " with " + audioElement);
 
             this.gainNodes.set(elementId, volumeControlGainNode);
+        } //hiiloveyou
+
+        audioElement.addEventListener("playing", () => {
+            audioElement.isPlaying = true;
+        })
+
+        audioElement.addEventListener("pause", () => {
+            audioElement.isPlaying = false;
+        })
+
+        audioElement.addEventListener("ended", () => {
+            audioElement.isPlaying = false;
+        })
+
+        //Now to override the play function of HTMLMediaElement to allow playing duplicates
+        const original = audioElement.play;
+        audioElement.play = function() {
+            //Check if sound already playing 
+            if(audioElement.isPlaying) {
+                //Need to create a temporary new one
+                const tempAudio = loadAudio(audioElement.id);
+                
+            }
+            //Call original play
+            original.apply(this);
+
         }
+
+
         return audioElement;
     },
     reset() {
