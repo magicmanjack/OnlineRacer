@@ -18,8 +18,11 @@
 4. This will start the server on localhost. Open up your browser of choice and go to [127.0.0.1:5174](http://127.0.0.1:5174)
 
 ## In-Game Snapshots
-<img width="1593" height="1050" alt="Screenshot 2025-08-15 at 12 52 32 AM" src="https://github.com/user-attachments/assets/a99887ed-db39-4739-a071-3ee6953f7f6d" />
-<img width="1625" height="916" alt="Screenshot 2025-08-15 at 12 54 49 AM" src="https://github.com/user-attachments/assets/8fdba23f-57d1-4691-b5ea-840e633dee2c" />
+<img width="1652" height="932" alt="Screenshot 2026-05-31 at 11 13 00 PM" src="https://github.com/user-attachments/assets/b6279bc4-3367-4653-95c8-bf32a87617ae" />
+
+
+<img width="943" height="606" alt="Screenshot 2026-05-31 at 11 07 53 PM" src="https://github.com/user-attachments/assets/7bdfbfe5-2cb2-4763-874f-96b7b27ade0d" />
+
 
 ## How to make tracks (in Blender)
 When creating objects, if scaling the object, make sure to apply the scaling to the mesh data so that the scaling is represented as 1.0. This is because the game is unable to extract the scaling from a transformation 
