@@ -24,10 +24,21 @@ var soundBuffer = null;
 var audioContext = new AudioContext();
 
 const audio = {
+    init:function() {
+        this.masterGainNode.connect(this.audioContext.destination);
+        const volumeControl = document.querySelector("#volume");
+        volumeControl.addEventListener("input", () => {
+            this.masterGainNode.gain.value = volumeControl.value;
+        });
+
+    },
+    masterGainNode:audioContext.createGain(),
     musicBuffer: musicBuffer,
     soundBuffer: soundBuffer,
     audioContext: audioContext,
     elements: new Map([]),
+    gainNodes: new Map([]), // Maps elementIDs to their gainNodes if you want to control volume of each track individually
+
     loadAudio: function (elementId, volume = 0.25) {
         // Load file from audio element
         const audioElement = document.getElementById(elementId);
@@ -37,31 +48,47 @@ const audio = {
 
             audioElement.muted = false;
 
-            // Set default volume
-            // const gainNode = this.audioContext.createGain();
-            // gainNode.gain.value = volume;
-
-            // Add modifier based on volume slider (0% to 200% of default volume value)
+            
             const volumeControlGainNode = this.audioContext.createGain();
-            volumeControlGainNode.gain.value = volume;
-            const volumeControl = document.querySelector("#volume");
-
-            // Set to initial volume
-            volumeControlGainNode.gain.value = volumeControl.value;
-
-            // Add event to allow user to adjust volume
-            volumeControl.addEventListener("input", () => {
-                volumeControlGainNode.gain.value = volumeControl.value;
-            });
 
             track
                 // .connect(gainNode)
                 .connect(volumeControlGainNode)
-                .connect(this.audioContext.destination);
+                .connect(this.masterGainNode);
 
             this.elements.set(elementId, audioElement);
             // console.log("Added " + elementId + " with " + audioElement);
+
+            this.gainNodes.set(elementId, volumeControlGainNode);
+        } //hiiloveyou
+
+        audioElement.addEventListener("playing", () => {
+            audioElement.isPlaying = true;
+        })
+
+        audioElement.addEventListener("pause", () => {
+            audioElement.isPlaying = false;
+        })
+
+        audioElement.addEventListener("ended", () => {
+            audioElement.isPlaying = false;
+        })
+
+        //Now to override the play function of HTMLMediaElement to allow playing duplicates
+        const original = audioElement.play;
+        audioElement.play = function() {
+            //Check if sound already playing 
+            if(audioElement.isPlaying) {
+                //Need to create a temporary new one
+                const tempAudio = audio.loadAudio(audioElement.id);
+                
+            }
+            //Call original play
+            original.apply(this);
+
         }
+
+
         return audioElement;
     },
     reset() {
@@ -70,6 +97,8 @@ const audio = {
         }
     },
 };
+
+audio.init();
 
 function loadTrack(trackIndex) {
     sceneGraph.reset();
@@ -196,6 +225,12 @@ function loadTrack(trackIndex) {
     const obstacleCrashSfxEle = audio.loadAudio("sfx_obstacle_crash");
     const nextLapReachedSfxEle = audio.loadAudio("sfx_next_lap_reached");
     const raceFinishedSfxEle = audio.loadAudio("sfx_race_finished");
+    const engineSfxEle = audio.loadAudio("sfx_engine_loop");
+    const driftSfxEle = audio.loadAudio("sfx_drift_noise");
+    
+    const windSfxEle = audio.loadAudio("sfx_wind_noise");
+    audio.gainNodes.get(windSfxEle.id).gain.value = 0; // Set to silent during start
+    windSfxEle.play();
 
     car.node.update = () => {
 
@@ -357,6 +392,19 @@ function loadTrack(trackIndex) {
             g2.enable = true;
         } else {
             g2.enable = false;
+        }
+
+
+        //Spark sounds logic
+        if((g1.enable || g2.enable)) {
+            //Spark sounds
+            if(driftSfxEle.paused) {
+                driftSfxEle.load();
+                driftSfxEle.play();
+            }
+            
+        } else {
+            driftSfxEle.pause();
         }
 
         //Car boost animations
@@ -613,6 +661,7 @@ function loadTrack(trackIndex) {
                         
                     } else if (t == "boost") {
                         boostTimer = 1;
+                        boostSfxEle.load();
                         boostSfxEle.play();
                     } else if (t == "start") {
                         currentStartLineCollision = true;
@@ -852,6 +901,12 @@ function loadTrack(trackIndex) {
         // Apply car rotation to actual sceneNode
         car.node.rotation = [0, carRotationY + Math.PI, 0];
 
+        //Warp engine sound to match velocity
+        engineSfxEle.playbackRate = 0.5 + Math.min((car.velocityXZ / BOOST_TERMINAL_VEL), 1) * 1.5;
+        engineSfxEle.preservesPitch = false;
+        //Chain wind loudness to match velocity
+        audio.gainNodes.get(windSfxEle.id).gain.value = Math.min(car.velocityXZ / BOOST_TERMINAL_VEL, 1) * 0.2;
+
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
         const aspectRatio = canvas.width / canvas.height;
@@ -887,7 +942,7 @@ function loadTrack(trackIndex) {
     minimapNode.addMesh([TRACKS[trackIndex].minimapPath]);
 
     sceneGraph.root.addChild(car.node);
-    sceneGraph.root.addChild(ground); 
+    sceneGraph.root.addChild(ground);   
 
     AfterLoaded(() => {
 
@@ -1044,6 +1099,8 @@ function loadTrack(trackIndex) {
         minimap.create(ground, minimapMeshNode);
 
         staticCollidables.buildPartitions();
+
+        engineSfxEle.play();
     });
     
 
@@ -1073,6 +1130,7 @@ function loadTrack(trackIndex) {
     const redLightSfxEle = audio.loadAudio("sfx_red_light");
     const orangeLightSfxEle = audio.loadAudio("sfx_orange_light");
     const greenLightSfxEle = audio.loadAudio("sfx_green_light");
+    
 
     let frameCounter = 0;
     let bufferInput = 0; // stops the player from holding forward input to get a free boost at race start
@@ -1112,7 +1170,7 @@ function loadTrack(trackIndex) {
                         startTimer = true;
                         controlsDisabled = false;
                         greenLightSfxEle.play();
-                        raceMusicEle.play();
+                        //raceMusicEle.play();
                     }
                     break;
                 }
@@ -1148,6 +1206,7 @@ function loadTrack(trackIndex) {
     }
 
     clientCar = car;
+    
     initRaceNetworking();
 
 

@@ -15,7 +15,7 @@
     ```
     deno run --allow-read=. --allow-net=0.0.0.0:5174 server/server.js
     ```
-4. This will start the server on localhost. Open up your browser of choice and go to [0.0.0.0](0.0.0.0)
+4. This will start the server on localhost. Open up your browser of choice and go to [127.0.0.1:5174](http://127.0.0.1:5174)
 
 ## In-Game Snapshots
 <img width="1593" height="1050" alt="Screenshot 2025-08-15 at 12 52 32 AM" src="https://github.com/user-attachments/assets/a99887ed-db39-4739-a071-3ee6953f7f6d" />

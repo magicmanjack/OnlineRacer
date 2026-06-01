@@ -1,3 +1,6 @@
+const UPDATES_NET_PER_SECOND = 5; // The state updates sent over the network per second.
+const INTERPOLATION_OFFSET = 2*(1000/UPDATES_NET_PER_SECOND); // How far in the past the game will interpolate a network players position.
+
 let networkCars; // A mapping between player Ids and car objects.
 let clientCar; // The target car to have information sent to the server.
 let allClientsLoaded; // A boolean flips to true when each client has finished loading into a track.
@@ -112,13 +115,56 @@ function initRaceNetworking() {
                 });
                 carModel.name = "carModel";
                 netCar.node.addChild(carModel);
-
+                
                 netCar.node.update = () => {
-                    netCar.node.getChild("carModel").translation = [
-                        0,
-                        CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
-                        0
-                    ];
+
+                    //TODO: interpolation and extrapolation
+                    const packets = netCar.last3Packets;
+                    const lookbackTime = performance.now() + Client.timeOffset - INTERPOLATION_OFFSET;
+                    if(packets.length >= 2) {
+
+                        if(packets[0].time >= lookbackTime) {
+                            
+                            const timeBetweenFrames = 1000/UPDATES_NET_PER_SECOND;
+                            const interpolationIndex = (packets[0].time - lookbackTime)/timeBetweenFrames;
+                            
+                            if(Math.ceil(interpolationIndex) < packets.length && Math.floor(interpolationIndex) >= 0) {
+                                //Interpolation requires the interpolation index to be located somewhere between 2 packets                            
+                                packetT1 = packets[Math.ceil(interpolationIndex)];
+                                packetT2 = packets[Math.floor(interpolationIndex)];
+                                //Now interpolate between the values in packetT1 and packetT2
+                                netCar.node.translation = packetT1.transform.translation;
+                                netCar.node.rotation = packetT1.transform.rotation;
+                                netCar.node.scale = packetT1.transform.scale;
+
+                                const carModel = netCar.node.getChild("carModel");
+                                carModel.translation = packetT1.modelTransform.translation;
+                                carModel.rotation = packetT1.modelTransform.rotation;
+                                carModel.scale = packetT1.modelTransform.scale;
+                                
+                                const interpolationValue = Math.ceil(interpolationIndex) - interpolationIndex;
+                                
+                                netCar.node.moveTowards(packetT2.transform.translation, interpolationValue);
+                                netCar.node.rotateTowards(packetT2.transform.rotation, interpolationValue);
+                                carModel.rotateTowards(packetT2.modelTransform.rotation, interpolationValue);
+                                carModel.moveTowards(packetT2.modelTransform.translation, interpolationValue);
+
+                                //console.log(`o1:${packetT1.transform.rotation}\no2:${packetT2.transform.rotation}\nn:${netCar.node.rotation}`);
+                                
+
+                            }
+                    
+                        } else {
+                            //console.log("Extrapolate");
+                        }
+                    }
+
+
+                    // netCar.node.getChild("carModel").translation = [
+                    //     0,
+                    //     CAR_HOVER_AMPLITUDE * Math.cos(2*Math.PI*CAR_HOVER_FREQUENCY*performance.now()/1000),
+                    //     0
+                    // ];
 
                     //First layer booster
                     const booster1 = netCar.node.getChildByMesh("booster_1");
@@ -215,6 +261,8 @@ function initRaceNetworking() {
                     }
                 };
 
+                netCar.last3Packets = [];
+
                 networkCars.set(msg.id, netCar);
                 break;
             }
@@ -230,16 +278,22 @@ function initRaceNetworking() {
             case "car_update": {
                 const c = networkCars.get(msg.id);
                 if (c) {
-                    c.node.translation = msg.transform.translation;
-                    c.node.rotation = msg.transform.rotation;
-                    c.node.scale = msg.transform.scale;
-                    c.velocityXZ = msg.velocity;
-                    const carModel = c.node.getChild("carModel");
-                    if(carModel) {
-                        carModel.translation = msg.modelTransform.translation;
-                        carModel.rotation = msg.modelTransform.rotation;
-                        carModel.scale = msg.modelTransform.scale;
+                    
+                    c.last3Packets.unshift(msg);
+                    if(c.last3Packets.length > 3) {
+                        c.last3Packets.splice(3)
                     }
+                    
+                    // c.node.translation = msg.transform.translation;
+                    // c.node.rotation = msg.transform.rotation;
+                    // c.node.scale = msg.transform.scale;
+                    // c.velocityXZ = msg.velocity;
+                    // const carModel = c.node.getChild("carModel");
+                    // if(carModel) {
+                    //     carModel.translation = msg.modelTransform.translation;
+                    //     carModel.rotation = msg.modelTransform.rotation;
+                    //     carModel.scale = msg.modelTransform.scale;
+                    // }
                     c.drifting = msg.input.drifting;
                 }
                 break;
@@ -274,7 +328,9 @@ function initRaceNetworking() {
         }
     };
 
+    let ticks = 0;
     networkUpdate = function() {
+        ticks++;
 
         //TODO: when playersReady == lobbySize init sequence.
         //Check if server side "player_ready" is added.
@@ -355,20 +411,23 @@ function initRaceNetworking() {
                 
         }
 
-        Client.webSocket.send(JSON.stringify({
-            type:"car_update",
-            id:Client.id,
-            transform:{
-                translation:clientCar.node.translation,
-                rotation:clientCar.node.rotation,
-                scale:clientCar.node.scale,
-            },
-            modelTransform:getCarModelTransform(),
-            velocity:clientCar.velocityXZ,
-            input:{
-                drifting:clientCar.drifting,
-            }
-        }));
+        if(ticks % (updatesPerSecond / UPDATES_NET_PER_SECOND) < 1) {
+            Client.webSocket.send(JSON.stringify({
+                type:"car_update",
+                time:performance.now() + Client.timeOffset,
+                id:Client.id,
+                transform:{
+                    translation:clientCar.node.translation,
+                    rotation:clientCar.node.rotation,
+                    scale:clientCar.node.scale,
+                },
+                modelTransform:getCarModelTransform(),
+                velocity:clientCar.velocityXZ,
+                input:{
+                    drifting:clientCar.drifting,
+                }
+            }));
+        }
     }
 
 

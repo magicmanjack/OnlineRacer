@@ -2,6 +2,56 @@
 
 let probe;
 
+let recordingTarget;
+
+function recordRun() {
+    const inputRecorder = new SceneNode();
+    let ticks = 0;
+    const recorded = [];
+
+    inputRecorder.update = () => {
+        const inputState = {
+            up:input.up,
+            down:input.down,
+            left:input.left,
+            right:input.right,
+            drift:input.drift,
+        }    
+        recorded.push(inputState)
+        ticks++;
+    }
+    sceneGraph.root.addChild(inputRecorder);
+    recordingTarget = recorded;
+    return recorded;
+}
+
+function saveRun() {
+    sessionStorage.setItem('run_recording', JSON.stringify(recordingTarget));
+}
+
+function loadRun() {
+    const replayTarget = JSON.parse(sessionStorage.getItem('run_recording'));
+
+    const inputReplayer = new SceneNode();
+    let ticks = 0;
+
+    inputReplayer.update = () => {
+        
+        if(ticks < replayTarget.length) {
+            const inputState = replayTarget[ticks];
+            input.up = inputState.up;
+            input.down = inputState.down;
+            input.left = inputState.left;
+            input.right = inputState.right;
+            input.drift = inputState.drift;
+        }
+        ticks++;
+    }
+
+    inputReplayer.addChild(sceneGraph.root);
+    sceneGraph.root = inputReplayer;
+}
+
 function linearAndRotationalInterpolationTest() {
    sceneGraph.reset();
     const car = new SceneNode();
