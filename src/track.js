@@ -318,13 +318,14 @@ function loadTrack(trackIndex) {
         //Spark sounds logic
         if((g1.enable || g2.enable)) {
             //Spark sounds
-            if(driftSfxEle.paused) {
-                //driftSfxEle.load();
-                driftSfxEle.play();
+            if(!driftSfxEle.currentAudioSrc && driftSfxEle.ready) {
+                driftSfxEle.play(true);
             }
             
-        } else {
+        } else if (driftSfxEle.currentAudioSrc) {
             //driftSfxEle.pause();
+            
+            driftSfxEle.stop();
         }
 
         //Car boost animations

@@ -95,8 +95,12 @@ const audio = {
                     const toDestroy = this.currentAudioSrc; // The reason for this is that this.currentAudioSource can change
                     this.currentAudioSrc.addEventListener("ended", () => {
                         //disconnect from active audio context
-                            
+                        
                         audio.destroy(toDestroy);
+
+                        if(toDestroy == audioObject.currentAudioSrc) {
+                            audioObject.currentAudioSrc = null; //If referenced by this audioObject
+                        }
 
                     })
 
@@ -116,7 +120,7 @@ const audio = {
                 
                 if(this.ready) {
                     this.currentAudioSrc.stop();
-                    destroy(this.currentAudioSrc);
+                    audio.destroy(this.currentAudioSrc);
                 } else if(this.playQueued){
                     this.playQueued = false;
                 }
