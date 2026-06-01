@@ -19,10 +19,8 @@
 
 ## In-Game Snapshots
 <img width="1652" height="932" alt="Screenshot 2026-05-31 at 11 13 00 PM" src="https://github.com/user-attachments/assets/b6279bc4-3367-4653-95c8-bf32a87617ae" />
-
-
 <img width="943" height="606" alt="Screenshot 2026-05-31 at 11 07 53 PM" src="https://github.com/user-attachments/assets/7bdfbfe5-2cb2-4763-874f-96b7b27ade0d" />
-
+<img width="640" height="328" alt="forgithub" src="https://github.com/user-attachments/assets/4700924e-2d80-450e-9a0a-1aef5edf0278" />
 
 ## How to make tracks (in Blender)
 When creating objects, if scaling the object, make sure to apply the scaling to the mesh data so that the scaling is represented as 1.0. This is because the game is unable to extract the scaling from a transformation 
