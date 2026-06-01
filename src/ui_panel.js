@@ -7,6 +7,7 @@ function removeUIPanel(UIPanel) {
 
     for(let i = 0; i < UILayer.length; i++) {
         if(UILayer[i] == UIPanel) {
+            UILayer[i].removeText();
             UILayer.splice(i, 1);
         }
     }
@@ -47,6 +48,7 @@ class UIPanel {
     whenClicked;
     mouseHovering = false;
     update;
+    id = 1;
 
     loaded;
 
