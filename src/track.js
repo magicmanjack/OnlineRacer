@@ -145,7 +145,7 @@ function loadTrack(trackIndex) {
     const nextLapReachedSfxEle = audio.loadAudio("sounds/sfx_next_lap_reached.wav");
     const raceFinishedSfxEle = audio.loadAudio("sounds/sfx_race_finished.wav");
     const engineSfxEle = audio.loadAudio("sounds/engine_loop.mp3");
-    const driftSfxEle = audio.loadAudio("sounds/sfx_drift.mp3");
+    const driftSfxEle = audio.loadAudio("sounds/metal_hit.mp3");
     
     const windSfxEle = audio.loadAudio("sounds/wind.mp3");
     //audio.gainNodes.get(windSfxEle.id).gain.value = 0; // Set to silent during start
@@ -318,14 +318,15 @@ function loadTrack(trackIndex) {
         //Spark sounds logic
         if((g1.enable || g2.enable)) {
             //Spark sounds
-            if(!driftSfxEle.currentAudioSrc && driftSfxEle.ready) {
-                driftSfxEle.play(true);
-            }
-            
+            if((!driftSfxEle.currentAudioSrc || Math.random() > 0.8) && driftSfxEle.ready) {
+                driftSfxEle.play();
+                driftSfxEle.setVolume(Math.random() + 0.5);
+                driftSfxEle.setPlaybackRate(Math.random() * 0.5 + 1);
+            }            
         } else if (driftSfxEle.currentAudioSrc) {
             //driftSfxEle.pause();
             
-            driftSfxEle.stop();
+            //driftSfxEle.stop();
         }
 
         //Car boost animations
