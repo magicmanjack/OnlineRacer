@@ -19,87 +19,6 @@ const CAMERA_DOWN_TILT = -0.2;
 
 const NUM_LAPS = 3;
 
-var musicBuffer = null;
-var soundBuffer = null;
-var audioContext = new AudioContext();
-
-const audio = {
-    init:function() {
-        this.masterGainNode.connect(this.audioContext.destination);
-        const volumeControl = document.querySelector("#volume");
-        volumeControl.addEventListener("input", () => {
-            this.masterGainNode.gain.value = volumeControl.value;
-        });
-
-    },
-    masterGainNode:audioContext.createGain(),
-    musicBuffer: musicBuffer,
-    soundBuffer: soundBuffer,
-    audioContext: audioContext,
-    elements: new Map([]),
-    gainNodes: new Map([]), // Maps elementIDs to their gainNodes if you want to control volume of each track individually
-
-    loadAudio: function (elementId, volume = 0.25) {
-        // Load file from audio element
-        const audioElement = document.getElementById(elementId);
-        if (!this.elements.get(elementId)) {
-            const track =
-                this.audioContext.createMediaElementSource(audioElement);
-
-            audioElement.muted = false;
-
-            
-            const volumeControlGainNode = this.audioContext.createGain();
-
-            track
-                // .connect(gainNode)
-                .connect(volumeControlGainNode)
-                .connect(this.masterGainNode);
-
-            this.elements.set(elementId, audioElement);
-            // console.log("Added " + elementId + " with " + audioElement);
-
-            this.gainNodes.set(elementId, volumeControlGainNode);
-        } //hiiloveyou
-
-        audioElement.addEventListener("playing", () => {
-            audioElement.isPlaying = true;
-        })
-
-        audioElement.addEventListener("pause", () => {
-            audioElement.isPlaying = false;
-        })
-
-        audioElement.addEventListener("ended", () => {
-            audioElement.isPlaying = false;
-        })
-
-        //Now to override the play function of HTMLMediaElement to allow playing duplicates
-        const original = audioElement.play;
-        audioElement.play = function() {
-            //Check if sound already playing 
-            if(audioElement.isPlaying) {
-                //Need to create a temporary new one
-                const tempAudio = loadAudio(audioElement.id);
-                
-            }
-            //Call original play
-            original.apply(this);
-
-        }
-
-
-        return audioElement;
-    },
-    reset() {
-        for (const element of this.elements.values()) {
-            element.load();
-        }
-    },
-};
-
-audio.init();
-
 function loadTrack(trackIndex) {
     sceneGraph.reset();
     staticCollidables.reset();
@@ -221,16 +140,17 @@ function loadTrack(trackIndex) {
                   0.12222;
     }
 
-    const boostSfxEle = audio.loadAudio("sfx_boost");
-    const obstacleCrashSfxEle = audio.loadAudio("sfx_obstacle_crash");
-    const nextLapReachedSfxEle = audio.loadAudio("sfx_next_lap_reached");
-    const raceFinishedSfxEle = audio.loadAudio("sfx_race_finished");
-    const engineSfxEle = audio.loadAudio("sfx_engine_loop");
-    const driftSfxEle = audio.loadAudio("sfx_drift_noise");
+    const boostSfxEle = audio.loadAudio("sounds/sfx_boost_new.mp3");
+    const obstacleCrashSfxEle = audio.loadAudio("sounds/sfx_obstacle_crash.mp3");
+    const nextLapReachedSfxEle = audio.loadAudio("sounds/sfx_next_lap_reached.wav");
+    const raceFinishedSfxEle = audio.loadAudio("sounds/sfx_race_finished.wav");
+    const engineSfxEle = audio.loadAudio("sounds/engine_loop.mp3");
+    const driftSfxEle = audio.loadAudio("sounds/sfx_drift.mp3");
     
-    const windSfxEle = audio.loadAudio("sfx_wind_noise");
-    audio.gainNodes.get(windSfxEle.id).gain.value = 0; // Set to silent during start
-    windSfxEle.play();
+    const windSfxEle = audio.loadAudio("sounds/wind.mp3");
+    //audio.gainNodes.get(windSfxEle.id).gain.value = 0; // Set to silent during start
+    windSfxEle.play(true);
+    windSfxEle.setVolume(0);// Silent to start;
 
     car.node.update = () => {
 
@@ -399,12 +319,12 @@ function loadTrack(trackIndex) {
         if((g1.enable || g2.enable)) {
             //Spark sounds
             if(driftSfxEle.paused) {
-                driftSfxEle.load();
+                //driftSfxEle.load();
                 driftSfxEle.play();
             }
             
         } else {
-            driftSfxEle.pause();
+            //driftSfxEle.pause();
         }
 
         //Car boost animations
@@ -661,7 +581,7 @@ function loadTrack(trackIndex) {
                         
                     } else if (t == "boost") {
                         boostTimer = 1;
-                        boostSfxEle.load();
+                        //boostSfxEle.load();
                         boostSfxEle.play();
                     } else if (t == "start") {
                         currentStartLineCollision = true;
@@ -900,12 +820,12 @@ function loadTrack(trackIndex) {
 
         // Apply car rotation to actual sceneNode
         car.node.rotation = [0, carRotationY + Math.PI, 0];
-
+        
         //Warp engine sound to match velocity
-        engineSfxEle.playbackRate = 0.5 + Math.min((car.velocityXZ / BOOST_TERMINAL_VEL), 1) * 1.5;
-        engineSfxEle.preservesPitch = false;
+        engineSfxEle.setPlaybackRate(0.5 + Math.min((car.velocityXZ / BOOST_TERMINAL_VEL), 1) * 1.5);
+        
         //Chain wind loudness to match velocity
-        audio.gainNodes.get(windSfxEle.id).gain.value = Math.min(car.velocityXZ / BOOST_TERMINAL_VEL, 1) * 0.2;
+        windSfxEle.setVolume(Math.min(car.velocityXZ / BOOST_TERMINAL_VEL, 1) * 0.2);
 
         // Update Camera.main zoom with velocity while maintaining aspect ratio
         const canvas = document.getElementById("c");
@@ -1100,7 +1020,7 @@ function loadTrack(trackIndex) {
 
         staticCollidables.buildPartitions();
 
-        engineSfxEle.play();
+        engineSfxEle.play(true);
     });
     
 
@@ -1113,23 +1033,23 @@ function loadTrack(trackIndex) {
     ]);
 
     const raceMusicChoices = [
-        "music_race01",
-        "music_race02",
-        "music_race03",
-        "music_race04",
-        "music_race05",
-        "music_race06",
+        "sounds/music_race01.ogg",
+        "sounds/music_race02.ogg",
+        "sounds/music_race03.ogg",
+        "sounds/music_race04.mp3",
+        "sounds/music_race05.wav",
+        "sounds/music_race06.ogg",
     ];
 
     // Choose a random music track
     const raceMusicEle = audio.loadAudio(
         raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]
     );
-    raceMusicEle.load();
+    //raceMusicEle.load();
 
-    const redLightSfxEle = audio.loadAudio("sfx_red_light");
-    const orangeLightSfxEle = audio.loadAudio("sfx_orange_light");
-    const greenLightSfxEle = audio.loadAudio("sfx_green_light");
+    const redLightSfxEle = audio.loadAudio("sounds/sfx_red_light.mp3");
+    const orangeLightSfxEle = audio.loadAudio("sounds/sfx_orange_light.mp3");
+    const greenLightSfxEle = audio.loadAudio("sounds/sfx_green_light.mp3");
     
 
     let frameCounter = 0;

@@ -44,10 +44,8 @@ function loadMenu() {
     loadAudioSettings();
     // Initialize camera with proper aspect ratio
 
-    const menuMusicEle = audio.loadAudio("menu_music");
-    menuMusicEle.load();
-    menuMusicEle.play();
-
+    const menuMusicEle = audio.loadAudio("sounds/menu_music.mp3");
+    menuMusicEle.play(true);
     const canvas = document.getElementById('c');
     const aspectRatio = canvas.width / canvas.height;
     Camera.main.displayHeight = 25;
