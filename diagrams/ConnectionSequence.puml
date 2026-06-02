@@ -1,0 +1,18 @@
+@startuml OnlineRacer Connection Diagram
+skinparam style strictuml
+
+' participant mainMenu #white
+participant connectToLobby #red
+participant connectionScreen #orange
+actor Client
+
+connectToLobby++
+connectToLobby --> Client : Initialize Client.onLoad()
+connectToLobby -> Client : call connect()
+Client++ 
+connectToLobby -> connectionScreen : call connectionScreen()
+connectToLobby--
+
+connectionScreen++
+
+@enduml
