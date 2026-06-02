@@ -152,21 +152,20 @@ boosterEmitter.particleUpdate = (p) => {
 You can add audio into the game by loading it in, then signalling to play or stop. For example:
 ```
 const audioObject = audio.loadAudio("sounds/sound.mp3");
-audioObject.start();
+audioObject.play();
 
 // Some time goes by 
 
 audioObject.stop();
 ```
-There is a important feature to now about from the above. Calling start() while there is already an instance of the sound playing, will create a new instance of the sound and play it. So you can play the same sound multiple times simultaneously, without having to fetch the sound over the network again. Note however, calling stop() will only stop the most recently created instance of the sound. This functionality is useful for when you want to play a new instance of the sound easily without interrupting the previous instance. E.g.
-```
-//Inside update loop so repeating 30 times a second
+There is a important behaviour of play() to note. Calling play() while there is already an instance of the sound playing, will create a new instance of the sound and play it. So you can play the same sound multiple times simultaneously, without interrupting the previous instance of the sound. An example sceneario where this is useful is if the player was getting hit by an enemy projectile. The player might get hit again before the previous instance had finished. Note however, calling stop() will only stop the most recently created instance of the sound. So stop() is only useful if you are looping a track.
 
-if(input.up) {
-    //The previous instance of the sound is unlikely to be finished
-    audioObject.play();
-} 
+### Looping audio
+Just call play like this:
 ```
+audioObject.play(true);
+```
+
 
 # How to make tracks (in Blender)
 
