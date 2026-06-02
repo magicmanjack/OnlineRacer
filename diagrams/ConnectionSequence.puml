@@ -2,17 +2,33 @@
 skinparam style strictuml
 
 ' participant mainMenu #white
-participant connectToLobby #red
-participant connectionScreen #orange
-actor Client
+actor Player #LightBlue
+participant Client
+participant Server
 
-connectToLobby++
-connectToLobby --> Client : Initialize Client.onLoad()
-connectToLobby -> Client : call connect()
+Player++
+Player -> Client : click "Play Online" button
 Client++ 
-connectToLobby -> connectionScreen : call connectionScreen()
-connectToLobby--
+Player -> Client : call connect()
+Server++
 
-connectionScreen++
+Client -> Client : initialize to new WebSocket()
+
+note right of Client : Some time later...
+
+Server -> Client : send "get_id" 
+Server -> Client : send "lobby_state" 
+
+Player -> Client : click "Begin" button
+
+Client -> Server : send "relay_all" with "initiate_load_track_1" as type
+Server -> Client : send "initiate_load_track_1"
+Client -> Client : load track
+
+Client -> Server : send "get_car_states"
+Server -> Client : send "get_car_states"
+
+Client -> Server : send "get_lobby_size"
+Server -> Client : send "lobby_size"
 
 @enduml

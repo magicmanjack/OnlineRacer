@@ -18,7 +18,7 @@ const debugOptions = {
     reportCollisionType: false,
     displayNumberOfCollidables: false,
     displayKeyPresses: false,
-    displayWebsocketOutgoing: true,
+    displayWebsocketOutgoing: false,
     seeObjectNames: false, // WARNING: This setting is very performance-intensive
 }
 
