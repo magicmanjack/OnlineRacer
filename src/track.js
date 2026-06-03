@@ -866,7 +866,7 @@ function loadTrack(trackIndex) {
     sceneGraph.root.addChild(car.node);
     sceneGraph.root.addChild(ground);   
 
-    AfterLoaded(() => {
+    sceneGraph.afterLoaded(() => {
 
                 //Changes car texture based on player ID.
         if(Client.id > 1) {
