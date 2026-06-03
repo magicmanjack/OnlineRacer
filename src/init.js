@@ -175,7 +175,10 @@ function mainMenuScreen() {
     playOfflineBtn.addText("Play Offline", 0.95);
     playOfflineBtn.whenClicked = function () {
         // TODO: Implement offline mode functionality
-        console.log("Play Offline has been clicked");
+        loadTrack(0);
+        Client.id = 1;
+        allClientsLoaded = true;
+        Client.state = "racing";
     };
     playOfflineBtn.update = function () {
         if (this.mouseHovering) {

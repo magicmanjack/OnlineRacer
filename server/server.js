@@ -200,10 +200,6 @@ function onPlayerMessage(event) {
     const timeArrival = performance.now();
     const msg = JSON.parse(event.data);
 
-    if (msg.type !== "car_update") {
-        console.log(`server.js -> ${msg.type}`);
-    }
-
     //TODO output the time of arrival and compare to the message contents containing the send time (performance.now() + Client.timeOffset)
 
     if (logging) {

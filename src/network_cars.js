@@ -24,6 +24,10 @@ function initRaceNetworking() {
     networkCars = new Map(); // Refresh/or init mapping.
     playersFinished = [];
 
+    if (Client.webSocket === undefined) {
+        return;
+    }
+
     Client.webSocket.send(JSON.stringify({
         type:"get_car_states",
         returnId:Client.id
