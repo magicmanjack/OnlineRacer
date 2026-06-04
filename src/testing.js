@@ -2,6 +2,16 @@
 
 let probe;
 
+function meshLoadingBugTest() {
+    const mesh = new SceneNode();
+    mesh.addMesh(["models/car/car.fbx"]);
+    sceneGraph.root.addChild(mesh);
+    
+    sceneGraph.reset();
+    const ui = new UIPanel(0, 0, 5, 5, ["textures/menu/menubackground.png"]);
+    UILayer.push(ui);
+}
+
 let recordingTarget;
 
 function recordRun() {

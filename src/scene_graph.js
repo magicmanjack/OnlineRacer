@@ -240,7 +240,7 @@ class SceneNode {
             }
             SceneNode.numLoadedMeshes++;
         });
-        resourceLoadingPromises.push(meshLoadedPromise);
+        sceneGraph.waitOnPromise(meshLoadedPromise);
         
         return meshLoadedPromise;
     }
@@ -253,7 +253,7 @@ class SceneNode {
     addCollisionPlane(collisionPlane) {
         SceneNode.numMeshes++;
 
-        resourceLoadingPromises.push(collisionPlane.loadedPromise.then(() => {
+        sceneGraph.waitOnPromise(collisionPlane.loadedPromise.then(() => {
             SceneNode.numLoadedMeshes++;
         }));
 
@@ -536,12 +536,31 @@ const sceneGraph = {
         SceneNode.numMeshes = 0;
         SceneNode.numLoadedMeshes = 0;
         SceneNode.collidables = [];
+        this.resetID++; // This is use when there are still unresolved promises from before the reset.
+        this.waitingOn = 0;
+    },
+    resetID:0,
+    waitingOn:0,
+    waitOnPromise: function(p) {
+        this.waitingOn++;
+        const originalResetID = this.resetID;
+        this.resourceLoadingPromises.push(p);
+        p.then(() => {
+            //Check if reset has occured
+            if(originalResetID == this.resetID) {
+                this.waitingOn--;
+            }
+        });
+    },
+    resourceLoadingPromises:[],
+    afterLoaded: function(callback) {
+        Promise.all(this.resourceLoadingPromises).then(() => {
+            this.resourceLoadingPromises = [];
+            callback()
+        });
     },
     ready: function() {
-        /* Returns true if the number of meshes loaded matches
-        the number of meshes to load.*/
-        //console.log(`${SceneNode.numLoadedMeshes}/${SceneNode.numMeshes}`);
-        return SceneNode.numMeshes == SceneNode.numLoadedMeshes;
+        return this.waitingOn == 0;
     },
     preCalcMatrices: function(node=this.root) {
         /* Calculates all the rotation matrices in the sceneGraph which
