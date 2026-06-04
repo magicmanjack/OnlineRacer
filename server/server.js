@@ -9,7 +9,7 @@ let lobby = [];
 let players = [];
 let availableId = 0;
 
-let logging = true;
+let logging = false;
 
 Deno.serve({
     //port: 8080,
@@ -43,7 +43,7 @@ Deno.serve({
                                   "content-type": mimeType,
                               },
                           }
-                        : null
+                        : null,
                 );
             }
         }
@@ -149,14 +149,14 @@ function onConnectionOpen(event) {
         JSON.stringify({
             type: "set_id",
             id: nextAvailableId,
-        })
+        }),
     );
 
     this.send(
         JSON.stringify({
             type: "lobby_state",
             ids: getLobbyIds(),
-        })
+        }),
     );
 
     for (let i = 0; i < lobby.length; i++) {
@@ -164,7 +164,7 @@ function onConnectionOpen(event) {
             JSON.stringify({
                 type: "lobby_update_player_connected",
                 id: nextAvailableId,
-            })
+            }),
         );
     }
 
@@ -187,7 +187,7 @@ function onConnectionClose(event) {
             JSON.stringify({
                 type: "lobby_update_player_disconnected",
                 id: playerId,
-            })
+            }),
         );
     }
 }
@@ -246,7 +246,7 @@ function onPlayerMessage(event) {
                 JSON.stringify({
                     type: "lobby_size",
                     size: lobby.length,
-                })
+                }),
             );
             break;
 
@@ -278,20 +278,22 @@ function onPlayerMessage(event) {
 
             sendAllOthers(msg.relay, this);
             break;
-        
+
         case "time_sync":
-            if(logging) {
+            if (logging) {
                 console.log("Sent time sync response");
             }
-            this.send(JSON.stringify({
-                type:"time_sync_response",
-                t1:timeArrival,
-                t2:performance.now()
-            }))
+            this.send(
+                JSON.stringify({
+                    type: "time_sync_response",
+                    t1: timeArrival,
+                    t2: performance.now(),
+                }),
+            );
             break;
     }
 
-    if(logging) {
+    if (logging) {
         console.log("\n\n");
     }
 }

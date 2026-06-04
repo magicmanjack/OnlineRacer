@@ -7,6 +7,7 @@ function removeUIPanel(UIPanel) {
 
     for(let i = 0; i < UILayer.length; i++) {
         if(UILayer[i] == UIPanel) {
+            UILayer[i].removeText();
             UILayer.splice(i, 1);
         }
     }
@@ -47,6 +48,7 @@ class UIPanel {
     whenClicked;
     mouseHovering = false;
     update;
+    id = 1;
 
     loaded;
 
@@ -59,6 +61,8 @@ class UIPanel {
     size;
     font;
     fillStyle;
+
+    jersey15font = new FontFace("jersey15", "url('https://fonts.gstatic.com/s/jersey15/v4/_6_9EDzuROGsUuk2TWjiZYAg.woff2')");
 
     constructor(x, y, w, h, textures) {
 
@@ -202,7 +206,7 @@ class UIPanel {
         }
     }
 
-    addText(content, size=54, font="monospace", fillStyle="white") {
+    addText(content, size=0.95, font="jersey15, monospace", fillStyle="white") {
         /*
             Adds text as a texture (which in turn uses a canvas HTML element)
             The default font size is 54px as that fits with the green connect background texture
@@ -223,7 +227,11 @@ class UIPanel {
         this.textCtx.canvas.height = gl.canvas.height;
         this.textCtx.textAlign = "center";
         this.textCtx.textBaseline = "middle";
-        this.textCtx.font = `${size}px ${font}`;
+        this.textCtx.font = `${this.size * this.textCtx.canvas.width / 10}px ${this.font}`;
+        this.jersey15font.load().then((font) => {
+            document.fonts.add(font);
+            this.textCtx.font = `${this.size * this.textCtx.canvas.height / 10}px jersey15`;
+        });
         this.textCtx.fillStyle = fillStyle;
         this.textCtx.fillText(this.textContent, -1000, -1000);
         // Why (-1000, -1000)?
@@ -274,7 +282,9 @@ class UIPanel {
                 this.textCtx.canvas.height = gl.canvas.height;
                 this.textCtx.textAlign = "center";
                 this.textCtx.textBaseline = "middle";
-                this.textCtx.font = `${this.size}px ${this.font}`;
+                this.textCtx.font = `${this.size * this.textCtx.canvas.height / 10}px ${this.font}`;
+                this.textCtx.shadowColor = "black";
+                this.textCtx.shadowBlur = 3;
                 this.textCtx.fillStyle = this.fillStyle;
                 this.textCtx.fillText(this.textContent, pixelX, pixelY);
             }

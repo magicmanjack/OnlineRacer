@@ -11,8 +11,6 @@ function setUpdatesPerSecond(ups) {
 
 let debug = false;
 
-let seeObjectNames = false; // WARNING: This setting is very performance-intensive
-
 const debugOptions = {
     displayUpdatesPerSecond : false,
     displayFramesPerSecond: false,
@@ -21,6 +19,7 @@ const debugOptions = {
     displayNumberOfCollidables: false,
     displayKeyPresses: false,
     displayWebsocketOutgoing: false,
+    seeObjectNames: false, // WARNING: This setting is very performance-intensive
 }
 
 let gl;
