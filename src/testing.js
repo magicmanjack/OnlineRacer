@@ -2,11 +2,20 @@
 
 let probe;
 
+function cameraSwitchTest() {
+    Camera.main.translation = [0, 40, 0];
+    sceneGraph.reset();
+    const g = new SceneNode();
+    g.addMesh(["models/maps/track1.fbx"]);
+    sceneGraph.root.addChild(g);
+
+}
+
 function meshLoadingBugTest() {
     const mesh = new SceneNode();
     mesh.addMesh(["models/car/car.fbx"]);
     sceneGraph.root.addChild(mesh);
-    
+
     sceneGraph.reset();
     const ui = new UIPanel(0, 0, 5, 5, ["textures/menu/menubackground.png"]);
     UILayer.push(ui);

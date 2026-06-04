@@ -185,7 +185,7 @@ class SceneNode {
                     const child = {node: parent.node.children[c], sceneNode: childSceneNode};
                 
 
-                    if(child.node.name.startsWith("collider")) {
+                    if(child.node.name.toLowerCase().startsWith("collider")) {
                         /*
                             child is a collider and must be handled accordingly.
                         */
@@ -195,6 +195,15 @@ class SceneNode {
                         c.scale = mat.getScaleVector(child.node.transformation);
                         c.rotation = mat.getRotationVector(child.node.transformation);
                         continue;
+                    } else if(child.node.name.toLowerCase().startsWith("camera")) {
+                        //Is camera
+                        const t = child.node.transformation;
+                        //Because of FBX camera standards and how blender transfers between axis conventions we need to apply a correction
+                        //Need to prerotate by the inverse of [-PI/2, 0, -PI/2] do undo the crap and then prerotate by [-Math.PI/2, 0, 0];
+                        const inv = mat.inverse(mat.rotate(-Math.PI/2, 0, -Math.PI/2));
+                        const corrected = mat.multiply(mat.multiply(t, inv), mat.rotate(...[-Math.PI/2, 0, 0]));
+                        const camera = new Camera(mat.getTranslationVector(t), mat.getRotationVector(corrected));
+                        Camera.cameras.push(camera);
                     }
                     nodeQueue.push(child);
 

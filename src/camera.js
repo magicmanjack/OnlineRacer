@@ -11,6 +11,13 @@ class Camera {
 
     static cameras = [new Camera([0, 0, 15], [0, 0, 0])]; // Can switch between different cameras by setting main to them.
     static main = Camera.cameras[0];
+    static switchCamera(index) {
+        Camera.main = Camera.cameras[index];
+        //Need to adjust aspect ratio of displayWidth and displayHeight to match canvas aspect
+        const aspectRatio = gl.canvas.width / gl.canvas.height;
+        Camera.main.displayWidth = Camera.main.displayHeight * aspectRatio;
+        Camera.main.updatePerspective(); // Update the perspective matrix to take effect
+    }
 
     constructor(translation, rotation) {
         this.translation = translation;
