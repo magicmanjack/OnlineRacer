@@ -119,7 +119,7 @@ class Mesh {
             const p = material.properties[i];
             if(p.key == "$tex.file") {
                 foundTextureName = true;
-                loadTextureAsync(`textures/${p.value}`).then((texture) => {
+                loadTextureAsync(`./textures/${p.value}`).then((texture) => {
                     this.loaded = true;
                     this.texture = texture;
                 });
@@ -128,7 +128,7 @@ class Mesh {
         }
         
         if(!foundTextureName) {
-            loadTextureAsync("textures/default.png").then((texture) => {
+            loadTextureAsync("./textures/default.png").then((texture) => {
                     this.loaded = true;
                     this.texture = texture;
             });
