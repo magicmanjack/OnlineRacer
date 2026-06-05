@@ -9,7 +9,7 @@
     Also note, it is a good idea to call audio.loadAudio() a while before it is used since the audio
     might not be loaded into memory yet.
 
-    Sounds will automatically be destryoyed when they have finished playing.
+    Sounds will automatically be destroyed when they have finished playing.
 
     You can modify the playback rate of the latest instance of a sound with
     audioObject.setPlaybackRate(rate)
@@ -30,42 +30,7 @@ const audio = {
 
     },
     masterGainNode:audioContext.createGain(),
-    // musicBuffer: musicBuffer,
-    // soundBuffer: soundBuffer,
     audioContext: audioContext,
-    // elements: new Map([]),
-    // gainNodes: new Map([]), // Maps elementIDs to their gainNodes if you want to control volume of each track individually
-
-    // loadAudio: function (elementId, volume = 0.25) {
-    //     // Load file from audio element
-    //     const audioElement = document.getElementById(elementId);
-    //     if (!this.elements.get(elementId)) {
-    //         const track =
-    //             this.audioContext.createMediaElementSource(audioElement);
-
-    //         audioElement.muted = false;
-
-            
-    //         const volumeControlGainNode = this.audioContext.createGain();
-
-    //         track
-    //             // .connect(gainNode)
-    //             .connect(volumeControlGainNode)
-    //             .connect(this.masterGainNode);
-
-    //         this.elements.set(elementId, audioElement);
-    //         // console.log("Added " + elementId + " with " + audioElement);
-
-    //         this.gainNodes.set(elementId, volumeControlGainNode);
-    //     } //hiiloveyou
-
-    //     return audioElement;
-    // },
-    // reset() {
-    //     for (const element of this.elements.values()) {
-    //         element.load();
-    //     }
-    // },
     audioNodes: [],
     loadAudio : function(fileName) {
         

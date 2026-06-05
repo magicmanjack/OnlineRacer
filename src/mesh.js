@@ -54,7 +54,7 @@ class Mesh {
         this.loadMeshData(mesh);
         this.loadMaterialData(material);
 
-        if (seeObjectNames) {
+        if (debug && debugOptions.seeObjectNames) {
             const canvas = document.createElement("canvas");
             this.textCtx = canvas.getContext("2d");
             document.getElementById("gameContainer").appendChild(canvas);
@@ -119,7 +119,7 @@ class Mesh {
             const p = material.properties[i];
             if(p.key == "$tex.file") {
                 foundTextureName = true;
-                loadTextureAsync(`textures/${p.value}`).then((texture) => {
+                loadTextureAsync(`./textures/${p.value}`).then((texture) => {
                     this.loaded = true;
                     this.texture = texture;
                 });
@@ -128,7 +128,7 @@ class Mesh {
         }
         
         if(!foundTextureName) {
-            loadTextureAsync("textures/default.png").then((texture) => {
+            loadTextureAsync("./textures/default.png").then((texture) => {
                     this.loaded = true;
                     this.texture = texture;
             });
@@ -161,7 +161,7 @@ class Mesh {
                 
             }
 
-            if (seeObjectNames) {
+            if (debug && debugOptions.seeObjectNames) {
                 // convert from clip space to pixels
                 this.textCtx.clearRect(0, 0, this.textCtx.canvas.width, this.textCtx.canvas.height);
 

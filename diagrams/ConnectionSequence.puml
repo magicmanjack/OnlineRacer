@@ -1,0 +1,63 @@
+@startuml OnlineRacer Connection Diagram
+skinparam style strictuml
+
+' participant mainMenu #white
+actor Player
+participant Client #LightBlue
+participant Server #LightGoldenRodYellow
+
+Player++
+Player -> Client : click ""Play Online"" button
+Client++ 
+Player -> Client : call connect()
+Server++
+
+Client -> Client : initialize ""WebSocket()""
+
+note right of Client : Some time later...
+
+Server -> Client : send ""get_id"" 
+Client -> Client : setup player strip UI
+
+Server -> Client : send ""lobby_state"" 
+Client -> Client : update player strip UI 
+
+Player -> Client : click ""Begin"" button
+
+Client -> Server : send ""relay_all"" with ""initiate_load_track_1"" as type
+
+loop#LimeGreen for each client
+    Server -> Client : send ""initiate_load_track_1""
+    Client -> Client : load track    
+end
+
+Client -> Server : send ""get_car_states""
+loop#LimeGreen for each client
+    Server -> Client : send ""get_car_states""        
+end
+
+Client -> Server : send ""get_lobby_size""
+Server -> Client : send ""lobby_size""
+
+alt#Orange there is more than 1 player
+    Client -> Server : send ""add_car""
+    loop#LimeGreen for each client
+        Server -> Client : send ""add_car""        
+        Client -> Client : add relevant stuff for each client car
+    end    
+end
+
+loop#LightBlue every network update 
+    Client -> Server : send ""car_update""
+    loop#LimeGreen for each client
+        Server -> Client : send ""car_update""        
+        Client -> Client : sync car position
+    end
+end
+
+Player -> Client : closes window
+Player--
+Client--
+Server--
+
+@enduml

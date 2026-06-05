@@ -72,6 +72,7 @@ function loadTrack(trackIndex) {
     let requiredCheckpoints = ["checkpoint.001", "checkpoint.002"];
 
     let lapCount = 1;
+    updateLapCounter();
     let gameFinished = false;
 
     let g1, g2; // The left and right particle generators for the car.
@@ -757,7 +758,30 @@ function loadTrack(trackIndex) {
                     gameFinished = true;
 
                     //TODO: Alert other players:
-                    sendRaceFinished(finalTime);
+                    if (Client.webSocket !== undefined) {
+                        sendRaceFinished(finalTime);
+                    } else {
+                        Client.state = "race_finished";
+                        toggleHUD = false;
+                        leaderboard.add(Client.id, finalTime);
+                        playersFinished.push(Client.id);
+                        nextRaceButton = new UIPanel(4, -6, 8, 2, ["textures/default.png"]);
+                        nextRaceButton.update = () => {
+                            if (Client.state === "waiting" && currentGamepad.isPressed("A")) {
+                                nextRaceButton.whenClicked();
+                            }
+                        }
+                        nextRaceButton.whenClicked = () => {
+                            loadTrack(0);
+                            toggleHUD = true;
+                            leaderboard.reset();
+                            Client.id = 1;
+                            allClientsLoaded = true;
+                            Client.state = "racing";
+                        };
+                        UILayer.unshift(nextRaceButton);
+                        Client.state = "waiting";
+                    }
                     leaderboard.show();
 
                     raceFinishedSfxEle.play();
@@ -1047,7 +1071,7 @@ function loadTrack(trackIndex) {
     const raceMusicEle = audio.loadAudio(
         raceMusicChoices[Math.floor(Math.random() * raceMusicChoices.length)]
     );
-    //raceMusicEle.load();
+    // raceMusicEle.load();
 
     const redLightSfxEle = audio.loadAudio("sounds/sfx_red_light.mp3");
     const orangeLightSfxEle = audio.loadAudio("sounds/sfx_orange_light.mp3");
@@ -1092,7 +1116,8 @@ function loadTrack(trackIndex) {
                         startTimer = true;
                         controlsDisabled = false;
                         greenLightSfxEle.play();
-                        //raceMusicEle.play();
+                        raceMusicEle.play();
+                        raceMusicEle.setVolume(0.25);
                     }
                     break;
                 }

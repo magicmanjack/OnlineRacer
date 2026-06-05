@@ -1,5 +1,35 @@
 const uiStartXPos = 15;
 
+const waitTime = 1000;
+const connectionTimeoutTime = 5000;
+let connectionStartTime;
+let connectionEndTime;
+let timeoutFunctionId;
+function timeoutFunction() {
+    connectionEndTime = performance.now() - connectionStartTime;
+    if (debug) {
+        console.log(`Waited ${connectionEndTime / 1000} second(s) so far...`);
+    }
+
+    if (connectionEndTime > connectionTimeoutTime) {
+        if (debug) {
+            console.log(`Timeout! ${connectionTimeoutTime / 1000} second(s) have passed`);
+        }
+        // reset client class
+        if (Client.id) {
+            Client.id = undefined;
+        }
+        if (Client.connected) {
+            Client.connected = false;
+        }
+        if (Client.webSocket) {
+            Client.webSocket.close();
+        }
+        retryConnectionScreen();
+        clearInterval(timeoutFunctionId);
+    }
+};
+
 function init() {
     ignitionScreen();
 
@@ -38,8 +68,6 @@ function loadAudioSettings() {
     }
 }
 
-
-
 function loadMenu() {
     loadAudioSettings();
     // Initialize camera with proper aspect ratio
@@ -57,43 +85,41 @@ function loadMenu() {
     const car = new SceneNode();
     car.translation = [propXLoc, carYLoc, -80];
     car.scale = [5, 5, 5];
-    car.update = () => {
-        
-    }
+    car.update = () => {};
     //car.translation
     car.addMesh(["models/car/car.fbx"]);
-    
+
     //1st layer booster
     car.update = () => {
         car.rotate(0, 0.025, 0);
         const booster1 = car.getChildByMesh("booster_1");
-        
-        if(booster1) {
+
+        if (booster1) {
             const a = 0.05;
             const f = 8;
-            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+            const vibration =
+                a * Math.sin((2 * Math.PI * performance.now() * f) / 1000);
 
             const scale = vibration + 1;
-            
+
             booster1.scale = [scale, scale, scale];
         }
         //Second layer booster
         const booster2 = car.getChildByMesh("booster_2");
-        if(booster2) {
+        if (booster2) {
             const a = 0.05;
             const f = 8;
-            const vibration = a * Math.sin(2 * Math.PI * performance.now() * f / 1000);
+            const vibration =
+                a * Math.sin((2 * Math.PI * performance.now() * f) / 1000);
 
             const scale = vibration + 1;
             booster2.scale = [scale, scale, scale];
         }
-    }
-        
-
+    };
 
     const backdrop = new SceneNode();
     backdrop.addMesh(["models/menu/backdrop.fbx"]);
-    backdrop.translation = [propXLoc, carYLoc - 10, -80]
+    backdrop.translation = [propXLoc, carYLoc - 10, -80];
     backdrop.scale = [0.2, 0.2, 0.2];
 
     const background = new SceneNode();
@@ -105,65 +131,154 @@ function loadMenu() {
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
 
-    // Game Title
-    const gameTitleTxt = new UIPanel(0, 11, 20, 6, ["textures/menu/blank.png"]);
-    gameTitleTxt.transparent = true;
-    gameTitleTxt.addText("OnlineRacer", 112, "Verdana", "black");
-    UILayer.push(gameTitleTxt);
-    
-    // Play Online button
-    const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, ["textures/menu/connect_button_bg_0.png", "textures/menu/connect_button_bg_1.png"]);
-    playOnlineBtn.addText("Play Online", 84);
-    playOnlineBtn.whenClicked = function() {
-
-        Client.onOpen = (e) => {
-            loadLobby();
-        };
-        
-        Client.connect();
-        playOnlineBtn.removeText();
-        connectingScreen();
-    };
-    playOnlineBtn.update = function() {
-        if(this.mouseHovering) {
-            this.textureIndex = 1;
-        } else {
-            this.textureIndex = 0;
-        }
-
-        // if (currentGamepad.isHeld("A")) {
-        //     playOnlineBtn.whenClicked();
-        // }
-    }
-    UILayer.push(playOnlineBtn);
-
-    const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, ["textures/menu/offline_button_bg_0.png", "textures/menu/offline_button_bg_1.png"]);
-    playOfflineBtn.addText("Play Offline", 84);
-    playOfflineBtn.whenClicked = function() {
-        // TODO: Implement offline mode functionality
-        console.log("Play Offline has been clicked");
-    };
-    playOfflineBtn.update = function() {
-        if(this.mouseHovering) {
-            this.textureIndex = 1;
-        } else {
-            this.textureIndex = 0;
-        }
-
-        // if (currentGamepad.isHeld("A")) {
-        //     playOfflineBtn.whenClicked();
-        // }
-    }
-    UILayer.push(playOfflineBtn);
-
     sceneGraph.root.addChild(car);
     sceneGraph.root.addChild(backdrop);
     sceneGraph.root.addChild(background);
+
+    mainMenuScreen();
+}
+
+function mainMenuScreen() {
+    clearUIPanel();
+
+    // Game Title
+    const gameTitleTxt = new UIPanel(0, 11, 30, 6, ["textures/menu/logo.png"]);
+    gameTitleTxt.transparent = true;
+    UILayer.push(gameTitleTxt);
+
+    // Play Online button
+    const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, [
+        "textures/menu/connect_button_bg_0.png",
+        "textures/menu/connect_button_bg_1.png",
+    ]);
+    playOnlineBtn.addText("Play Online", 0.95);
+    playOnlineBtn.whenClicked = function () {
+        try {
+            connectToLobby();
+        } catch (e) {
+            retryConnectionScreen();
+        }
+    };
+    playOnlineBtn.update = function () {
+        if (this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+    };
+    UILayer.push(playOnlineBtn);
+
+    const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, [
+        "textures/menu/offline_button_bg_0.png",
+        "textures/menu/offline_button_bg_1.png",
+    ]);
+    playOfflineBtn.addText("Play Offline", 0.95);
+    playOfflineBtn.whenClicked = function () {
+        // TODO: Implement offline mode functionality
+        loadTrack(0);
+        Client.id = 1;
+        allClientsLoaded = true;
+        Client.state = "racing";
+    };
+    playOfflineBtn.update = function () {
+        if (this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+    };
+    UILayer.push(playOfflineBtn);
+}
+
+function connectToLobby() {
+    connectionStartTime = performance.now();
+
+    Client.onOpen = (e) => {
+        try {
+            loadLobby();
+            clearInterval(timeoutFunctionId);
+        } catch (e) {
+            // reset client class
+            if (Client.id) {
+                Client.id = undefined;
+            }
+            if (Client.connected) {
+                Client.connected = false;
+            }
+            if (Client.webSocket) {
+                Client.webSocket.close();
+            }
+            retryConnectionScreen();
+        } finally {
+            connectionEndTime = performance.now() - connectionStartTime;
+            if (debug) {
+                console.log(`Connection process took ${connectionEndTime / 1000} second(s)`);
+            }
+        }
+    };
+
+    Client.connect();
+    connectingScreen();
 }
 
 function connectingScreen() {
     clearUIPanel();
-    UILayer.push(new UIPanel(uiStartXPos, 0, 3*4, 3, ["textures/menu/connecting.png"]));
+
+    const connectingPrompt = new UIPanel(uiStartXPos, 0, 14, 3, ["textures/menu/connecting_bg.png"]); 
+    connectingPrompt.addText("Connecting...");
+    UILayer.push(
+        connectingPrompt
+    );
+
+    timeoutFunctionId = setInterval(timeoutFunction, waitTime);
+}
+
+function retryConnectionScreen() {
+    clearUIPanel();
+
+    const serverErrorTxt = new UIPanel(uiStartXPos, 0, 30, 3, [
+        "textures/menu/player_bg.png",
+    ]);
+    serverErrorTxt.addText("Unable to connect to server.", 0.75);
+    UILayer.push(serverErrorTxt);
+
+    const retryBtn = new UIPanel(uiStartXPos, -5, 3 * 4, 3, [
+        "textures/menu/connect_button_bg_0.png",
+        "textures/menu/connect_button_bg_1.png",
+    ]);
+    retryBtn.addText("Retry");
+    UILayer.push(retryBtn);
+    retryBtn.whenClicked = function () {
+        try {
+            connectToLobby();
+        } catch (e) {
+            retryConnectionScreen();
+        }
+    };
+    retryBtn.update = function () {
+        if (this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+    };
+
+    const returnBtn = new UIPanel(uiStartXPos, -10, 16, 3, [
+        "textures/menu/connect_button_bg_0.png",
+        "textures/menu/connect_button_bg_1.png",
+    ]);
+    returnBtn.addText("Back to Menu");
+    UILayer.push(returnBtn);
+    returnBtn.whenClicked = function () {
+        mainMenuScreen();
+    };
+    returnBtn.update = function () {
+        if (this.mouseHovering) {
+            this.textureIndex = 1;
+        } else {
+            this.textureIndex = 0;
+        }
+    };
 }
 
 function loadLobby() {
@@ -176,52 +291,80 @@ function loadLobby() {
         /*
             If freshly joining lobby.
         */
-        if(m.type == "set_id") {
+        if (m.type == "set_id") {
             const id = m.id;
             const stripHeight = 5;
-            const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
+            const playerStrip = new UIPanel(
+                uiStartXPos,
+                12 - stripHeight / 2 - (id - 1) * stripHeight,
+                stripHeight * 4,
+                stripHeight,
+                [`textures/menu/player_bg.png`],
+            );
+            playerStrip.addText(`Player ${id}`);
             let frameCounter = 0;
-            playerStrip.update = function() {
+            playerStrip.id = id;
+            playerStrip.update = function () {
                 frameCounter++;
                 const timePassed = frameCounter / updatesPerSecond;
-                if(timePassed % 2 == 0) {
+                if (timePassed % 2 == 0) {
                     //Every even second
-                    this.textureIndex = this.textureIndex ? 0 : 1;
+                    
+                    if (this.textContent !== ">You<") {
+                        playerStrip.removeText();
+                        playerStrip.addText(">You<");
+                    } else {
+                        playerStrip.removeText();
+                        playerStrip.addText(`Player ${this.id}`);
+                    }
+                    
                 }
-            }
+            };
 
             idToUIPanel.set(id, playerStrip);
             UILayer.unshift(playerStrip);
         }
 
-        if(m.type == "lobby_state") {
+        if (m.type == "lobby_state") {
             m.ids.forEach((id) => {
-                    const stripHeight = 5;
-                    const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`]);
-                    idToUIPanel.set(id, playerStrip);
-                    UILayer.unshift(playerStrip);
+                const stripHeight = 5;
+                const playerStrip = new UIPanel(
+                    uiStartXPos,
+                    12 - stripHeight / 2 - (id - 1) * stripHeight,
+                    stripHeight * 4,
+                    stripHeight,
+                    [`textures/menu/player_bg.png`],
+                );
+                playerStrip.addText(`Player ${id}`);
+                idToUIPanel.set(id, playerStrip);
+                UILayer.unshift(playerStrip);
             });
         }
 
         /* If other players join lobby. */
 
-        if(m.type == "lobby_update_player_connected") {
+        if (m.type == "lobby_update_player_connected") {
             const id = m.id;
             const stripHeight = 5;
-            const playerStrip = new UIPanel(uiStartXPos,12 - stripHeight/2 - (id - 1) * stripHeight, stripHeight * 4, stripHeight, [`textures/menu/player_${id}.png`, 'textures/menu/you.png']);
+            const playerStrip = new UIPanel(
+                uiStartXPos,
+                12 - stripHeight / 2 - (id - 1) * stripHeight,
+                stripHeight * 4,
+                stripHeight,
+                [`textures/menu/player_bg.png`, "textures/menu/you.png"],
+            );
+            playerStrip.addText(`Player ${id}`);
             idToUIPanel.set(id, playerStrip);
             UILayer.unshift(playerStrip);
         }
 
-        if(m.type == "lobby_update_player_disconnected") {
+        if (m.type == "lobby_update_player_disconnected") {
             console.log("player disconnected");
             removeUIPanel(idToUIPanel.get(m.id));
         }
 
         if(m.type == "initiate_load_track_1") {
-            Client.synchronizeServerTime().then(() => {
-                loadTrack(0);
-            });
+            loadTrack(0);
         }
         /*
         if(m.type == "lobby_update_player_connected") {
@@ -244,12 +387,17 @@ function loadLobby() {
         */
     };
 
-    const lobbyPlayerPanel = new UIPanel(uiStartXPos, 2, 20, 20, ["textures/menu/lobby_players_panel.png"]);
+    const lobbyPlayerPanel = new UIPanel(uiStartXPos, 2, 20, 20, [
+        "textures/menu/lobby_players_panel.png",
+    ]);
     // const beginButton = new UIPanel(5, -11, 3*4, 3, ["textures/menu/begin_button_0.png", "textures/menu/begin_button_1.png"]);
-    const beginButton = new UIPanel(uiStartXPos, -11, 3*4, 3, ["textures/menu/begin_button_bg_0.png", "textures/menu/begin_button_bg_1.png"]);
-    beginButton.addText("Begin", 40);
-    beginButton.update = function() {
-        if(this.mouseHovering) {
+    const beginButton = new UIPanel(uiStartXPos, -11, 3 * 4, 3, [
+        "textures/menu/begin_button_bg_0.png",
+        "textures/menu/begin_button_bg_1.png",
+    ]);
+    beginButton.addText("Begin", 0.7);
+    beginButton.update = function () {
+        if (this.mouseHovering) {
             this.textureIndex = 1;
         } else {
             this.textureIndex = 0;
@@ -258,23 +406,24 @@ function loadLobby() {
         if (currentGamepad.isPressed("A")) {
             beginButton.whenClicked();
         }
-    }
-    beginButton.whenClicked = function() {
-        if(Client.connected) {
+    };
+    beginButton.whenClicked = function () {
+        if (Client.connected) {
             beginButton.removeText();
-            Client.webSocket.send(JSON.stringify({
-                type:"relay_all",
-                relay:{
-                    type:"initiate_load_track_1"
-                }
-            }));
+            Client.webSocket.send(
+                JSON.stringify({
+                    type: "relay_all",
+                    relay: {
+                        type: "initiate_load_track_1",
+                    },
+                }),
+            );
         }
-    }
+    };
 
     UILayer.push(beginButton);
     UILayer.push(lobbyPlayerPanel);
 }
-
 
 document.addEventListener("click", function () {
     audio.audioContext.resume().then(() => {
