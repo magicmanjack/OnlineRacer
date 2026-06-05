@@ -15,6 +15,7 @@ const debugOptions = {
     displayUpdatesPerSecond : false,
     displayFramesPerSecond: false,
     displayMeshInfo: false,
+    displayTextureInfo:false,
     reportCollisionType: false,
     displayNumberOfCollidables: false,
     displayKeyPresses: false,

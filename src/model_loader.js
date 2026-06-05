@@ -38,7 +38,9 @@ loadTextureAsync = (textureName) => {
     /*
         Texture filtering currently set min and mag to nearest pixel.
     */
-
+    if(debug && debugOptions.displayTextureInfo) {
+        console.log(`loading texture from ${textureName}`);
+    }
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = textureName;
