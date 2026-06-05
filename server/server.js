@@ -278,6 +278,11 @@ function onPlayerMessage(event) {
 
             sendAllOthers(msg.relay, this);
             break;
+
+        case "relay_to_id": {
+            //Relays message to the player with the provided id
+            getSocketFromId(msg.destinationId).send(JSON.stringify(msg.relay));
+        }
         
         case "time_sync":
             if(logging) {
