@@ -62,6 +62,7 @@ loadTextureAsync = (textureName) => {
             gl.generateMipmap(gl.TEXTURE_2D);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            
         } else {
             //Cannot use mipmapping and can only use clamp to edge and nearest or linear filtering.
 
