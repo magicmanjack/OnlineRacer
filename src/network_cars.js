@@ -81,8 +81,8 @@ function initRaceNetworking() {
                     }
 
                     //Add spark particle generators to wings
-                    g1 = new ParticleGenerator("/textures/default.png");
-                    g2 = new ParticleGenerator("/textures/default.png");
+                    g1 = new ParticleGenerator("textures/default.png");
+                    g2 = new ParticleGenerator("textures/default.png");
                     g1.maxParticles = 100;
                     g2.maxParticles = 100;
                     g1.emitAmount = 3;
