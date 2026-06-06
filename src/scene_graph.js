@@ -239,7 +239,14 @@ class SceneNode {
                         */
                         const mesh = model.meshes[child.node.meshes[0]]; 
                         const material = model.materials[mesh.materialindex];
-                        childSceneNode.mesh = new Mesh(mesh, material);
+                        childSceneNode.mesh = new Mesh();
+                        const meshDir = fileNames[0].substring(0, fileNames[0].lastIndexOf("/") + 1);
+                        //e.g. models/car/car.fbx becomes models/car/
+                        childSceneNode.mesh.meshDir = meshDir;
+                        childSceneNode.mesh.meshData = mesh;
+                        childSceneNode.mesh.materialData = material;
+                        childSceneNode.mesh.loadMeshData();
+                        childSceneNode.mesh.loadMaterialData();
                         childSceneNode.mesh.parent = childSceneNode;
                         
                     }

@@ -26,7 +26,7 @@ class Mesh {
 
     textCtx;
 
-    constructor(mesh, material, shader=Mesh.defaultShader) {
+    constructor(mesh=null, material=null, shader=Mesh.defaultShader) {
 
         if(!shader && !Mesh.defaultShader) {
             Mesh.defaultShader = createProgram("shaders/textured.vert", "shaders/textured.frag");
@@ -50,9 +50,16 @@ class Mesh {
         if(debug && debugOptions.displayMeshInfo) {
             console.log(`loading mesh ${mesh.name}`);
         }
-        this.name = mesh.name;
-        this.loadMeshData(mesh);
-        this.loadMaterialData(material);
+        
+        this.meshData = mesh;
+        this.materialData = material;
+
+        if(this.meshData != null) {
+            this.loadMeshData();
+        }
+        if(this.materialData != null) {
+            this.loadMaterialData();
+        }
 
         if (debug && debugOptions.seeObjectNames) {
             const canvas = document.createElement("canvas");
@@ -62,7 +69,7 @@ class Mesh {
         
     }
 
-    loadMeshData = (mesh) => {
+    loadMeshData = (mesh=this.meshData) => {
         /*
             TODO: need to fix loading files with multiple mesh declarations.
         */
@@ -71,6 +78,7 @@ class Mesh {
         //console.log(model.rootnode.children[0].transformation);
         //console.log(mat.getRotationVector(model.rootnode.children[0].transformation));
 
+        this.name = mesh.name;
         
         this.vertices = this.vertices.concat(mesh.vertices);
         
@@ -113,13 +121,13 @@ class Mesh {
 
     };
 
-    loadMaterialData = (material) => {
+    loadMaterialData = (material=this.materialData) => {
         let foundTextureName = false;
         for(let i = 0; i < material.properties.length; i++) {
             const p = material.properties[i];
             if(p.key == "$tex.file") {
                 foundTextureName = true;
-                loadTextureAsync(`./textures/${p.value}`).then((texture) => {
+                loadTextureAsync(`${this.meshDir?this.meshDir:""}${p.value}`).then((texture) => {
                     this.loaded = true;
                     this.texture = texture;
                 });
