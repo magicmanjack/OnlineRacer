@@ -899,9 +899,9 @@ function loadTrack(trackIndex) {
             });
         }
             //Add spark particle generators to wings
-        g1 = new ParticleGenerator("/textures/default.png");
-        g2 = new ParticleGenerator("/textures/default.png");
-        boosterEmitter = new ParticleGenerator("/textures/car/booster_2.png");
+        g1 = new ParticleGenerator("textures/default.png");
+        g2 = new ParticleGenerator("textures/default.png");
+        boosterEmitter = new ParticleGenerator("textures/car/booster_2.png");
         g1.maxParticles = 100;
         g2.maxParticles = 100;
         boosterEmitter.maxParticles = 100;
