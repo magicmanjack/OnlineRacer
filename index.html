@@ -47,6 +47,7 @@
 
         // Resize canvas when window size changes
         window.addEventListener('resize', resizeCanvas);
+        screen.orientation.addEventListener("change", resizeCanvas); // For mobile devices 
 
         // Update speedometer display
         const speedo = {
