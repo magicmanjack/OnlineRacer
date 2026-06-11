@@ -1,0 +1,29 @@
+@startuml OnlineRacer proposed connection Diagram
+skinparam style strictuml
+
+' participant mainMenu #white
+actor Player
+participant Client #LightBlue
+participant Server #LightGoldenRodYellow
+
+Player++
+Player -> Client : clicks "Play Online"
+
+Client -> Server : establish WebSocket connection
+Server -> Client: signals connection successful
+Client -> Server: send time synchronization request
+Server -> Client: send time synchronization response
+Client -> Server: signals with ""get_lobbies"" with a value of how many \n(LOBBIES_PER_PAGE)
+Server -> Client: responds with lobby names, ids, and\nhow many players in each
+Client -> Client: updates lobby screen
+Player -> Client: selects lobby to join
+Client -> Server: signals ""join_lobby"" to join with lobby id and username
+Server -> Server web
+Server -> Server: maps websocket connection to client id
+Server -> Server: 
+Server -> Client: signals ""lobby_join_successful"" and responds with client id
+Client -> Server: signals ""get_lobby_users""
+Server -> Client: signals ""lobby_users"" with data containing usernames of each player
+
+
+

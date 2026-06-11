@@ -11,9 +11,14 @@ body {
     font-weight: 400;
     font-style: normal;
 }
-
 #gameContainer {
-    position: relative;
+    position: relative   
+}
+#gameContainer * {
+    -webkit-user-select: none;  
+    -moz-user-select: none;
+    -ms-user-select: none;     
+    user-select: none;  
 }
 
 #c {
@@ -89,4 +94,34 @@ canvas:not(#c) {
 
 #ui-overlay {
     display: none;
+}
+
+#touch-screen-controls {
+    display: none;
+}
+
+#accelerate-break {
+    position:absolute;
+    display:flex;
+    bottom:10vh;
+    right:5vw;
+}
+
+#left-right {
+    position:absolute;
+    display:flex;
+    bottom:10vh;
+    left:5vw;
+}
+
+.virtual-button {
+    display:grid;
+    place-items:center;
+    font-size:40px;
+    width:100px;
+    aspect-ratio:1;
+    background-color:chartreuse;
+    border-radius:15px;
+    opacity:0.5;
+    text-align:center;
 }

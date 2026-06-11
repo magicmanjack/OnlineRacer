@@ -1,6 +1,5 @@
 /** Implements event queue for inputs */
 
-
 const input = {
     upBinding : "w",
     downBinding : "s",
@@ -193,5 +192,33 @@ c.addEventListener("mousemove", (event) => {
 c.addEventListener("click", (event) => {
     input.eventQueue.push(event);
 });
+
+//Check if mobile device and map touchstart and touchend events to key presses
+
+
+if(navigator.userAgentData?.mobile || /iPhone/i.test(navigator.userAgent)) {
+    const mappings = [
+     ["left-button", input.leftBinding],
+     ["right-button", input.rightBinding],
+     ["accelerate-button", input.upBinding],
+     ["brake-button", input.downBinding]
+    ]
+
+    for(const [elementID, binding] of mappings) {
+        const e = document.getElementById(elementID);
+        e.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            const c = new CustomEvent("keydown");
+            c.key = binding; 
+            document.dispatchEvent(c);
+        });
+        e.addEventListener("touchend", (event)=> {
+            event.preventDefault();
+            const c = new CustomEvent("keyup");
+            c.key = binding;
+            document.dispatchEvent(c);
+        })
+    }
+}
 
 

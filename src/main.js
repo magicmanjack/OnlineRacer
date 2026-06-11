@@ -149,9 +149,16 @@ function render() {
         if(toggleHUD) {
             const HUD = document.getElementById('ui-overlay');
             HUD.style.display = "block";
+            if(navigator.userAgentData?.mobile || /iPhone/i.test(navigator.userAgent)) {
+                // mobile device so enable touch screen controls
+                document.getElementById("touch-screen-controls").style.display = "block";
+            }
         } else {
             const HUD = document.getElementById('ui-overlay');
             HUD.style.display = "none";
+            if(navigator.userAgentData?.mobile || /iPhone/i.test(navigator.userAgent)) {
+               document.getElementById("touch-screen-controls").style.display = "none"; 
+            }
         }
         sceneGraph.renderScene();
 
