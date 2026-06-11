@@ -1,3 +1,4 @@
+"use strict"
 /** Implements event queue for inputs */
 
 const input = {
@@ -197,28 +198,60 @@ c.addEventListener("click", (event) => {
 
 
 if(navigator.userAgentData?.mobile || /iPhone/i.test(navigator.userAgent)) {
-    const mappings = [
-     ["left-button", input.leftBinding],
-     ["right-button", input.rightBinding],
-     ["accelerate-button", input.upBinding],
-     ["brake-button", input.downBinding]
-    ]
+    
+    function mapTouchToKeys(mappings) {
+        const touchCurrentBinding = new Map();
 
-    for(const [elementID, binding] of mappings) {
-        const e = document.getElementById(elementID);
-        e.addEventListener("touchstart", (event) => {
-            event.preventDefault();
-            const c = new CustomEvent("keydown");
-            c.key = binding; 
-            document.dispatchEvent(c);
-        });
-        e.addEventListener("touchend", (event)=> {
-            event.preventDefault();
-            const c = new CustomEvent("keyup");
-            c.key = binding;
-            document.dispatchEvent(c);
-        })
+        for(const [elementID, binding] of mappings) {
+            const e = document.getElementById(elementID);
+            e.onpointerdown = (event) => {
+                e.releasePointerCapture(event.pointerId); // This is so that events can still be triggered on other elements while moving finger
+                const c = new CustomEvent("keydown");
+                c.key = binding; 
+                document.dispatchEvent(c);
+                touchCurrentBinding.set(event.pointerId, binding);
+            };
+            e.onpointerup = (event)=> {
+                const c = new CustomEvent("keyup");
+                c.key = binding;
+                document.dispatchEvent(c);
+                touchCurrentBinding.set(event.pointerId, null);
+
+                event.stopPropagation();
+            }
+            document.addEventListener("pointerup", (event) => {
+                const currentBinding = touchCurrentBinding.get(event.pointerId);
+                if(currentBinding) {
+                    //Finger not touching any button but released
+                    const c = new CustomEvent("keyup"); // signal key release 
+                    c.key = currentBinding;
+                    document.dispatchEvent(c);
+                    touchCurrentBinding.set(event.pointerId, null);
+                }
+            });
+            e.onpointerenter = (event)=> {
+                const c = new CustomEvent("keydown"); // finger moved into element, signal key down
+                c.key = binding; 
+                document.dispatchEvent(c);
+
+                const currentBinding = touchCurrentBinding.get(event.pointerId);
+                if(currentBinding && currentBinding != binding) {
+                    const c = new CustomEvent("keyup"); // signal key release
+                    c.key = currentBinding;
+                    document.dispatchEvent(c); 
+                    touchCurrentBinding.set(event.pointerId, binding);
+                }
+
+            }
+        }        
     }
+
+    mapTouchToKeys([["accelerate-button", input.upBinding],
+     ["brake-button", input.downBinding]]);
+
+    mapTouchToKeys([["left-button", input.leftBinding],
+     ["right-button", input.rightBinding]]);
+
 }
 
 
