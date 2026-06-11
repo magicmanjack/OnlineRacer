@@ -1,3 +1,11 @@
+* {
+    touch-action:none;
+    -webkit-user-select: none;  
+    -moz-user-select: none;
+    -ms-user-select: none;     
+    user-select: none;  
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -13,13 +21,6 @@ body {
 }
 #gameContainer {
     position: relative   
-}
-#gameContainer * {
-    touch-action:none;
-    -webkit-user-select: none;  
-    -moz-user-select: none;
-    -ms-user-select: none;     
-    user-select: none;  
 }
 
 #c {
@@ -125,4 +126,14 @@ canvas:not(#c) {
     border-radius:15px;
     opacity:0.5;
     text-align:center;
+}
+
+#left-drift {
+    width:50px;
+    background-color:darkgoldenrod;
+}
+
+#right-drift {
+    width:50px;
+    background-color:darkgoldenrod;
 }
