@@ -91,7 +91,7 @@ function loadMenu() {
 
     //1st layer booster
     car.update = () => {
-        car.rotate(0, 0.025, 0);
+        car.rotate(0, 0.0125, 0);
         const booster1 = car.getChildByMesh("booster_1");
 
         if (booster1) {
@@ -127,7 +127,7 @@ function loadMenu() {
     background.translation = [propXLoc, carYLoc + 5, -80];
     background.scale = [2, 2, 2];
     background.update = () => {
-        const factor = 0.0625;
+        const factor = 0.03125;
         background.rotate(0.05 * factor, 0.025 * factor, 0.0125 * factor);
     };
 

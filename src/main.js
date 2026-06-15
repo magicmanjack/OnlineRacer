@@ -1,6 +1,6 @@
 "use strict";
 
-const PREFERRED_UPDATES_PER_SECOND = 30;
+const PREFERRED_UPDATES_PER_SECOND = 60;
 let updatesPerSecond = PREFERRED_UPDATES_PER_SECOND
 let msPerUpdate = 1000 / updatesPerSecond;
 

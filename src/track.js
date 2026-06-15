@@ -135,10 +135,17 @@ function loadTrack(trackIndex) {
     }
 
     function rotateSpeedFunction(x) {
-        return x >= 0
-            ? ((1.2 * x - 1.2) / (1 + Math.abs(1.2 * x - 1.2)) + 0.55) / 1.5
-            : (-1 * ((0.5 * -x - 5) / (1 + Math.abs(0.5 * -x - 5)) + 0.9)) /
-                  0.12222;
+        /* Function that scales the turn rate according to the speed.
+        Small speeds should have high turn rate.
+        Higher speeds should have a smaller turn rate (simulates a real car where if you
+        were to perform a sharp turn at high speeds, your car would lose traction.
+        */
+
+        const max = 1;
+        const min = 0.5;
+        const curveFactor = 0.8; // The higher the curve factor the faster the returned value converges to min.
+        const s = (max-min)*curveFactor**x + min;
+        return x > 0 ?  s : -0.5 * s; 
     }
 
     const boostSfxEle = audio.loadAudio("sounds/sfx_boost_new.mp3");
@@ -815,7 +822,7 @@ function loadTrack(trackIndex) {
                 */
             }
             boostTimer += 1;
-            if (boostTimer >= 60) {
+            if (boostTimer >= updatesPerSecond * 3 /* boost lasts for 3 seconds */) {
                 boostTimer = 0;
             }
         }
@@ -905,8 +912,8 @@ function loadTrack(trackIndex) {
         g1.maxParticles = 100;
         g2.maxParticles = 100;
         boosterEmitter.maxParticles = 100;
-        g1.emitAmount = 3;
-        g2.emitAmount = 3;
+        g1.emitAmount = 0.3;
+        g2.emitAmount = 0.3;
         boosterEmitter.emitAmount = 3;
         g1.enable = false;
         g2.enable = false;
@@ -930,13 +937,13 @@ function loadTrack(trackIndex) {
             const randStrength = 1.0;
             const randInfluence = [Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2, Math.random() * randStrength - randStrength/2]
             p.size = vec.scale(Math.random() * randStrength * 0.3 + 0.7, [2.5, 2.5]);
-            p.ttl = 60;
-            p.velocity = vec.scale(1/1.5, car.velocityVec);
+            p.ttl = updatesPerSecond * 1; // one second
+            p.velocity = vec.scale(1/2, car.velocityVec);
             p.velocity = vec.add(p.velocity, randInfluence);
 
             if(car.spinning) {
                 
-                const pushback = vec.rotate(vec.scale(15.0, vec3.backward), 0, carRotationY, 0);
+                const pushback = vec.rotate(vec.scale(20.0, vec3.backward), 0, carRotationY, 0);
                 p.velocity = vec.add(p.velocity, pushback);
             }
         }
@@ -945,6 +952,7 @@ function loadTrack(trackIndex) {
             p.size = vec.scale(0.95, p.size);
         }
         let boosterUpdate = (p) => {
+
             p.size = vec.scale(0.1, p.size);
             if(vec.magnitude(p.size) < 0.0001) {
                 p.ttl = 1;

@@ -160,13 +160,14 @@ class ParticleGenerator {
                     this.particles.push(p);
                 
                 }
-            } else {
+            } else if((this.emitAmount < 1 && Math.random() < this.emitAmount) || this.emitAmount >= 1) {
                 //Standard spawning
-                if(this.particles.length + this.emitAmount > this.maxParticles) {
+                if(this.particles.length + Math.ceil(this.emitAmount) > this.maxParticles) {
                     const nRemove = (this.particles.length + this.emitAmount) - this.maxParticles;
                     this.particles.splice(0, nRemove); 
                 }
                 for(let i = 0; i < this.emitAmount; i++) {
+                    
                     const p = {
                         position: this.emitterPosition,
                         velocity: [0, 0, 0],
@@ -177,6 +178,7 @@ class ParticleGenerator {
                         this.particleInit(p)
                     }
                     this.particles.push(p);
+                
                 }
             }
         }
