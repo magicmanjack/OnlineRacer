@@ -40,6 +40,7 @@ class SceneNode {
         this.fineGrainedCollisionInterval = 5.0;
 
         this.transparent = false;
+        
     }
 
     translate(tx, ty, tz) {
@@ -524,28 +525,31 @@ class SceneNode {
     }
 }
 
-const sceneGraph = {
-    root: new SceneNode(),
-    updateScene: function () {
-        this.root.updateChildren();
-    },
-    transparentMeshes: [],
-    renderScene: function () {
-        this.root.render();
-        //Now render transparent objects
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+function SceneGraph() {
+    this.root = new SceneNode();
+    this.updateScene = function() {
+        if(this.ready()) {
+            this.root.updateChildren();
+        }
+    }
+    this.transparentMeshes = [];
+    this.renderScene = function() {
+       if(this.ready()) {
+            this.root.render();
+            //Now render transparent objects
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.transparentMeshes.forEach((nodeMesh) => {
-            nodeMesh.render(Camera.main);
-        });
+            this.transparentMeshes.forEach((nodeMesh) => {
+                nodeMesh.render(Camera.main);
+            });
 
-        gl.disable(gl.BLEND);
+            gl.disable(gl.BLEND);
 
-        this.transparentMeshes = [];
-
-    },
-    reset: function() {
+            this.transparentMeshes = [];
+        } 
+    }
+    this.reset = function() {
         /*Clears the scene heirarchy and UI*/
         clearUIPanel();
         this.root = new SceneNode();
@@ -554,10 +558,10 @@ const sceneGraph = {
         SceneNode.collidables = [];
         this.resetID++; // This is use when there are still unresolved promises from before the reset.
         this.waitingOn = 0;
-    },
-    resetID:0,
-    waitingOn:0,
-    waitOnPromise: function(p) {
+    }
+    this.resetID = 0;
+    this.waitingOn = 0;
+    this.waitOnPromise = function(p) {
         this.waitingOn++;
         const originalResetID = this.resetID;
         this.resourceLoadingPromises.push(p);
@@ -567,18 +571,19 @@ const sceneGraph = {
                 this.waitingOn--;
             }
         });
-    },
-    resourceLoadingPromises:[],
-    afterLoaded: function(callback) {
+    }
+    this.resourceLoadingPromises = [];
+    this.afterLoaded = function(callback) {
         Promise.all(this.resourceLoadingPromises).then(() => {
             this.resourceLoadingPromises = [];
             callback()
-        });
-    },
-    ready: function() {
+        }); 
+    }
+    this.ready = function() {
         return this.waitingOn == 0;
-    },
-    preCalcMatrices: function(node=this.root) {
+    }
+
+    this.preCalcMatrices = function(node=this.root) {
         /* Calculates all the rotation matrices in the sceneGraph which
         should be done prior to the first update. Otherwise the matrices will
         only get calculated only once it is a nodes turn to update. */
@@ -596,5 +601,8 @@ const sceneGraph = {
         });
 
         node.children.forEach((child) => { this.preCalcMatrices(child)});
-    },
-};
+    }
+
+
+}
+let sceneGraph = new SceneGraph();

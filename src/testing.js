@@ -2,6 +2,32 @@
 
 let probe;
 
+function loadScreenTest() {
+    sceneGraph.reset();
+    const loadingScreen = new SceneGraph();
+    sceneGraph = loadingScreen;
+    const i = new SceneNode();
+    i.addMesh(["models/car/car.fbx"]);
+    i.update = () => {
+        i.rotate(0, 0, -0.1);
+    }
+    loadingScreen.root.addChild(i);
+    loadingScreen.afterLoaded(() => {
+        
+        const loadingGraph = new SceneGraph();
+
+        const o = new SceneNode();
+        loadingGraph.root.addChild(o);
+        o.addMesh(["models/maps/track1.fbx"]);
+        loadingGraph.afterLoaded(() => {
+            sceneGraph = loadingGraph;
+        });
+    })
+
+    Camera.main.translation = [0,0, 40];
+
+}
+
 function cameraSwitchTest() {
     Camera.main.translation = [0, 40, 0];
     sceneGraph.reset();
