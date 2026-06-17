@@ -2,30 +2,14 @@
 
 let probe;
 
-function loadScreenTest() {
+function textInputTest() {
     sceneGraph.reset();
-    const loadingScreen = new SceneGraph();
-    sceneGraph = loadingScreen;
-    const i = new SceneNode();
-    i.addMesh(["models/car/car.fbx"]);
-    i.update = () => {
-        i.rotate(0, 0, -0.1);
-    }
-    loadingScreen.root.addChild(i);
-    loadingScreen.afterLoaded(() => {
-        
-        const loadingGraph = new SceneGraph();
-
-        const o = new SceneNode();
-        loadingGraph.root.addChild(o);
-        o.addMesh(["models/maps/track1.fbx"]);
-        loadingGraph.afterLoaded(() => {
-            sceneGraph = loadingGraph;
-        });
-    })
-
-    Camera.main.translation = [0,0, 40];
-
+    const input = new UIPanel(0, 5, 10, 2, ["./textures/menu/connect_button_bg_0.png"])
+    const input1 = new UIPanel(0, 0, 10, 2, ["./textures/menu/connect_button_bg_0.png"])
+    input.addTextInput();
+    input1.addTextInput();
+    UILayer.push(input);
+    UILayer.push(input1);
 }
 
 function cameraSwitchTest() {

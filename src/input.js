@@ -2,6 +2,7 @@
 /** Implements event queue for inputs */
 
 const input = {
+    events:[], // Useful for if you want to provide custom functionality. Gets filled each update.
     upBinding : "w",
     downBinding : "s",
     leftBinding : "a",
@@ -48,12 +49,13 @@ const input = {
     },
     processTimeframeEvents : function(frameTimeStamp) {
         // Processes all events in the input event queue that occured before frameTimeStamp.
-        
+        this.events = [];
         for(let e = this.getTimeframeEvent(frameTimeStamp); e !== null; e = this.getTimeframeEvent(frameTimeStamp)) {
-            
+            this.events.push(e);
             if(e.type === "keydown") {
                 let k = e.key;
 
+                this
                 if(debug && debugOptions.displayKeyPresses) {
                     console.log(e.key);
                 }

@@ -196,14 +196,50 @@ class UIPanel {
         if(mx >= ll[0] && mx <= rl[0] && my <= lu[1] && my >= ll[1]) {
             this.mouseHovering = true;
             if(input.mouseClicked) {
+                if(this.textInput) {
+                    //If this is a input textbox
+                    
+                    this.textInputFocus = true;
+                }
                 //console.log("Button clicked!");
                 if(typeof this.whenClicked == "function") {
                     this.whenClicked();
                 }
-            }
+            } 
         } else {
+            if(input.mouseClicked) {
+                if(this.textInput) {
+                    this.textInputFocus = false;
+                }
+            }
             this.mouseHovering = false;
         }
+
+        if(this.textInputFocus && this.textInput) {
+            //Check input events for keyboard key input
+            input.events.forEach((e) => {
+                const alphabetical = /^[A-Za-z]$/;
+                if(e.type == "keydown") {
+                    //If a valid input character
+                    if( alphabetical.test(e.key)) {
+                        this.textContent += e.key;
+                    } else if (e.key == "Backspace") {
+                        
+                        this.textContent = this.textContent.slice(0, this.textContent.length - 1);
+                    }
+                }
+            })
+        }
+    }
+
+    addTextInput(size=0.95, font="jersey15, monospace", fillStyle="white") {
+        this.addText("", size, font, fillStyle);
+        this.textInput = true;
+    }
+
+    removeTextInput() {
+        removeText();
+        this.textInput = false;
     }
 
     addText(content, size=0.95, font="jersey15, monospace", fillStyle="white") {
