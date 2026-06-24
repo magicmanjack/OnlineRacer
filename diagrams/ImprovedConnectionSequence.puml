@@ -13,17 +13,54 @@ Client -> Server : establish WebSocket connection
 Server -> Client: signals connection successful
 Client -> Server: send time synchronization request
 Server -> Client: send time synchronization response
+note over Client: creates join lobby and create lobby button
+
+alt create lobby pressed
+Player -> Client: Enters lobby name
+Client -> Server: signals ""create_lobbie"" with lobby name
+note over Server
+- Creates new lobby object mapped to next available lobbyID.
+endnote
+Server -> Client: signals "lobby_created" with lobby id
+
+else join lobby pressed
+
 Client -> Server: signals with ""get_lobbies"" with a value of how many \n(LOBBIES_PER_PAGE)
 Server -> Client: responds with lobby names, ids, and\nhow many players in each
-Client -> Client: updates lobby screen
+note over Client: updates lobby screen
 Player -> Client: selects lobby to join
+end
+Player -> Client: Enters username
 Client -> Server: signals ""join_lobby"" to join with lobby id and username
-Server -> Server web
-Server -> Server: maps websocket connection to client id
-Server -> Server: 
-Server -> Client: signals ""lobby_join_successful"" and responds with client id
-Client -> Server: signals ""get_lobby_users""
+note over Server
+    - Gets lobby room object mapped to lobby id
+    - Inside the lobby object, maps websocket connection to client id.
+end note
+Server -> Client: signals ""lobby_join_successful"" with client id
+Client -> Server: signals ""get_lobby_users"" with lobby id
 Server -> Client: signals ""lobby_users"" with data containing usernames of each player
+Client -> Server: signals ""get_game_state"" with lobby id.
+Server -> Client: signals "game_state" with gameState
+
+alt gameState == "lobby_waiting"
+note over Client: Create begin button
+else gameState == "racing"
+note over Client: Create spectate button
+end
+    
+note over Client: Updates lobby screen with user data
+
+alt begin button pressed && gameState == "lobby_waiting"
+Client -> Server: signals with {lobby id, ""begin_race"", track number}
+note over Server: gets lobby object and sets gameState to ""racing"" and the trackNumber
+
+loop for each client in lobby
+Server -> Client: signals {""load_track"", track number}
+note over Client: loads track according to track number
+Client -> Server: signals ""load_finished"" with lobby id
+end
+end
+
 
 
 

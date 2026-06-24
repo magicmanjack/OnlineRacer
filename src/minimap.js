@@ -1,5 +1,7 @@
 const minimap = {
     mapping: mat.identity,
+    currentMeshNode:null,
+
     create: function(groundNode, minimapNode) {
 
         /*Firstly calculate the matrices required to
@@ -16,13 +18,13 @@ const minimap = {
 
         const boundingBox = Camera.main.getBoundingBox(minimapNode, project=false);
         
-        const desiredWidth = 8;
-        const desiredPosition = [20, -8];
+        const desiredWidth = 6;
+        const desiredPosition = [10, -2];
         //No need to choose height since we need to maintain aspect ratio
         const scaleFactor = desiredWidth / (boundingBox[1] - boundingBox[3]);
 
         minimapNode.world = mat.chain([
-            mat.translate(desiredPosition[0], desiredPosition[1], -Camera.main.zNear - 5.1),
+            mat.translate(desiredPosition[0], desiredPosition[1], -Camera.main.zNear - 0.2),
             mat.scale(scaleFactor, scaleFactor, 1),
             Camera.main.createView(),
             minimapNode.world]);
@@ -47,6 +49,16 @@ const minimap = {
 
         this.playerIcon = new UIPanel(center[0], center[1], 0.5, 0.5, ["textures/default.png"]);
         UILayer.push(this.playerIcon);
+
+        this.currentMeshNode = minimapNode;
+    },
+
+    destroy: function() {
+        if(this.currentMeshNode) {
+            this.currentMeshNode.remove();
+            this.currentMeshNode = null;
+        }
+        removeUIPanel(this.playerIcon);
     },
 
     updatePosition: function(playerNode) {

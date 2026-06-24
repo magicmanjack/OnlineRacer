@@ -1,4 +1,4 @@
-const uiStartXPos = 15;
+const uiStartXPos = 10;
 
 const waitTime = 1000;
 const connectionTimeoutTime = 5000;
@@ -142,16 +142,16 @@ function mainMenuScreen() {
     clearUIPanel();
 
     // Game Title
-    const gameTitleTxt = new UIPanel(0, 11, 30, 6, ["textures/menu/logo.png"]);
+    const gameTitleTxt = new UIPanel(0, 10, 30, 6, ["textures/menu/logo.png"]);
     gameTitleTxt.transparent = true;
     UILayer.push(gameTitleTxt);
 
     // Play Online button
-    const playOnlineBtn = new UIPanel(uiStartXPos, 3, 20, 6, [
+    const playOnlineBtn = new UIPanel(uiStartXPos, 2, 19.5, 4.5, [
         "textures/menu/connect_button_bg_0.png",
         "textures/menu/connect_button_bg_1.png",
     ]);
-    playOnlineBtn.addText("Play Online", 0.95);
+    playOnlineBtn.addText("Play Online");
     playOnlineBtn.whenClicked = function () {
         try {
             connectToLobby();
@@ -168,11 +168,11 @@ function mainMenuScreen() {
     };
     UILayer.push(playOnlineBtn);
 
-    const playOfflineBtn = new UIPanel(uiStartXPos, -6, 20, 6, [
+    const playOfflineBtn = new UIPanel(uiStartXPos, -5, 19.5, 4.5, [
         "textures/menu/offline_button_bg_0.png",
         "textures/menu/offline_button_bg_1.png",
     ]);
-    playOfflineBtn.addText("Play Offline", 0.95);
+    playOfflineBtn.addText("Play Offline");
     playOfflineBtn.whenClicked = function () {
         // TODO: Implement offline mode functionality
         loadTrack(0);
@@ -225,7 +225,7 @@ function connectingScreen() {
     clearUIPanel();
 
     const connectingPrompt = new UIPanel(uiStartXPos, 0, 14, 3, ["textures/menu/connecting_bg.png"]); 
-    connectingPrompt.addText("Connecting...");
+    connectingPrompt.addText("Connecting...", 2);
     UILayer.push(
         connectingPrompt
     );
@@ -395,7 +395,7 @@ function loadLobby() {
         "textures/menu/begin_button_bg_0.png",
         "textures/menu/begin_button_bg_1.png",
     ]);
-    beginButton.addText("Begin", 0.7);
+    beginButton.addText("Begin");
     beginButton.update = function () {
         if (this.mouseHovering) {
             this.textureIndex = 1;
