@@ -50,6 +50,7 @@ class UIPanel {
     mouseHovering = false;
     update;
     id = 1;
+    static #focused = [];
 
     loaded;
 
@@ -197,11 +198,8 @@ class UIPanel {
         if(mx >= ll[0] && mx <= rl[0] && my <= lu[1] && my >= ll[1]) {
             this.mouseHovering = true;
             if(input.mouseClicked) {
-                if(this.textInput) {
-                    //If this is a input textbox
-                    
-                    this.textInputFocus = true;
-                }
+                this.hasFocus = true;
+                UIPanel.#focused.push(this);
                 //console.log("Button clicked!");
                 if(typeof this.whenClicked == "function") {
                     this.whenClicked();
@@ -209,16 +207,14 @@ class UIPanel {
             } 
         } else {
             if(input.mouseClicked) {
-                if(this.textInput) {
-                    this.textInputFocus = false;
-                }
-
+                this.hasFocus = false;
+                UIPanel.#focused = UIPanel.#focused.filter(ui => ui != this); // Remove from focused list
                 this.whenLostFocus && typeof(this.whenLostFocus) === "function" && this.whenLostFocus();
             }
             this.mouseHovering = false;
         }
 
-        if(this.textInputFocus && this.textInput) {
+        if(this.hasFocus && this.textInput) {
             //Check input events for keyboard key input
 
             input.events.forEach((e) => {
@@ -341,6 +337,10 @@ class UIPanel {
                 this.textCtx.fillText(this.textContent, pixelX, pixelY);
             }
         }
+    }
+
+    static getFocused() {
+        return this.#focused;
     }
 
 }

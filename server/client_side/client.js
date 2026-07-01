@@ -7,8 +7,8 @@ class Client {
     //static wsUri = "ws://172.20.10.9:5174";
 
     //Use if hosting locally on LAN
-    //static wsUri = "ws://localhost:5174";
-    static wsUri = "ws://172.20.10.9:5174";
+    static wsUri = "ws://localhost:5174";
+    //static wsUri = "ws://172.20.10.9:5174";
    
 
     //Use if hosting on link local
@@ -153,6 +153,11 @@ class Client {
             console.log(`Client error: ${e.data}`);
         };
 
+    }
+
+    static send(message) {
+        // A wrapper function that makes it easier to send messages.
+        Client.webSocket.send(JSON.stringify(message));
     }
 
 

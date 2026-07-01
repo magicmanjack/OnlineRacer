@@ -25,8 +25,8 @@ Server -> Client: signals "lobby_created" with lobby id
 
 else join lobby pressed
 
-Client -> Server: signals with ""get_lobbies"" with a value of how many \n(LOBBIES_PER_PAGE)
-Server -> Client: responds with lobby names, ids, and\nhow many players in each
+Client -> Server: signals with ""get_lobby_listings""
+Server -> Client: responds with ""lobby_listings"" lobby names, ids, and\nhow many players in each
 note over Client: updates lobby screen
 Player -> Client: selects lobby to join
 end

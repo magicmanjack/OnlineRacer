@@ -1,0 +1,5 @@
+{
+    "tasks": {
+        "start-server": "deno run --allow-net --allow-read=. server/server_side/server2.js"
+    }
+}
