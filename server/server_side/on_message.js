@@ -14,6 +14,35 @@ export function clientWebSocketMessage(event) {
                 lobbyListings: server.getLobbyListings()
             })
             break;
+        case "join_lobby":
+            //Get lobby object
+            const lobby = server.lobbies.get(msg.lobbyID);
+            if(lobby) {
+                if(lobby.checkServerFull()) {
+                    sendBack({
+                        type: "lobby_join_unsuccessful",
+                        reason: "lobby_full"
+                    })
+                } else {
+                    if(lobby.checkUsernameAvailable(msg.username)) {
+                        //TODO enlist player in lobby
+                        sendBack({
+                            type: "lobby_join_successful"
+                        });
+                    } else {
+                        sendBack({
+                            type: "lobby_join_unsuccessful",
+                            reason: "username_taken"
+                        })
+                    }
+                }
+            } else {
+                sendBack({
+                    type: "lobby_join_unsuccessful",
+                    reason: "lobby_id_invalid"
+                })
+            }
+            break;
     }
 
 }

@@ -6,6 +6,10 @@ const LOBBIES_PER_PAGE = 10; // Only show 5 lobbies at a time
 
 function loadLobbies() {
 
+    clearUIPanel(); // Removes UI but keeps background
+
+    let selection; // Indicates which lobby listing that has been selected.
+
     function displayListings(lobbyListings) {
         //Called when lobby listing information is recieved
         const bgX = 0;
@@ -29,8 +33,9 @@ function loadLobbies() {
                 uiComponent.textureIndex = uiComponent.mouseHovering || uiComponent.hasFocus ? 1: 0;
             }
             uiComponent.whenClicked = () => {
+                selection = lobbyListings[i];
                 showJoinButton();
-                console.log(`Selection: ${i}`);
+                //console.log(`Selection: ${i}`);
             }
             UILayer.push(uiComponent);
         }
@@ -51,6 +56,10 @@ function loadLobbies() {
                     hideJoinButton(); // No lobby selected
                 }
             }
+            joinButton.whenClicked = () => {
+                //Need to show username prompt.
+                promptUsername();
+            };
             UILayer.push(joinButton);
         }
     }
@@ -59,6 +68,56 @@ function loadLobbies() {
             joinButtonShown = false;
             removeUIPanel(joinButton);
         }
+    }
+    
+    function promptUsername() {
+        clearUIPanel();
+        const text = new UIPanel(0, 6, 0, 3);
+        text.addText("Enter your username");
+        const usernameInput = new UIPanel(0, 0, 15, 3, ["./textures/menu/connect_button_bg_0.png", "./textures/menu/connect_button_bg_1.png"]);
+        usernameInput.addTextInput();
+        usernameInput.update = () => {
+            if(usernameInput.mouseHovering || usernameInput.hasFocus) {
+                usernameInput.textureIndex = 0;
+            } else {
+                usernameInput.textureIndex = 1;
+            }
+        }
+
+        const goButton = new UIPanel(0, -6, 12, 3, ["./textures/menu/begin_button_bg_0.png", "./textures/menu/begin_button_bg_1.png"])
+        goButton.update = () => {
+            if(goButton.mouseHovering) {
+                goButton.textureIndex = 1;
+            } else {
+                goButton.textureIndex = 0;
+            }
+        }
+        goButton.whenClicked = () => {
+            joinLobby(usernameInput.textContent);
+        }
+        goButton.addText("Join");
+        UILayer.push(text);
+        UILayer.push(usernameInput);
+        UILayer.push(goButton);
+    }
+
+    function joinLobby(username) {
+        clearUIPanel();
+        Client.send({
+            type:"join_lobby",
+            lobbyID: selection.lobbyID,
+            username: username
+        });
+        Client.onMessage = (e) => {
+            const msg = JSON.parse(e.data);
+
+            if(msg.type == "lobby_join_successful") {
+                console.log("joined lobby!");
+            } else if(msg.type == "lobby_join_unsuccessful") {
+                console.log("failed to join!");
+            }
+        }
+
     }
 
     if(Client.connected) {

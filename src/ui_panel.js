@@ -41,7 +41,7 @@ class UIPanel {
     textureCoordsLocation;
     textureCoordsBuffer;
     textureCoords = [];
-    textures = [];
+    textures;
     textureIndex;
 
     // callback function 
@@ -66,7 +66,7 @@ class UIPanel {
 
     jersey15font = new FontFace("jersey15", "url('https://fonts.gstatic.com/s/jersey15/v4/_6_9EDzuROGsUuk2TWjiZYAg.woff2')");
 
-    constructor(x, y, w, h, textures) {
+    constructor(x, y, w, h, textures=null) {
 
         this.x = x;
         this.y = y;
@@ -98,16 +98,22 @@ class UIPanel {
             1, 1
         ];
 
-        this.textures = new Array(textures.length);
         this.textureIndex = 0;
+        
+        if(textures && textures.length > 0) {
 
-        for(let i = 0; i < textures.length; i++) {
-            loadTextureAsync(textures[i]).then((texture) => {
-                if(i == textures.length - 1) {
-                    this.loaded = true;
-                }
-                this.textures[i] = texture;
-            });
+            this.textures = new Array(textures.length);
+
+            for(let i = 0; i < textures.length; i++) {
+                loadTextureAsync(textures[i]).then((texture) => {
+                    if(i == textures.length - 1) {
+                        this.loaded = true;
+                    }
+                    this.textures[i] = texture;
+                });
+            }
+        } else {
+            this.loaded = true;
         }
 
         //Create a vao that will store rendering state.
@@ -305,8 +311,12 @@ class UIPanel {
             let location = mat.transpose(mat.projection(cam.displayWidth, cam.displayHeight, cam.zNear, cam.zFar));
             gl.uniformMatrix4fv(this.projectionLocation, false, location);
             this.ext.bindVertexArrayOES(this.vao);
-            gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
+
+            if(this.textures) {
+                gl.bindTexture(gl.TEXTURE_2D, this.textures[this.textureIndex]);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vertices.length/3);
+            }
+
 
             if (this.textCtx !== undefined) {
                 // place the text at the correct position 

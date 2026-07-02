@@ -61,6 +61,8 @@ Client -> Server: signals ""load_finished"" with lobby id
 end
 end
 
+@enduml
+
 
 
 
